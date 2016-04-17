@@ -1,0 +1,15 @@
+body {
+	font-family: Arial;
+}
+div {
+	margin: 3px;
+	padding: 1px;
+}
+h1 {
+	font-size: 24px;
+	font-weight: bold;
+	color: #58c;
+}
+.subbody {
+	border: 1px solid #882;
+}
