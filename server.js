@@ -1,8 +1,11 @@
 /* server.js */
 
 var express = require("express");
+var cool = require("cool-ascii-faces");
 
 var server = express();
+
+server.set("port", 8989);
 
 // Static assets.
 server.use(express.static("www"));
@@ -32,7 +35,10 @@ server.get("/api", function (req, res) {
   ok({});
 });
 
-var port = 8989;
-server.listen(port, function () {
-  console.log("Listening on port " + port);
+server.get("/cool", function(req, res) {
+	res.send(cool());
+});
+
+server.listen(server.get("port"), function () {
+  console.log("Listening on port", server.get("port"));
 });
