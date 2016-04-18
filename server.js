@@ -5,7 +5,7 @@ var cool = require("cool-ascii-faces");
 
 var server = express();
 
-server.set("port", 8989);
+server.set("port", process.env.PORT || 8989);
 
 // Static assets.
 server.use(express.static("www"));
