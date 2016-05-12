@@ -1,19 +1,78 @@
 <html>
 <head>
-<title>hang fire</title>
-<link rel="stylesheet" type="text/css" href="css/styles.css">
+	<title>e-Companion Home Network</title>
+	<!-- secret: 0IykV9UNRPXzHJxHLDTjDWtP -->
+	<link rel="stylesheet" type="text/css" href="css/styles.css">
+	<script>
+	window.___gcfg = {
+		lang: "en-US",
+		parsetags: "explicit"
+	};
+	</script>
+	<script src="js/jquery-1.7.2.js"></script>
+	<script>
+	function initialize() {
+		gapi.load("auth2", function() {
+			var auth2 = gapi.auth2.init({
+				client_id: "1096296309193-hedth2cbhmdmtosu3lqsgc0iro9n23u1.apps.googleusercontent.com",
+				cookiepolicy: "single_host_origin"
+			});
+			auth2.isSignedIn.listen(listenSignedIn);
+			auth2.currentUser.listen(listenCurrentUser);
+		});
+	}
+
+	function listenSignedIn(signedIn) {
+		$("#signInButton").text(signedIn ? "" : "Sign in");
+		$("#signOutButton").text(signedIn ? "Sign out" : "");
+	}
+
+	function listenCurrentUser(googleUser) {
+		updateProfile(googleUser.getBasicProfile());
+	}
+
+	function updateProfile(profile) {
+		$("#profileInfo").text(profile ? ("You are: " + profile.getName()) : "");
+		$("#disconnectButton").text(profile ? ("Not " + profile.getName() + "?") : ""); 
+	}
+
+	function onError(error) {
+		console.log(error);
+	}
+
+	function disconnect() {
+		updateProfile();
+		if (gapi.auth2) {
+			var auth = gapi.auth2.getAuthInstance();
+			auth.disconnect();
+		}
+	}
+
+	function signIn() {
+		if (gapi.auth2) {
+			var auth = gapi.auth2.getAuthInstance();
+			if (!auth.isSignedIn.get()) {
+				auth.signIn();
+			}
+		}
+	}
+
+	function signOut() {
+		if (gapi.auth2) {
+			var auth = gapi.auth2.getAuthInstance();
+			if (auth.isSignedIn.get()) {
+				auth.signOut();
+			}
+		}
+	}
+	</script>
 </head>
 <body>
-<div id="content">
-<span>Please wait...</span>
-</div>
+<h1>e-Companion Home Network</h1>
+<div id="profileInfo"></div>
+<div id="disconnectButton" onclick="disconnect();"></div>
+<div id="signInButton" onclick="signIn();"></div>
+<div id="signOutButton" onclick="signOut();"></div>
 </body>
-<script src="https://apis.google.com/js/platform.js" ></script>
-<script type="text/javascript" src="js/jquery-1.7.2.js"></script>
-<script type="text/javascript" src="js/hangfire.js"></script>
-<script type="text/javascript">
-$(function() {
-	$("#content").HangFireUI();
-});
-</script>
+<script src="https://apis.google.com/js/platform.js?onload=initialize" async defer></script>
 </html>
