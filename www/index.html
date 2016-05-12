@@ -25,6 +25,12 @@
 	function listenSignedIn(signedIn) {
 		$("#signInButton").text(signedIn ? "" : "Sign in");
 		$("#signOutButton").text(signedIn ? "Sign out" : "");
+		if (signedIn) {
+			tryAppLogin();
+		}
+		else {
+			$("#content").empty();
+		}
 	}
 
 	function listenCurrentUser(googleUser) {
@@ -65,6 +71,25 @@
 			}
 		}
 	}
+
+	function tryAppLogin() {
+		if (gapi.auth2) {
+			var auth = gapi.auth2.getAuthInstance();
+			var googleUser = auth.currentUser.get();
+			if (googleUser) {
+				var profile = googleUser.getBasicProfile();
+				var googleId = profile.getId();
+				var name = profile.getName();
+				$.ajax({
+					url: "/u",
+					data: {
+						google_id: googleId,
+						name: name
+					}
+				});
+			}
+		}
+	}
 	</script>
 </head>
 <body>
@@ -73,6 +98,7 @@
 <div id="disconnectButton" onclick="disconnect();"></div>
 <div id="signInButton" onclick="signIn();"></div>
 <div id="signOutButton" onclick="signOut();"></div>
+<div id="content"></div>
 </body>
 <script src="https://apis.google.com/js/platform.js?onload=initialize" async defer></script>
 </html>
