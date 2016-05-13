@@ -97,6 +97,15 @@ function insertUser(googleId, name) {
 	});
 }
 
+function getUserContacts(id, limit) {
+	return query(function() {
+		return bind("SELECT (contact_name, contact_id) FROM user_contacts WHERE user_id=? LIMIT ?",
+			id, limit);
+	}, function(result) {
+		return result.rows;
+	});
+}
+
 function lookupUser(req) {
 	return new Promise(function(resolve, reject) {
     var name = req.query.name || "Anonymous";
@@ -106,7 +115,10 @@ function lookupUser(req) {
 		}
 		getUserByGoogleId(googleId).then(function(user) {
 			if (user) {
-				resolve(user);
+				getUserContacts(user.id, 12).then(function(contacts) {
+					user.contacts = contacts;
+					resolve(user);
+				}, reject);
 			}
 			else {
 				resolve(insertUser(googleId, name));

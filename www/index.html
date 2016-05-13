@@ -17,6 +17,10 @@
 				client_id: "1096296309193-hedth2cbhmdmtosu3lqsgc0iro9n23u1.apps.googleusercontent.com",
 				cookiepolicy: "single_host_origin"
 			});
+			if (!auth2.isSignedIn.get()) {
+				listenSignedIn(false);
+			}
+			listenCurrentUser(auth2.currentUser.get());
 			auth2.isSignedIn.listen(listenSignedIn);
 			auth2.currentUser.listen(listenCurrentUser);
 		});
@@ -86,7 +90,20 @@
 						google_id: googleId,
 						name: name
 					}
+				}).then(function(response) {
+					showUser(response.results);
 				});
+			}
+		}
+	}
+
+	function showUser(user) {
+		if (!user.contacts || !user.contacts.length) {
+			$("#content").text("You have no contacts yet.");
+		}
+		else {
+			for (var i = 0; i < user.contacts.length; ++i) {
+				$("#content").append($("<div>").text(user.contacts[i].contact_name));
 			}
 		}
 	}
