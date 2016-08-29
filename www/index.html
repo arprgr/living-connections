@@ -32,9 +32,6 @@
 		if (signedIn) {
 			tryAppLogin();
 		}
-		else {
-			$("#content").empty();
-		}
 	}
 
 	function listenCurrentUser(googleUser) {
@@ -98,15 +95,133 @@
 	}
 
 	function showUser(user) {
+    $("#content")
+      .append(showContactList(user))
+  }
+
+  function showContactList(user) {
+    var contactList = $("<div>");
 		if (!user.contacts || !user.contacts.length) {
-			$("#content").text("You have no contacts yet.");
+			contactList.text("You have no contacts yet.");
 		}
 		else {
 			for (var i = 0; i < user.contacts.length; ++i) {
-				$("#content").append($("<div>").text(user.contacts[i].contact_name));
+				contactList.append($("<div>").text(user.contacts[i].contact_name));
 			}
 		}
+    return contactList;
 	}
+
+  function showMediaRecorder() {
+    var MIME_PRIORITY_LIST = [
+      "video/webm, codecs=vp9",
+      "video/webm, codecs=vp8",
+      "video/webm"
+    ]
+    var TIME_CHUNK = 1000;
+    var BUFFER_LIMIT = 100;
+
+    var ui = $("<div>");
+    ui.append($("<div>").text("Media Recorder").css("font-style", "bold"));
+    var indicator = $("<div>").css("color", "red").text("initializing...");
+    ui.append(indicator);
+    var startButton = $("<button>").text("Start recording").hide();
+    var stopButton = $("<button>").text("Stop recording").hide();
+    ui.append($("<div>").append(startButton).append(stopButton));
+
+    var chunks = [];
+
+    function chooseMimeType() {
+      for (var i = 0; i < MIME_PRIORITY_LIST.length; ++i) {
+        var mimeType = MIME_PRIORITY_LIST[i];
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          return mimeType;
+        }
+      }
+    }
+
+    function initializeUserMedia(successFunc, failFunc) {
+      var n = navigator;
+      n.getUserMedia = n.getUserMedia || n.webkitGetUserMedia || n.mozGetUserMedia;
+      if (n.getUserMedia) {
+        var mimeType = chooseMimeType();
+        if (mimeType) {
+          n.getUserMedia({
+            audio: true,
+            video: true 
+          },
+          function(stream) {
+            successFunc(stream, mimeType);
+          },
+          failFunc);
+        }
+        else {
+          failFunc("Video encoding is not supported in your browser.");
+        }
+      }
+      else {
+        failFunc("Video recording is not supported in your browser.");
+      }
+    }
+
+    initializeUserMedia(function(stream, mimeType) {
+
+      var mediaRecorder = new MediaRecorder(stream, {
+        mimeType: mimeType
+      });
+
+      function showState() {
+        indicator.text(mediaRecorder.state);
+      }
+
+      function handleDataEvent(event) {
+        if (chunks.length == BUFFER_LIMIT) {
+          stopRecording();
+        }
+        else {
+          chunks.push(event.data);
+        }
+      }
+
+      function showVideo() {
+        var blob = new Blob(chunks, { type: mimeType });
+        var url = window.URL.createObjectURL(blob);
+        ui.append($("<div>").append($("<video>").attr("src", url)));
+      }
+
+      function startRecording() {
+        if (mediaRecorder.state == "inactive") {
+          mediaRecorder.ondataavailable = handleDataEvent;
+          mediaRecorder.start(TIME_CHUNK);
+          showState();
+        }
+      }
+
+      function stopRecording() {
+        if (mediaRecorder.state == "recording") {
+          mediaRecorder.ondataavailable = null;
+          mediaRecorder.stop();
+          showState();
+          showVideo();
+          chunks = [];
+        }
+      }
+
+      showState();
+
+      startButton.show().click(startRecording);
+      stopButton.show().click(stopRecording);
+    },
+    function(errmsg) {
+      ui.append($("<div>").text("oops -- " + errmsg));
+    });
+
+    return ui;
+  }
+
+  $(function() {
+    $("#content").append(showMediaRecorder());
+  });
 	</script>
 </head>
 <body>
