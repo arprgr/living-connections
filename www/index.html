@@ -1,236 +1,135 @@
 <html>
 <head>
-	<title>e-Companion Home Network</title>
-	<!-- secret: 0IykV9UNRPXzHJxHLDTjDWtP -->
+	<title>Event Polling Demo</title>
 	<link rel="stylesheet" type="text/css" href="css/styles.css">
-	<script>
-	window.___gcfg = {
-		lang: "en-US",
-		parsetags: "explicit"
-	};
-	</script>
 	<script src="js/jquery-1.7.2.js"></script>
 	<script>
-	function initialize() {
-		gapi.load("auth2", function() {
-			var auth2 = gapi.auth2.init({
-				client_id: "1096296309193-hedth2cbhmdmtosu3lqsgc0iro9n23u1.apps.googleusercontent.com",
-				cookiepolicy: "single_host_origin"
-			});
-			if (!auth2.isSignedIn.get()) {
-				listenSignedIn(false);
-			}
-			listenCurrentUser(auth2.currentUser.get());
-			auth2.isSignedIn.listen(listenSignedIn);
-			auth2.currentUser.listen(listenCurrentUser);
-		});
-	}
 
-	function listenSignedIn(signedIn) {
-		$("#signInButton").text(signedIn ? "" : "Sign in");
-		$("#signOutButton").text(signedIn ? "Sign out" : "");
-		if (signedIn) {
-			tryAppLogin();
-		}
-	}
+  var Notifications = (function() {
+    var topics = {};
 
-	function listenCurrentUser(googleUser) {
-		updateProfile(googleUser.getBasicProfile());
-	}
+    function topic(id) {
+      if (!topics[id]) {
+        var callbacks = jQuery.Callbacks();
+        topics[id] = {
+          publish: callbacks.fire,
+          subscribe: callbacks.add
+        };
+      }
+      return topics[id];
+    }
 
-	function updateProfile(profile) {
-		$("#profileInfo").text(profile ? ("You are: " + profile.getName()) : "");
-		$("#disconnectButton").text(profile ? ("Not " + profile.getName() + "?") : ""); 
-	}
+    return {
+      publish: function(notification) {
+        if (notification.type) {
+          topic(notification.type).publish(notification);
+        }
+        if (notification.channel) {
+          topic(notification.channel).publish(notification);
+        }
+      },
+      subscribe: function(channelOrType, handler) {
+        topic(channelOrType).subscribe(handler);
+      }
+    };
+  })();
 
-	function onError(error) {
-		console.log(error);
-	}
-
-	function disconnect() {
-		updateProfile();
-		if (gapi.auth2) {
-			var auth = gapi.auth2.getAuthInstance();
-			auth.disconnect();
-		}
-	}
-
-	function signIn() {
-		if (gapi.auth2) {
-			var auth = gapi.auth2.getAuthInstance();
-			if (!auth.isSignedIn.get()) {
-				auth.signIn();
-			}
-		}
-	}
-
-	function signOut() {
-		if (gapi.auth2) {
-			var auth = gapi.auth2.getAuthInstance();
-			if (auth.isSignedIn.get()) {
-				auth.signOut();
-			}
-		}
-	}
-
-	function tryAppLogin() {
-		if (gapi.auth2) {
-			var auth = gapi.auth2.getAuthInstance();
-			var googleUser = auth.currentUser.get();
-			if (googleUser) {
-				var profile = googleUser.getBasicProfile();
-				var googleId = profile.getId();
-				var name = profile.getName();
-				$.ajax({
-					url: "/u",
-					data: {
-						google_id: googleId,
-						name: name
-					}
-				}).then(function(response) {
-					showUser(response.results);
-				});
-			}
-		}
-	}
-
-	function showUser(user) {
-    $("#content")
-      .append(showContactList(user))
+  function notify(notification) {
+    Notifications.publish(notification);
+    $("#notifications_log").append($("<p>").text(notification.type));
   }
 
-  function showContactList(user) {
-    var contactList = $("<div>");
-		if (!user.contacts || !user.contacts.length) {
-			contactList.text("You have no contacts yet.");
-		}
-		else {
-			for (var i = 0; i < user.contacts.length; ++i) {
-				contactList.append($("<div>").text(user.contacts[i].contact_name));
-			}
-		}
-    return contactList;
-	}
+  function Service(options) {
+    $.extend(this, {
+      url: "/",
+      background: false,
+      timeout: 10000
+    }, options);
+  }
+  Service.prototype = {
+    call: function(data) {
+      // Keep a reference to the service.
+      var service = this;
 
-  function showMediaRecorder() {
-    var MIME_PRIORITY_LIST = [
-      "video/webm, codecs=vp9",
-      "video/webm, codecs=vp8",
-      "video/webm"
-    ]
-    var TIME_CHUNK = 1000;
-    var BUFFER_LIMIT = 100;
+      // Create a service call. jQuery Deferred provides most of the functionality we need.
+      var serviceCall = $.Deferred();
 
-    var ui = $("<div>");
-    ui.append($("<div>").text("Media Recorder").css("font-style", "bold"));
-    var indicator = $("<div>").css("color", "red").text("initializing...");
-    ui.append(indicator);
-    var startButton = $("<button>").text("Start recording").hide();
-    var stopButton = $("<button>").text("Stop recording").hide();
-    ui.append($("<div>").append(startButton).append(stopButton));
-
-    var chunks = [];
-
-    function chooseMimeType() {
-      for (var i = 0; i < MIME_PRIORITY_LIST.length; ++i) {
-        var mimeType = MIME_PRIORITY_LIST[i];
-        if (MediaRecorder.isTypeSupported(mimeType)) {
-          return mimeType;
+      // Call out to the server.
+      $.ajax($.extend({}, service, { data: data }))
+      .done(function(response) {
+        if (!serviceCall.cancelled) {
+          serviceCall.resolve(response);
         }
-      }
-    }
-
-    function initializeUserMedia(successFunc, failFunc) {
-      var n = navigator;
-      n.getUserMedia = n.getUserMedia || n.webkitGetUserMedia || n.mozGetUserMedia;
-      if (n.getUserMedia) {
-        var mimeType = chooseMimeType();
-        if (mimeType) {
-          n.getUserMedia({
-            audio: true,
-            video: true 
-          },
-          function(stream) {
-            successFunc(stream, mimeType);
-          },
-          failFunc);
+      })
+      .fail(function(err) {
+        console.log(err);
+        if (!serviceCall.cancelled && !service.background) {
+          notify({ type: "service_error", data: { error: err, service: service, serviceCall: serviceCall } });
+          serviceCall.reject(err);
         }
-        else {
-          failFunc("Video encoding is not supported in your browser.");
-        }
-      }
-      else {
-        failFunc("Video recording is not supported in your browser.");
-      }
-    }
-
-    initializeUserMedia(function(stream, mimeType) {
-
-      var mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType
       });
 
-      function showState() {
-        indicator.text(mediaRecorder.state);
+      // Add a cancel function to the service call.
+      serviceCall.cancel = function() {
+        serviceCall.cancelled = true;
       }
 
-      function handleDataEvent(event) {
-        if (chunks.length == BUFFER_LIMIT) {
-          stopRecording();
+      setTimeout(function() {
+        if (serviceCall.state == "pending" && !serviceCall.cancelled) {
+          serviceCall.cancelled = true;
+          notify({ type: "service_timeout", data: { service: service, serviceCall: serviceCall } });
         }
-        else {
-          chunks.push(event.data);
-        }
-      }
+      }, service.timeout);
 
-      function showVideo() {
-        var blob = new Blob(chunks, { type: mimeType });
-        var url = window.URL.createObjectURL(blob);
-        ui.append($("<div>").append($("<video>").attr("src", url)));
-      }
-
-      function startRecording() {
-        if (mediaRecorder.state == "inactive") {
-          mediaRecorder.ondataavailable = handleDataEvent;
-          mediaRecorder.start(TIME_CHUNK);
-          showState();
-        }
-      }
-
-      function stopRecording() {
-        if (mediaRecorder.state == "recording") {
-          mediaRecorder.ondataavailable = null;
-          mediaRecorder.stop();
-          showState();
-          showVideo();
-          chunks = [];
-        }
-      }
-
-      showState();
-
-      startButton.show().click(startRecording);
-      stopButton.show().click(stopRecording);
-    },
-    function(errmsg) {
-      ui.append($("<div>").text("oops -- " + errmsg));
-    });
-
-    return ui;
+      return serviceCall;
+    }
   }
 
+  var POLLING_PERIOD = 2000;
+  var pollingInterval;
+  var lastPollTime;
+  var notificationService = new Service({
+    url: "/n",
+    background: true
+  });
+
+  function poll() {
+    notificationService.call({
+      t: lastPollTime
+    })
+    .done(function(response) {
+      if (response.t) {
+        lastPollTime = response.t;
+      }
+      if (response.notifications) {
+        for (var i = 0; i < response.notifications.length; ++i) {
+          notify(response.notifications[i]);
+        }
+      }
+    });
+  }
+
+  var messageQueue = [];
+
+  function registerModules() {
+    Notifications.subscribe("xyz", function() {
+      $("#message_box").text("Yes!");
+    });
+  }
+
+	function startPolling() {
+    pollingInterval = setInterval(poll, POLLING_PERIOD);
+	}
+
   $(function() {
-    $("#content").append(showMediaRecorder());
+    registerModules();
+    startPolling();
   });
 	</script>
 </head>
 <body>
-<h1>e-Companion Home Network</h1>
-<div id="profileInfo"></div>
-<div id="disconnectButton" onclick="disconnect();"></div>
-<div id="signInButton" onclick="signIn();"></div>
-<div id="signOutButton" onclick="signOut();"></div>
-<div id="content"></div>
+<h1>Event polling demo</h1>
+<div id="message_box"></div>
+<div id="notifications_log"></div>
 </body>
-<script src="https://apis.google.com/js/platform.js?onload=initialize" async defer></script>
 </html>

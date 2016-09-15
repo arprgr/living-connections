@@ -146,6 +146,27 @@ server.get("/u", function (req, res) {
 	});
 });
 
+
+var TYPES = [ "alarm", "event", "warning", "xyz" ];
+
+// Get random notifications.
+server.get("/n", function(req, res) {
+  var notifications = [];
+  for (var n = Math.floor(roll(6) - 3); --n >= 0; ) {
+    notifications.push({ type: pickOne(TYPES) });
+  }
+  res.json({ notifications: notifications, t: new Date().getTime() });
+});
+
 server.listen(server.get("port"), function () {
   console.log("Listening on port", server.get("port"));
 });
+
+function pickOne(array) {
+  return array[roll(array.length)];
+}
+
+// Random integer in (0..n-1)
+function roll(n) {
+  return Math.floor(Math.random() * n);
+}
