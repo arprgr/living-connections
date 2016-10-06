@@ -1,135 +1,16 @@
 <html>
 <head>
-	<title>Event Polling Demo</title>
+	<title>WebRTC Demo</title>
 	<link rel="stylesheet" type="text/css" href="css/styles.css">
-	<script src="js/jquery-1.7.2.js"></script>
+	<script src="js/jquery-3.1.1.slim.min.js"></script>
+	<script src="js/webrtc-adapter.js"></script>
+	<script src="js/vid.js"></script>
 	<script>
-
-  var Notifications = (function() {
-    var topics = {};
-
-    function topic(id) {
-      if (!topics[id]) {
-        var callbacks = jQuery.Callbacks();
-        topics[id] = {
-          publish: callbacks.fire,
-          subscribe: callbacks.add
-        };
-      }
-      return topics[id];
-    }
-
-    return {
-      publish: function(notification) {
-        if (notification.type) {
-          topic(notification.type).publish(notification);
-        }
-        if (notification.channel) {
-          topic(notification.channel).publish(notification);
-        }
-      },
-      subscribe: function(channelOrType, handler) {
-        topic(channelOrType).subscribe(handler);
-      }
-    };
-  })();
-
-  function notify(notification) {
-    Notifications.publish(notification);
-    $("#notifications_log").append($("<p>").text(notification.type));
-  }
-
-  function Service(options) {
-    $.extend(this, {
-      url: "/",
-      background: false,
-      timeout: 10000
-    }, options);
-  }
-  Service.prototype = {
-    call: function(data) {
-      // Keep a reference to the service.
-      var service = this;
-
-      // Create a service call. jQuery Deferred provides most of the functionality we need.
-      var serviceCall = $.Deferred();
-
-      // Call out to the server.
-      $.ajax($.extend({}, service, { data: data }))
-      .done(function(response) {
-        if (!serviceCall.cancelled) {
-          serviceCall.resolve(response);
-        }
-      })
-      .fail(function(err) {
-        console.log(err);
-        if (!serviceCall.cancelled && !service.background) {
-          notify({ type: "service_error", data: { error: err, service: service, serviceCall: serviceCall } });
-          serviceCall.reject(err);
-        }
-      });
-
-      // Add a cancel function to the service call.
-      serviceCall.cancel = function() {
-        serviceCall.cancelled = true;
-      }
-
-      setTimeout(function() {
-        if (serviceCall.state == "pending" && !serviceCall.cancelled) {
-          serviceCall.cancelled = true;
-          notify({ type: "service_timeout", data: { service: service, serviceCall: serviceCall } });
-        }
-      }, service.timeout);
-
-      return serviceCall;
-    }
-  }
-
-  var POLLING_PERIOD = 2000;
-  var pollingInterval;
-  var lastPollTime;
-  var notificationService = new Service({
-    url: "/n",
-    background: true
-  });
-
-  function poll() {
-    notificationService.call({
-      t: lastPollTime
-    })
-    .done(function(response) {
-      if (response.t) {
-        lastPollTime = response.t;
-      }
-      if (response.notifications) {
-        for (var i = 0; i < response.notifications.length; ++i) {
-          notify(response.notifications[i]);
-        }
-      }
-    });
-  }
-
-  var messageQueue = [];
-
-  function registerModules() {
-    Notifications.subscribe("xyz", function() {
-      $("#message_box").text("Yes!");
-    });
-  }
-
-	function startPolling() {
-    pollingInterval = setInterval(poll, POLLING_PERIOD);
-	}
-
   $(function() {
-    registerModules();
-    startPolling();
+    vid.init();
   });
 	</script>
 </head>
 <body>
-<h1>Event polling demo</h1>
-<div id="message_box"></div>
-<div id="notifications_log"></div>
 </body>
 </html>
