@@ -1,7 +1,7 @@
 //=============================================================================
 // vid.js
 
-define("js/vid", function() {
+define("vid", function() {
 
   function init() {
 
