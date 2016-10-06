@@ -2,16 +2,15 @@
 <head>
 <title>WebRTC Demo</title>
 <link rel="stylesheet" type="text/css" href="css/styles.css">
-<script src="js/jquery-3.1.1.slim.min.js"></script>
 <script src="js/webrtc-adapter.js"></script>
 <script>
 var require = {
   baseUrl: "/js",
+  paths: {
+    "jquery": "jquery-3.1.1.slim.min"
+  },
   deps: [ "vid" ],
-  bundles: {},
-  callback: function(app) {
-    app.start();
-  }
+  callback: function(app) { app(); }
 }
 </script>
 <script src="js/require.js"></script>
