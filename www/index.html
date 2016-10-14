@@ -9,6 +9,10 @@ var require = {
   paths: {
     "jquery": "jquery-3.1.1.slim.min"
   },
+  map: {
+    "*": { "jquery": "jquery-private" },
+    "jquery-private": { "jquery": "jquery" }
+  },
   deps: [ "vid" ],
   callback: function(app) { app(); }
 }
