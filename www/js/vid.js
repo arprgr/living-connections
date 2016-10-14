@@ -6,14 +6,34 @@ define([ "jquery", "utils" ], function($, u) {
     var startTime;
     var localVideo;
     var remoteVideo;
-
     var localStream;
     var pc1;
     var pc2;
-    var offerOptions = {
-      offerToReceiveAudio: 1,
-      offerToReceiveVideo: 1
-    };
+    var startEnabledFunc, callEnabledFunc, hangupEnabledFunc;
+
+    function onChangeStartEnabled(_startEnabledFunc) {
+      startEnabledFunc = _startEnabledFunc;
+    }
+
+    function onChangeCallEnabled(_callEnabledFunc) {
+      callEnabledFunc = _callEnabledFunc;
+    }
+
+    function onChangeHangupEnabled(_hangupEnabledFunc) {
+      hangupEnabledFunc = _hangupEnabledFunc;
+    }
+
+    function setStartEnabled(enabled) {
+      if (startEnabledFunc) startEnabledFunc(enabled);
+    }
+
+    function setCallEnabled(enabled) {
+      if (callEnabledFunc) callEnabledFunc(enabled);
+    }
+
+    function setHangupEnabled(enabled) {
+      if (hangupEnabledFunc) hangupEnabledFunc(enabled);
+    }
 
     function getName(pc) {
       return (pc === pc1) ? 'pc1' : 'pc2';
@@ -28,12 +48,18 @@ define([ "jquery", "utils" ], function($, u) {
       localVideo.srcObject = stream;
       // Add localStream to global scope so it's accessible from the browser console
       window.localStream = localStream = stream;
-      $("#callButton").attr("disabled", false);
+      setCallEnabled(true);
+    }
+
+    function init() {
+      setStartEnabled(true);
+      setCallEnabled(false);
+      setHangupEnabled(false);
     }
 
     function start() {
       u.trace('Requesting local stream');
-      $("#startButton").attr("disabled", true);
+      setStartEnabled(false);
       navigator.mediaDevices.getUserMedia({
         audio: false,
         video: true
@@ -45,8 +71,8 @@ define([ "jquery", "utils" ], function($, u) {
     }
 
     function call() {
-      $("#callButton").attr("disabled", true);
-      $("#hangupButton").attr("disabled", false);
+      setCallEnabled(false);
+      setHangupEnabled(true);
       u.trace('Starting call');
       startTime = window.performance.now();
       var videoTracks = localStream.getVideoTracks();
@@ -82,9 +108,10 @@ define([ "jquery", "utils" ], function($, u) {
       u.trace('Added local stream to pc1');
 
       u.trace('pc1 createOffer start');
-      pc1.createOffer(
-        offerOptions
-      ).then(
+      pc1.createOffer({
+        offerToReceiveAudio: 1,
+        offerToReceiveVideo: 1
+      }).then(
         onCreateOfferSuccess,
         onCreateSessionDescriptionError
       );
@@ -193,8 +220,8 @@ define([ "jquery", "utils" ], function($, u) {
       pc2.close();
       pc1 = null;
       pc2 = null;
-      $("#hangupButton").attr("disabled", true);
-      $("#callButton").attr("disabled", false);
+      setHangupEnabled(false);
+      setCallEnabled(true);
     }
 
     function setLocalVideo(_localVideo) {
@@ -230,6 +257,10 @@ define([ "jquery", "utils" ], function($, u) {
     return {
       setLocalVideo: setLocalVideo,
       setRemoteVideo: setRemoteVideo,
+      onChangeStartEnabled: onChangeStartEnabled,
+      onChangeCallEnabled: onChangeCallEnabled,
+      onChangeHangupEnabled: onChangeHangupEnabled,
+      init: init,
       start: start,
       call: call,
       hangup: hangup

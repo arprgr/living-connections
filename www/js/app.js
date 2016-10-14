@@ -18,6 +18,24 @@ define([ "jquery", "vid", "assertions" ], function($, vid) {
       vidController.hangup();
     }
 
+    var
+      startButton =
+        $("<button>").text("Start").click(start),
+      callButton =
+        $("<button>").text("Call").attr("disabled", true).click(call),
+      hangupButton =
+        $("<button>").text("Hang Up").attr("disabled", true).click(hangup);
+
+    vidController.onChangeStartEnabled(function(enabled) {
+      startButton.attr("disabled", !enabled);
+    });
+    vidController.onChangeCallEnabled(function(enabled) {
+      callButton.attr("disabled", !enabled);
+    });
+    vidController.onChangeHangupEnabled(function(enabled) {
+      hangupButton.attr("disabled", !enabled);
+    });
+
     $("body")
       .append($("<h1>").text("WebRTC demo"))
       .append($("<div>")
@@ -25,11 +43,12 @@ define([ "jquery", "vid", "assertions" ], function($, vid) {
       .append($("<div>")
         .html("<video id='remoteVideo' autoplay></video>"))
       .append($("<div>")
-        .append($("<button>").attr("id", "startButton").text("Start").click(start))
-        .append($("<button>").attr("id", "callButton").text("Call").attr("disabled", true).click(call))
-        .append($("<button>").attr("id", "hangupButton").text("Hang Up").attr("disabled", true).click(hangup)));
+        .append(startButton)
+        .append(callButton)
+        .append(hangupButton));
 
     vidController.setLocalVideo(document.getElementById('localVideo'));
     vidController.setRemoteVideo(document.getElementById('remoteVideo'));
+    vidController.init();
   }
 });
