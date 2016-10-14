@@ -1,6 +1,6 @@
 // vid.js
 
-define([ "jquery" ], function($) {
+define([ "jquery", "assertions" ], function($) {
 
   var startTime;
   var localVideo;
