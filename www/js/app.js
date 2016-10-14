@@ -1,20 +1,32 @@
 // app.js
 
-define([ "jquery", "assertions" ], function($) {
+define([ "jquery", "vid", "assertions" ], function($, vid) {
 
-  function start() {
-    alert('start');
-  }
+  function createApp(vidController) {
 
-  function call() {
-    alert('call');
-  }
+    var startButton = $("<button>")
+      .attr("id", "startButton")
+      .text("Start")
+      .click(function() { vidController.start() });
+    var callButton = $("<button>")
+      .attr("id", "callButton")
+      .text("Call")
+      .click(function() { vidController.call(); });
+    var hangupButton = $("<button>")
+      .attr("id", "hangupButton")
+      .text("Hang Up")
+      .click(function() { vidController.hangup(); });
 
-  function hangup() {
-    alert('hangup');
-  }
+    vidController.onChangeStartEnabled(function(startEnabled) {
+      startButton.attr("disabled", !startEnabled);
+    });
+    vidController.onChangeCallEnabled(function(callEnabled) {
+      callButton.attr("disabled", !callEnabled);
+    });
+    vidController.onChangeHangupEnabled(function(hangupEnabled) {
+      hangupButton.attr("disabled", !hangupEnabled);
+    });
 
-  return function() {
     $("body")
       .append($("<h1>").text("WebRTC test app"))
       .append($("<div>")
@@ -22,8 +34,16 @@ define([ "jquery", "assertions" ], function($) {
       .append($("<div>")
         .html("<video id='remoteVideo' autoplay></video>"))
       .append($("<div>")
-        .append($("<button>").attr("id", "startButton").text("Start").click(start))
-        .append($("<button>").attr("id", "callButton").text("Call").attr("disabled", true).click(call))
-        .append($("<button>").attr("id", "hangupButton").text("Hang Up").attr("disabled", true).click(hangup)));
+        .append(startButton)
+        .append(callButton)
+        .append(hangupButton));
+
+    vidController.setLocalVideo($("#localVideo"));
+    vidController.setRemoteVideo($("#remoteVideo"));
+    vidController.init();
+  }
+
+  return function() {
+    createApp(vid.newController());
   }
 });
