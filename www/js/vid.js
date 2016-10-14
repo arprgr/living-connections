@@ -1,6 +1,6 @@
 // vid.js
 
-define([ "jquery", "utils" ], function($, u) {
+define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
 
   function newController() {
     var startTime;
