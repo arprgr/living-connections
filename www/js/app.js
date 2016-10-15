@@ -4,37 +4,24 @@ define([ "jquery", "vid", "assertions" ], function($, vid) {
 
   return function() {
 
-    var vidController = vid.newController();
-
-    function start() {
-      vidController.start();
-    }
-
-    function call() {
-      vidController.call();
-    }
-
-    function hangup() {
-      vidController.hangup();
-    }
+    var localVideoController, remoteVideoController;
 
     var
-      startButton =
-        $("<button>").text("Start").click(start),
-      callButton =
-        $("<button>").text("Call").attr("disabled", true).click(call),
-      hangupButton =
-        $("<button>").text("Hang Up").attr("disabled", true).click(hangup);
-
-    vidController.onChangeStartEnabled(function(enabled) {
-      startButton.attr("disabled", !enabled);
-    });
-    vidController.onChangeCallEnabled(function(enabled) {
-      callButton.attr("disabled", !enabled);
-    });
-    vidController.onChangeHangupEnabled(function(enabled) {
-      hangupButton.attr("disabled", !enabled);
-    });
+      startButton = $("<button>")
+        .text("Start")
+        .click(function() {
+          localVideoController.start();
+        }),
+      callButton = $("<button>")
+        .text("Call")
+        .click(function() {
+          remoteVideoController.call();
+        }),
+      hangupButton = $("<button>")
+        .text("Hang Up")
+        .click(function() {
+          remoteVideoController.hangup();
+        });
 
     $("body")
       .append($("<h1>").text("WebRTC demo"))
@@ -47,8 +34,21 @@ define([ "jquery", "vid", "assertions" ], function($, vid) {
         .append(callButton)
         .append(hangupButton));
 
-    vidController.setLocalVideo(document.getElementById('localVideo'));
-    vidController.setRemoteVideo(document.getElementById('remoteVideo'));
-    vidController.init();
+    // jQuery seems unable to manufacture <video> elements.
+    var localVideoController = vid.newLocalVideoController(document.getElementById('localVideo'));
+    var remoteVideoController = vid.newRemoteVideoController(document.getElementById('remoteVideo'));
+
+    localVideoController.onChangeStartEnabled(function(enabled) {
+      startButton.attr("disabled", !enabled);
+    });
+    localVideoController.onChangeLocalStream(function(localStream) {
+      remoteVideoController.setSourceStream(localStream);
+    });
+    remoteVideoController.onChangeCallEnabled(function(enabled) {
+      callButton.attr("disabled", !enabled);
+    });
+    remoteVideoController.onChangeHangupEnabled(function(enabled) {
+      hangupButton.attr("disabled", !enabled);
+    });
   }
 });
