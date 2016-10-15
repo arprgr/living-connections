@@ -25,6 +25,24 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
   function newLocalVideoController(localVideo) {
     var startEnabled = new Bindable(true);
     var localStream = new Bindable();
+    var startError = new Bindable();
+
+    function gotStream(stream) {
+      localVideo.srcObject = stream;
+      localStream.setValue(stream);
+      var videoTracks = stream.getVideoTracks();
+      if (videoTracks.length > 0) {
+        u.trace('Using video device: ' + videoTracks[0].label);
+      }
+      var audioTracks = stream.getAudioTracks();
+      if (audioTracks.length > 0) {
+        u.trace('Using audio device: ' + audioTracks[0].label);
+      }
+    }
+
+    function gotError(error) {
+      startError.setValue(error);
+    }
 
     function start() {
       u.trace('Requesting local stream');
@@ -32,13 +50,9 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
       navigator.mediaDevices.getUserMedia({
         audio: false,
         video: true
-      }).then(function(stream) {
-        u.trace('Received local stream');
-        localVideo.srcObject = stream;
-        localStream.setValue(stream);
-      }).catch(function(e) {
-        alert('getUserMedia() error: ' + e.name);
-      });
+      })
+      .then(gotStream)
+      .catch(gotError);
     }
 
     localVideo.addEventListener('loadedmetadata', function() {
@@ -49,6 +63,7 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
     return {
       onChangeStartEnabled: startEnabled.getOnChangeFunc(),
       onChangeLocalStream: localStream.getOnChangeFunc(),
+      onChangeStartError: startError.getOnChangeFunc(),
       start: start
     }
   }
@@ -71,14 +86,6 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
       callEnabled.setValue(false);
       hangupEnabled.setValue(true);
       startTime = window.performance.now();
-      var videoTracks = sourceStream.getVideoTracks();
-      var audioTracks = sourceStream.getAudioTracks();
-      if (videoTracks.length > 0) {
-        u.trace('Using video device: ' + videoTracks[0].label);
-      }
-      if (audioTracks.length > 0) {
-        u.trace('Using audio device: ' + audioTracks[0].label);
-      }
       pc1 = new RTCPeerConnection(null);
       u.trace('Created local peer connection object pc1');
       pc1.onicecandidate = function(e) {
@@ -90,10 +97,14 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
         onIceCandidate(pc1, e);
       };
       pc1.oniceconnectionstatechange = function(event) {
-        u.trace("pc1 ICE state: " + pc1.iceConnectionState + " " + event.toString());
+        if (pc1) {
+          u.trace("pc1 ICE state: " + pc1.iceConnectionState + " " + event.toString());
+        }
       };
       pc2.oniceconnectionstatechange = function(e) {
-        u.trace("pc2 ICE state: " + pc2.iceConnectionState + " " + event.toString());
+        if (pc2) {
+          u.trace("pc2 ICE state: " + pc2.iceConnectionState + " " + event.toString());
+        }
       };
       pc2.onaddstream = function(event) {
         remoteVideo.srcObject = event.stream;
@@ -195,8 +206,8 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
       pc2.close();
       pc1 = null;
       pc2 = null;
-      setHangupEnabled(false);
-      setCallEnabled(!!sourceStream);
+      hangupEnabled.setValue(false);
+      callEnabled.setValue(!!sourceStream);
     }
 
     remoteVideo.addEventListener('loadedmetadata', function() {

@@ -38,10 +38,8 @@ define([ "jquery", "vid", "assertions" ], function($, vid) {
     var localVideoController = vid.newLocalVideoController(document.getElementById('localVideo'));
     var remoteVideoController = vid.newRemoteVideoController(document.getElementById('remoteVideo'));
 
-    localVideoController.onChangeStartEnabled(function(enabled) {
-      startButton.attr("disabled", !enabled);
-    });
     localVideoController.onChangeLocalStream(function(localStream) {
+      startButton.attr("disabled", !!localStream);
       remoteVideoController.setSourceStream(localStream);
     });
     remoteVideoController.onChangeCallEnabled(function(enabled) {
