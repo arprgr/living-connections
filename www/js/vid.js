@@ -1,26 +1,6 @@
 // vid.js
 
-define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
-
-  function Bindable(value) {
-    this.listeners = [];
-    this.value = value;
-  }
-  Bindable.prototype = {
-    setValue: function(value) {
-      this.value = value;
-      for (var i = 0; i < this.listeners.length; ++i) {
-        this.listeners[i](value);
-      }
-    },
-    getOnChangeFunc: function() {
-      var self = this;
-      return function(func) {
-        self.listeners.push(func);
-        func(self.value);
-      }
-    }
-  }
+define([ "jquery", "utils", "bindable", "webrtc-adapter" ], function($, u, Bindable) {
 
   function newLocalVideoController(localVideo) {
     var startEnabled = new Bindable(true);
@@ -29,7 +9,7 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
 
     function gotStream(stream) {
       localVideo.srcObject = stream;
-      localStream.setValue(stream);
+      localStream.set(stream);
       var videoTracks = stream.getVideoTracks();
       if (videoTracks.length > 0) {
         u.trace('Using video device: ' + videoTracks[0].label);
@@ -41,12 +21,12 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
     }
 
     function gotError(error) {
-      startError.setValue(error);
+      startError.set(error);
     }
 
     function start() {
       u.trace('Requesting local stream');
-      startEnabled.setValue(false);
+      startEnabled.set(false);
       navigator.mediaDevices.getUserMedia({
         audio: false,
         video: true
@@ -61,9 +41,9 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
     });
 
     return {
-      onChangeStartEnabled: startEnabled.getOnChangeFunc(),
-      onChangeLocalStream: localStream.getOnChangeFunc(),
-      onChangeStartError: startError.getOnChangeFunc(),
+      onChangeStartEnabled: startEnabled.onChangeFunc(),
+      onChangeLocalStream: localStream.onChangeFunc(),
+      onChangeStartError: startError.onChangeFunc(),
       start: start
     }
   }
@@ -77,14 +57,14 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
 
     function setSourceStream(_sourceStream) {
       sourceStream = _sourceStream;
-      callEnabled.setValue(!!sourceStream);
-      hangupEnabled.setValue(false);
+      callEnabled.set(!!sourceStream);
+      hangupEnabled.set(false);
     }
 
     function call() {
       u.trace('Starting call');
-      callEnabled.setValue(false);
-      hangupEnabled.setValue(true);
+      callEnabled.set(false);
+      hangupEnabled.set(true);
       startTime = window.performance.now();
       pc1 = new RTCPeerConnection(null);
       u.trace('Created local peer connection object pc1');
@@ -206,8 +186,8 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
       pc2.close();
       pc1 = null;
       pc2 = null;
-      hangupEnabled.setValue(false);
-      callEnabled.setValue(!!sourceStream);
+      hangupEnabled.set(false);
+      callEnabled.set(!!sourceStream);
     }
 
     remoteVideo.addEventListener('loadedmetadata', function() {
@@ -229,8 +209,8 @@ define([ "jquery", "utils", "webrtc-adapter" ], function($, u) {
 
     return {
       setSourceStream: setSourceStream,
-      onChangeCallEnabled: callEnabled.getOnChangeFunc(),
-      onChangeHangupEnabled: hangupEnabled.getOnChangeFunc(),
+      onChangeCallEnabled: callEnabled.onChangeFunc(),
+      onChangeHangupEnabled: hangupEnabled.onChangeFunc(),
       call: call,
       hangup: hangup
     }
