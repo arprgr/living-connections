@@ -11,12 +11,12 @@ define([ "jquery", "utils", "bindable", "webrtc-adapter" ], function($, u, Binda
       localVideo.srcObject = stream;
       localStream.set(stream);
       var videoTracks = stream.getVideoTracks();
-      if (videoTracks.length > 0) {
-        u.trace('Using video device: ' + videoTracks[0].label);
+      for (var i = 0; i < videoTracks.length; ++i) {
+        u.trace('Using video device: ' + videoTracks[i].label);
       }
       var audioTracks = stream.getAudioTracks();
-      if (audioTracks.length > 0) {
-        u.trace('Using audio device: ' + audioTracks[0].label);
+      for (var i = 0; i < audioTracks.length; ++i) {
+        u.trace('Using audio device: ' + audioTracks[i].label);
       }
     }
 
