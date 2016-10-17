@@ -1,6 +1,6 @@
 // app.js
 
-define([ "jquery", "vid", "assertions" ], function($, vid) {
+define([ "jquery", "utils", "vid", "assertions" ], function($, u, vid) {
 
   return function() {
 
@@ -23,6 +23,7 @@ define([ "jquery", "vid", "assertions" ], function($, vid) {
           remoteVideoController.hangup();
         });
 
+    // jQuery seems unable to manufacture <video> elements apart from letting .html do it.
     $("body")
       .append($("<h1>").text("WebRTC demo"))
       .append($("<div>")
@@ -34,9 +35,20 @@ define([ "jquery", "vid", "assertions" ], function($, vid) {
         .append(callButton)
         .append(hangupButton));
 
-    // jQuery seems unable to manufacture <video> elements.
-    var localVideoController = vid.newLocalVideoController(document.getElementById('localVideo'));
-    var remoteVideoController = vid.newRemoteVideoController(document.getElementById('remoteVideo'));
+    var localVideo = document.getElementById("localVideo");
+    var localVideoController = vid.newLocalVideoController(localVideo);
+    var remoteVideo = document.getElementById("remoteVideo");
+    var remoteVideoController = vid.newRemoteVideoController(remoteVideo);
+
+    localVideo.addEventListener('loadedmetadata', function() {
+      u.trace('Local video videoWidth: ' + this.videoWidth +
+        'px,  videoHeight: ' + this.videoHeight + 'px');
+    });
+
+    remoteVideo.addEventListener('loadedmetadata', function() {
+      u.trace('Remote video videoWidth: ' + this.videoWidth +
+        'px,  videoHeight: ' + this.videoHeight + 'px');
+    });
 
     localVideoController.onChangeLocalStream(function(localStream) {
       startButton.attr("disabled", !!localStream);

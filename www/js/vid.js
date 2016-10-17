@@ -35,11 +35,6 @@ define([ "jquery", "utils", "bindable", "webrtc-adapter" ], function($, u, Binda
       .catch(gotError);
     }
 
-    localVideo.addEventListener('loadedmetadata', function() {
-      u.trace('Local video videoWidth: ' + this.videoWidth +
-        'px,  videoHeight: ' + this.videoHeight + 'px');
-    });
-
     return {
       onChangeStartEnabled: startEnabled.onChangeFunc(),
       onChangeLocalStream: localStream.onChangeFunc(),
@@ -189,11 +184,6 @@ define([ "jquery", "utils", "bindable", "webrtc-adapter" ], function($, u, Binda
       hangupEnabled.set(false);
       callEnabled.set(!!sourceStream);
     }
-
-    remoteVideo.addEventListener('loadedmetadata', function() {
-      u.trace('Remote video videoWidth: ' + this.videoWidth +
-        'px,  videoHeight: ' + this.videoHeight + 'px');
-    });
 
     remoteVideo.onresize = function() {
       u.trace('Remote video size changed to ' +
