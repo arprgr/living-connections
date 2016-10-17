@@ -1,33 +1,41 @@
 // vid.js
 
-define([ "jquery", "utils", "bindable", "webrtc-adapter" ], function($, u, Bindable) {
+define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
 
-  function newLocalVideoController(localVideo) {
-    var startEnabled = new Bindable(true);
-    var localStream = new Bindable();
-    var startError = new Bindable();
+  function newLocalVideoController() {
+    var openEnabled = new Bindable(true);
+    var stream = new Bindable();
+    var openError = new Bindable();
 
-    function gotStream(stream) {
-      localVideo.srcObject = stream;
-      localStream.set(stream);
-      var videoTracks = stream.getVideoTracks();
-      for (var i = 0; i < videoTracks.length; ++i) {
-        u.trace('Using video device: ' + videoTracks[i].label);
+    function forEachTrack(func) {
+      if (stream.get()) {
+        var tracks = stream.get().getTracks();
+        for (var i = 0; i < tracks.length; ++i) {
+          func(tracks[i]);
+        }
       }
-      var audioTracks = stream.getAudioTracks();
-      for (var i = 0; i < audioTracks.length; ++i) {
-        u.trace('Using audio device: ' + audioTracks[i].label);
-      }
+    }
+
+    function dumpTracks() {
+      forEachTrack(function(track) {
+        u.trace("Track " + track.id + ": " + track.kind + ", " + track.label);
+      });
+    }
+
+    function gotStream(_stream) {
+      u.trace("localVideo.gotStream");
+      stream.set(_stream);
+      dumpTracks();
     }
 
     function gotError(error) {
-      startError.set(error);
+      openError.set(error);
     }
 
-    function start() {
-      u.trace('Requesting local stream');
-      startEnabled.set(false);
-      navigator.mediaDevices.getUserMedia({
+    function open() {
+      u.trace("localVideo.open");
+      openEnabled.set(false);
+      navigator.mediaDevices.getUserMedia({   // normalized by webrtc-adapter
         audio: false,
         video: true
       })
@@ -35,11 +43,21 @@ define([ "jquery", "utils", "bindable", "webrtc-adapter" ], function($, u, Binda
       .catch(gotError);
     }
 
+    function close() {
+      u.trace("localVideo.close");
+      forEachTrack(function(track) {
+        track.stop();
+      });
+      stream.set(null);
+      openEnabled.set(true);
+    }
+
     return {
-      onChangeStartEnabled: startEnabled.onChangeFunc(),
-      onChangeLocalStream: localStream.onChangeFunc(),
-      onChangeStartError: startError.onChangeFunc(),
-      start: start
+      onChangeOpenEnabled: openEnabled.onChangeFunc(),
+      onChangeStream: stream.onChangeFunc(),
+      onChangeOpenError: openError.onChangeFunc(),
+      open: open,
+      close: close
     }
   }
 

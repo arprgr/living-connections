@@ -7,10 +7,15 @@ define([ "jquery", "utils", "vid", "assertions" ], function($, u, vid) {
     var localVideoController, remoteVideoController;
 
     var
-      startButton = $("<button>")
-        .text("Start")
+      openButton = $("<button>")
+        .text("Open")
         .click(function() {
-          localVideoController.start();
+          localVideoController.open();
+        }),
+      closeButton = $("<button>")
+        .text("Close")
+        .click(function() {
+          localVideoController.close();
         }),
       callButton = $("<button>")
         .text("Call")
@@ -31,7 +36,8 @@ define([ "jquery", "utils", "vid", "assertions" ], function($, u, vid) {
       .append($("<div>")
         .html("<video id='remoteVideo' autoplay></video>"))
       .append($("<div>")
-        .append(startButton)
+        .append(openButton)
+        .append(closeButton)
         .append(callButton)
         .append(hangupButton));
 
@@ -50,9 +56,13 @@ define([ "jquery", "utils", "vid", "assertions" ], function($, u, vid) {
         'px,  videoHeight: ' + this.videoHeight + 'px');
     });
 
-    localVideoController.onChangeLocalStream(function(localStream) {
-      startButton.attr("disabled", !!localStream);
-      remoteVideoController.setSourceStream(localStream);
+    localVideoController.onChangeOpenEnabled(function(enabled) {
+      openButton.attr("disabled", !enabled);
+    });
+    localVideoController.onChangeStream(function(stream) {
+      remoteVideoController.setSourceStream(stream);
+      localVideo.srcObject = stream;
+      closeButton.attr("disabled", !stream);
     });
     remoteVideoController.onChangeCallEnabled(function(enabled) {
       callButton.attr("disabled", !enabled);
