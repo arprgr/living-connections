@@ -44,9 +44,9 @@ define([ "jquery", "utils", "vid", "assertions" ], function($, u, vid) {
         .html("<video id='remoteVideo' autoplay></video>"));
 
     var localVideo = document.getElementById("localVideo");
-    var localVideoController = vid.newLocalVideoController(localVideo);
+    var localVideoController = new vid.LocalVideoController(localVideo);
     var remoteVideo = document.getElementById("remoteVideo");
-    var remoteVideoController = vid.newRemoteVideoController(remoteVideo);
+    var remoteVideoController = new vid.RemoteVideoController(remoteVideo);
 
     localVideo.addEventListener('loadedmetadata', function() {
       u.trace('Local video videoWidth: ' + this.videoWidth +

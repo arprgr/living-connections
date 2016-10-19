@@ -2,7 +2,7 @@
 
 define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
 
-  function newLocalVideoController() {
+  function LocalVideoController() {
     var openEnabled = new Bindable(true);
     var stream = new Bindable();
     var openError = new Bindable();
@@ -52,16 +52,14 @@ define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
       openEnabled.set(true);
     }
 
-    return {
-      onChangeOpenEnabled: openEnabled.onChangeFunc(),
-      onChangeStream: stream.onChangeFunc(),
-      onChangeOpenError: openError.onChangeFunc(),
-      open: open,
-      close: close
-    }
+    this.onChangeOpenEnabled = openEnabled.onChangeFunc();
+    this.onChangeStream = stream.onChangeFunc();
+    this.onChangeOpenError = openError.onChangeFunc();
+    this.open = open;
+    this.close = close;
   }
 
-  function newPeerConnection(name, sourceStream) {
+  function PeerConnection(name, sourceStream) {
     var pc = new RTCPeerConnection(null);
     var stream = new Bindable();
     var peer;
@@ -149,18 +147,16 @@ define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
       peer = null;
     }
 
-    return {
-      onChangeStream: stream.onChangeFunc(),
-      setPeer: setPeer,
-      initiateHandshake: initiateHandshake,
-      reciprocateHandshake: reciprocateHandshake,
-      completeHandshake: completeHandshake,
-      receive: receive,
-      close: close
-    }
+    this.onChangeStream = stream.onChangeFunc();
+    this.setPeer = setPeer;
+    this.initiateHandshake = initiateHandshake;
+    this.reciprocateHandshake = reciprocateHandshake;
+    this.completeHandshake = completeHandshake;
+    this.receive = receive;
+    this.close = close;
   }
 
-  function newRemoteVideoController(remoteVideo) {
+  function RemoteVideoController(remoteVideo) {
     var sourceStream;
     var pc1, pc2;
     var callEnabled = new Bindable(false);
@@ -175,8 +171,8 @@ define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
     function call() {
       callEnabled.set(false);
       hangupEnabled.set(true);
-      pc1 = newPeerConnection("pc1", sourceStream);
-      pc2 = newPeerConnection("pc2");
+      pc1 = new PeerConnection("pc1", sourceStream);
+      pc2 = new PeerConnection("pc2");
       pc1.setPeer(pc2);
       pc2.setPeer(pc1);
       pc2.onChangeStream(function(stream) {
@@ -195,17 +191,15 @@ define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
       callEnabled.set(!!sourceStream);
     }
 
-    return {
-      setSourceStream: setSourceStream,
-      onChangeCallEnabled: callEnabled.onChangeFunc(),
-      onChangeHangupEnabled: hangupEnabled.onChangeFunc(),
-      call: call,
-      hangup: hangup
-    }
+    this.setSourceStream = setSourceStream;
+    this.onChangeCallEnabled = callEnabled.onChangeFunc();
+    this.onChangeHangupEnabled = hangupEnabled.onChangeFunc();
+    this.call = call;
+    this.hangup = hangup;
   }
 
   return {
-    newLocalVideoController: newLocalVideoController,
-    newRemoteVideoController: newRemoteVideoController
+    LocalVideoController: LocalVideoController,
+    RemoteVideoController: RemoteVideoController
   }
 });
