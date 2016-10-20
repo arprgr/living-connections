@@ -2,6 +2,9 @@
 
 define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
 
+  //
+  // Class LocalVideoController
+  //
   function LocalVideoController() {
     var openEnabled = new Bindable(true);
     var stream = new Bindable();
@@ -59,6 +62,9 @@ define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
     this.close = close;
   }
 
+  //
+  // Class PeerConnection (private)
+  //
   function PeerConnection(name, sourceStream) {
     var pc = new RTCPeerConnection(null);
     var stream = new Bindable();
@@ -115,7 +121,7 @@ define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
     }
 
     function setDescription(remote, desc) {
-      var fname = "set" + (remote ? "Remote" : "Local") + "Description";
+      var fname = "set%Description".replace(/%/, remote ? "Remote" : "Local");
       note(name + " " + fname, pc[fname](desc));
     }
 
@@ -156,6 +162,9 @@ define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
     this.close = close;
   }
 
+  //
+  // Class RemoteVideoController
+  //
   function RemoteVideoController(remoteVideo) {
     var sourceStream;
     var pc1, pc2;
@@ -198,6 +207,9 @@ define([ "utils", "bindable", "webrtc-adapter" ], function(u, Bindable) {
     this.hangup = hangup;
   }
 
+  //
+  // The module.
+  //
   return {
     LocalVideoController: LocalVideoController,
     RemoteVideoController: RemoteVideoController
