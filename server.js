@@ -1,172 +1,41 @@
 /* server.js */
 
-var express = require("express");
-var postgres = require("pg");
-var Promise = require("promise");
+var CONFIG = require("./config");
 
-var databaseUrl = process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/hangfire";
-console.log("Connecting to " + databaseUrl + "...");
-
-function replace(instr, token, replacementFunc) {
-	var outstr = "";
-	while (instr) {
-		var ix = instr.indexOf(token);
-		if (ix < 0) {
-			outstr += instr;
-			instr = null;
-		}
-		else {
-			outstr += instr.substring(0, ix);
-			outstr += replacementFunc();
-			instr = instr.substring(ix + 1);
-		}
-	}
-	return outstr;
-}
-
-function escapeArg(arg) {
-	if (arg == null) {
-		return "NULL";
-	}
-	else if (typeof arg == "string") {
-		return "'" + replace(arg, "'", "''") + "'";
-	}
-	else {
-		return arg.toString();
-	}
-}
-
-function bind(insql) {
-	var outsql = "";
-	var args = arguments;
-	var argIndex = 1;
-	return replace(insql, "?", function() {
-		return escapeArg(args[argIndex++]);
-	});
-}
-
-function query(sqlFunc, resultProcessor) {
-	return new Promise(function(resolve, reject) {
-		try {
-			var sql = sqlFunc();
-			console.log(sql);
-			postgres.connect(databaseUrl, function(err, client, done) {
-				if (err) {
-					reject(err);
-				}
-				else {
-					client.query(sql, function(err, result) {
-						done();
-						if (err) {
-							reject(err);
-						}
-						else if (!resultProcessor) {
-							resolve(result);
-						}
-						else if (typeof resultProcessor == "function") {
-							resolve(resultProcessor(result));
-						}
-						else {
-							resolve(resultProcessor);
-						}
-					});
-				}
-			});
-		}
-		catch (e) {
-			reject(e);
-		}
-	});
-	return promise;
-}
-
-function getUserByGoogleId(googleId) {
-	return query(function() {
-		return bind("SELECT * FROM users where google_id=?", googleId);
-	}, function(result) {
-		return result.rows && result.rows.length ? result.rows[0] : null;
-	});
-}
-
-function insertUser(googleId, name) {
-	return query(function() {
-		return bind("INSERT INTO users (google_id, name) VALUES (?, ?) RETURNING *", 
-			googleId, name);
-	}, function(result) {
-		return result.rows[0];
-	});
-}
-
-function getUserContacts(id, limit) {
-	return query(function() {
-		return bind("SELECT (contact_name, contact_id) FROM user_contacts WHERE user_id=? LIMIT ?",
-			id, limit);
-	}, function(result) {
-		return result.rows;
-	});
-}
-
-function lookupUser(req) {
-	return new Promise(function(resolve, reject) {
-    var name = req.query.name || "Anonymous";
-    var googleId = req.query.google_id;
-		if (!googleId) {
-			throw "required parameter missing";
-		}
-		getUserByGoogleId(googleId).then(function(user) {
-			if (user) {
-				getUserContacts(user.id, 12).then(function(contacts) {
-					user.contacts = contacts;
-					resolve(user);
-				}, reject);
-			}
-			else {
-				resolve(insertUser(googleId, name));
-			}
-		}, reject);
-	});
-}
-
-var server = express();
-
-server.set("port", process.env.PORT || 8989);
-
-// Static assets.
-server.use(express.static("www"));
-
-// Get user info.
-server.get("/u", function (req, res) {
-
-  console.log("request", { uri: "/api", query: req.query });
-
-	lookupUser(req).then(function(results) {
-    res.json({ status: "ok", results: results });
-	}, function(error) {
-    res.json({ status: "error", error: error });
-	});
-});
-
-
-var TYPES = [ "alarm", "event", "warning", "xyz" ];
-
-// Get random notifications.
-server.get("/n", function(req, res) {
-  var notifications = [];
-  for (var n = Math.floor(roll(6) - 3); --n >= 0; ) {
-    notifications.push({ type: pickOne(TYPES) });
+function newServer() {
+  var express = require("express");
+  var server = express();
+  for (var mkey in CONFIG.server.mounts) {
+    server.use(mkey, express.static(CONFIG.server.mounts[mkey]));
   }
-  res.json({ notifications: notifications, t: new Date().getTime() });
-});
-
-server.listen(server.get("port"), function () {
-  console.log("Listening on port", server.get("port"));
-});
-
-function pickOne(array) {
-  return array[roll(array.length)];
+  return server;
 }
 
-// Random integer in (0..n-1)
-function roll(n) {
-  return Math.floor(Math.random() * n);
+function sendApp(appKey, response) {
+  var apps = CONFIG.apps;
+  if (!(appKey in apps)) {
+    response.sendStatus(404);
+  }
+  else {
+    response.set("Content-Type", "text/html");
+    response.send(apps[appKey].generateHtml());
+  }
 }
+
+function handleAppPage(request, response) {
+  var appKey = request.query.app;
+  sendApp(appKey || CONFIG.defaultApp, response);
+}
+
+(function() {
+  var server = newServer();
+
+  var port = process.env.PORT || CONFIG.server.port;
+  server.set("port", port);
+
+  server.get("/pages", handleAppPage);
+
+  server.listen(port, function () {
+    console.log("Listening on port", port);
+  });
+})();

@@ -1,6 +1,6 @@
 // app.js
 
-define([ "jquery", "utils", "vid", "assertions" ], function($, u, vid) {
+define([ "jquery", "utils", "vid" ], function($, u, vid) {
 
   return function() {
 
@@ -32,7 +32,6 @@ define([ "jquery", "utils", "vid", "assertions" ], function($, u, vid) {
 
     // jQuery seems unable to manufacture <video> elements apart from letting .html do it.
     $("body")
-      .append($("<h1>").text("WebRTC demo"))
       .append($("<div>")
         .append(openButton)
         .append(closeButton)
