@@ -1,6 +1,7 @@
 /* server.js */
 
-var CONFIG = require("./config");
+const CONFIG = require("./config");
+const pug = require("pug");
 
 function newServer() {
   var express = require("express");
@@ -11,20 +12,18 @@ function newServer() {
   return server;
 }
 
-function sendApp(appKey, response) {
-  var apps = CONFIG.apps;
-  if (!(appKey in apps)) {
+var pageFunction = pug.compileFile("templates/page.pug", CONFIG.pug);
+
+function handlePage(request, response) {
+  var pages = CONFIG.pages;
+  var pageKey = request.params.page || CONFIG.defaultPage;
+  if (!(pageKey in pages)) {
     response.sendStatus(404);
   }
   else {
     response.set("Content-Type", "text/html");
-    response.send(apps[appKey].generateHtml());
+    response.send(pageFunction(pages[pageKey]));
   }
-}
-
-function handleAppPage(request, response) {
-  var appKey = request.query.app;
-  sendApp(appKey || CONFIG.defaultApp, response);
 }
 
 (function() {
@@ -33,7 +32,8 @@ function handleAppPage(request, response) {
   var port = process.env.PORT || CONFIG.server.port;
   server.set("port", port);
 
-  server.get("/pages", handleAppPage);
+  server.get("/", handlePage);
+  server.get("/pages/:page", handlePage);
 
   server.listen(port, function () {
     console.log("Listening on port", port);

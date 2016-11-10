@@ -1,33 +1,31 @@
 // config.js
 
-var App = require("./app");
-
 module.exports = {
-  apps: {
-    "webrtc": new App({
-      jqueryVersion: "3.1.1.slim.min",
+  pug: {
+    baseDir: "templates",
+    compileDebug: false,
+    debug: false,
+  },
+  pages: {
+    "webrtc": {
       title: "WebRTC demo",
       stylesheet: "css/styles.css",
-      main: "app"
-    }),
-    "angular": new App({
-      jqueryVersion: "3.1.1.slim.min",
-      title: "Angular demo",
-      stylesheet: "css/styles.css",
-      main: "angulardemo"
-    }),
-    "specs": new App({
-      jqueryVersion: "3.1.1.slim.min",
-      title: "Test Specs 1",
-      stylesheet: "mocha/mocha.css",
-      main: "specs"
-    })
+      mainModule: "app"
+    },
+    "livconn": {
+      title: "Living Connections",
+      stylesheet: "css/livconn.css",
+      mainModule: "livconn"
+    }
   },
-  defaultApp: "webrtc",
+  defaultPage: "livconn",
   server: {
     port: 4545,
     mounts: {
-      "/": "www",
+      "/assets": "assets",
+      "/css": "css",
+      "/js": "js",
+      "/js/lib": "lib",
       "/mocha": "./node_modules/grunt-blanket-mocha/node_modules/mocha",
       "/chai": "./node_modules/chai"
     }
