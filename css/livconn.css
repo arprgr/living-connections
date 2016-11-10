@@ -1,9 +1,29 @@
 body {
 	font-family: Arial;
-  background-color: #fee;
+  background-color: #e7a0ee;
 }
-div.logoScreen {
-  width: 100%;
-  height: 100%;
+div {
+  margin: 0;
+  padding: 0;
+}
+.startupScreen {
+  width: 430px;
+  height: 430px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -215px;
+  margin-top: -215px;
+}
+.startupScreen .logo {
+  width: 430px;
+  height: 380px;
   background: url(/assets/logo.png) center center no-repeat;
+}
+.startupScreen .spacer {
+  height: 10px;
+}
+.startupScreen .dots {
+  width: 100%;
+  height: 40px;
 }
