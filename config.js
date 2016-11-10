@@ -10,6 +10,12 @@ module.exports = {
       stylesheet: "css/styles.css",
       main: "app"
     }),
+    "angular": new App({
+      jqueryVersion: "3.1.1.slim.min",
+      title: "Angular demo",
+      stylesheet: "css/styles.css",
+      main: "angulardemo"
+    }),
     "specs": new App({
       jqueryVersion: "3.1.1.slim.min",
       title: "Test Specs 1",

@@ -9,12 +9,14 @@ App.prototype.generateHtml = function() {
   return '' +
     '<html>\n' +
     '<head>\n' +
+    '<meta charset="utf-8">\n' +
     '<link rel="stylesheet" type="text/css" href="' + appProps.stylesheet + '">\n' +
     '<title>' + appProps.title + '</title>\n' +
     '</head>\n' +
     '<body>\n' +
     '<h1>' + appProps.title + '</h1>\n' +
     '</body>\n' +
+    '<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>\n' +
     '<script>\n' +
     'var require = {\n' +
     '  baseUrl: "/js",\n' +
