@@ -3,29 +3,39 @@
 define([ "jquery" ], function($) {
 
   var NDOTS = 5;
-  var PLACEMENT_TIME = 750;
-  var FADE_TIME = 500;
+  var PERIOD = 750;
+  var TICK = 25;
+  var TICKS_PER_FADE = 1300 / TICK;
 
-  var ui;
+  var DOT = "dot";
+  var DOTS = "dots";
+  var STARTUP_SCREEN = "startupScreen";
+
+  function dotId(ix) {
+    return DOT + ix;
+  }
 
   function render() {
-    var dots = $("<div>").addClass("dots");
+
+    var dotsDiv = $("<div>").addClass(DOTS);
+
+    $("body").append($("<div>")
+      .addClass(STARTUP_SCREEN)
+      .append($("<div>").addClass("logo"))
+      .append(dotsDiv)
+    );
 
     for (var i = 0; i < NDOTS; ++i) {
-      dots.append($("<canvas>").attr("id", "dot" + i).css("width", 40).css("height", 30));
+      dotsDiv.append($("<canvas>").attr("id", dotId(i)).attr("width", 18).attr("height", 18).addClass(DOT));
     }
-
-    ui = $("<div>")
-      .addClass("startupScreen")
-      .append($("<div>").addClass("logo"))
-      .append($("<div>").css("height", 10))
-      .append(dots);
-
-    $("body").append(ui);
   }
 
   function erase() {
-    ui.remove();
+    $("." + STARTUP_SCREEN).remove();
+  }
+
+  function now() {
+    return new Date().getTime();
   }
 
   function drawCircle(canvasId, alpha) {
@@ -40,46 +50,58 @@ define([ "jquery" ], function($) {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.globalAlpha = alpha;
     context.beginPath();
-    context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+    context.arc(centerX, centerY, 5, 0, 2 * Math.PI, false);
     context.fillStyle = gradient;
     context.fill();
   }
 
-  var stopped = false;
+  function Animation() {
+    this.intervals = [];
+  }
+
+  function startNextAnimation(self) {
+    var ix = self.intervals.length;
+    var canvasId = dotId(ix);
+    var startTime = now();
+
+    function step() {
+      var elapsedTime = now() - startTime;
+      var frameIndex = (elapsedTime % (PERIOD * NDOTS)) / TICK;
+      var alpha = Math.max(0, (TICKS_PER_FADE - frameIndex) / TICKS_PER_FADE);
+      drawCircle(canvasId, alpha);
+    }
+
+    step();
+    self.intervals.push(setInterval(step, TICK));
+  }
 
   function startAnimation() {
-    stopped = false;
-
-    for (var i = 0; i < NDOTS; ++i) {
-      setTimeout((function(ix) {
-        var startTime;
-        var interval;
-        var canvasId = "dot" + ix;
-        return function() {
-          startTime = new Date().getTime();
-          interval = setInterval(function() {
-            if (stopped) {
-              clearInterval(interval);
-            }
-            else {
-              var frame = ((new Date().getTime() - startTime) % 2500) / 25;
-              var alpha = Math.max(0, (50 - frame) / 50);
-              drawCircle(canvasId, alpha);
-            }
-          }, 25);
-        };
-      })(i), (i + 1) * 750);
-    }
+    var self = this;
+    (function kickOffNext() {
+      if (self.intervals && self.intervals.length < NDOTS) {
+        startNextAnimation(self);
+        setTimeout(kickOffNext, PERIOD);
+      }
+    })();
   }
 
   function stopAnimation() {
-    stopped = true;
+    var self = this;
+    var intervals = self.intervals;
+    for (var i in intervals) {
+      clearInterval(intervals[i]);
+    }
+    self.intervals = null;
+  }
+
+  Animation.prototype = {
+    start: startAnimation,
+    stop: stopAnimation
   }
 
   return {
     render: render,
     erase: erase,
-    startAnimation: startAnimation,
-    stopAnimation: stopAnimation
+    Animation: Animation
   }
 });

@@ -8,11 +8,9 @@ define([ "jquery", "bootui", "bootproc" ], function($, bootui, bootproc) {
   }
 
   function startBootAnimation() {
-    bootui.startAnimation();
-  }
-
-  function stopBootAnimation() {
-    bootui.stopAnimation();
+    var bootAnimation = new bootui.Animation();
+    bootAnimation.start();
+    return bootAnimation;
   }
 
   function eraseBootUi() {
@@ -28,15 +26,16 @@ define([ "jquery", "bootui", "bootproc" ], function($, bootui, bootproc) {
   }
 
   function showApp() {
+    $("body").css("backgroundColor", "white");
   }
 
   // At module load time:
   renderBootUi();
 
   return function() {
-    startBootAnimation();
+    var bootAnimation = startBootAnimation();
     startBootProcess()
-      .done(stopBootAnimation)
+      .done(function() { bootAnimation.stop(); })
       .done(eraseBootUi)
       .done(showApp);
   }
