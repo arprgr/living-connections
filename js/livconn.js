@@ -7,26 +7,39 @@ define([ "jquery", "bootui", "bootproc" ], function($, bootui, bootproc) {
     bootui.render();
   }
 
+  function eraseBootUi() {
+    bootui.erase();
+  }
+
   function startBootAnimation() {
     var bootAnimation = new bootui.Animation();
     bootAnimation.start();
     return bootAnimation;
   }
 
-  function eraseBootUi() {
-    bootui.erase();
+  function startBootProcess() {
+    var bootProcess = new bootproc.BootProcess();
+    return bootProcess.start();
   }
 
-  function startBootProcess() {
-    var promise = $.Deferred();
-    setTimeout(function() {
-      promise.resolve({});
-    }, 15000);
-    return promise;
+  function showMessage(msg) {
+    $("body")
+      .css("backgroundColor", "white")
+      .append($("<div>").text(msg));
   }
 
   function showApp() {
-    $("body").css("backgroundColor", "white");
+    eraseBootUi();
+    showMessage("Started");
+  }
+
+  function formatError(e) {
+    return e.toString();
+  }
+
+  function showError(e) {
+    eraseBootUi();
+    showMessage(formatError(e));
   }
 
   // At module load time:
@@ -35,8 +48,8 @@ define([ "jquery", "bootui", "bootproc" ], function($, bootui, bootproc) {
   return function() {
     var bootAnimation = startBootAnimation();
     startBootProcess()
-      .done(function() { bootAnimation.stop(); })
-      .done(eraseBootUi)
-      .done(showApp);
+      .always(function() { bootAnimation.stop(); })
+      .done(showApp)
+      .catch(showError);
   }
 });
