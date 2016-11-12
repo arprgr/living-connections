@@ -1,7 +1,7 @@
 // livconn.js
 // Living Connections main module
 //
-define([ "jquery", "bootui", "bootproc" ], function($, bootui, bootproc) {
+define([ "jquery", "bootui", "bootproc", "error" ], function($, bootui, bootproc, error) {
 
   function renderBootUi() {
     bootui.render();
@@ -22,24 +22,24 @@ define([ "jquery", "bootui", "bootproc" ], function($, bootui, bootproc) {
     return bootProcess.start();
   }
 
-  function showMessage(msg) {
+  function renderError(e) {
+    return error.render(e);
+  }
+
+  function showMessage(html) {
     $("body")
       .css("backgroundColor", "white")
-      .append($("<div>").text(msg));
+      .append($("<div>").html(html));
   }
 
   function showApp() {
     eraseBootUi();
-    showMessage("Started");
-  }
-
-  function formatError(e) {
-    return e.toString();
+    showMessage("<p>Started</p>");
   }
 
   function showError(e) {
     eraseBootUi();
-    showMessage(formatError(e));
+    showMessage(error.render(e));
   }
 
   // At module load time:

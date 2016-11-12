@@ -1,6 +1,6 @@
 // bootproc.js
 
-define([ "jquery", "camera" ], function($, camera) {
+define([ "jquery", "media" ], function($, media) {
 
   var APP_NAME = "LivingConnections";
 
@@ -15,8 +15,8 @@ define([ "jquery", "camera" ], function($, camera) {
       self.promise.resolve({});
     }, 10000);
     try {
-      var cameraService = new camera.CameraService();
-      cameraService.init();
+      var mediaService = new media.MediaService();
+      mediaService.init();
     }
     catch (e) {
       clearTimeout(timeout);

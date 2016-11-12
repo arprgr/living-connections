@@ -1,18 +1,18 @@
-// camera.js
+// media.js
 
-define([ "jquery", "lib/webrtc-adapter" ], function($) {
+define([ "jquery", "error", "lib/webrtc-adapter" ], function($, error) {
 
-  var CAMERA_ERROR_BROWSER_INCAPABLE = "cameraErrorBrowserIncapable";
+  var MEDIA_ERROR_BROWSER_INCAPABLE = error.codes.MEDIA_ERROR_BROWSER_INCAPABLE;
 
   //
-  // Class CameraService
+  // Class MediaService
   //
-  function CameraService() {
+  function MediaService() {
   }
 
   function init() {
     if (!navigator.mediaDevices) {
-      throw new Error(CAMERA_ERROR_BROWSER_INCAPABLE);
+      throw new Error(MEDIA_ERROR_BROWSER_INCAPABLE);
     }
   }
 
@@ -63,7 +63,7 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
     self.stream = null;
   }
 
-  CameraService.prototype = {
+  MediaService.prototype = {
     init: init,
     open: open,
     close: close
@@ -73,6 +73,6 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
   // The module.
   //
   return {
-    CameraService: CameraService
+    MediaService: MediaService
   }
 });
