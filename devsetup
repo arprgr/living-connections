@@ -1,2 +1,4 @@
 export LIVCONN_HOME=$PWD
-alias sequelize=./node_modules/.bin/sequelize
+export PGPASSWORD=postgres
+alias sequelize="./node_modules/.bin/sequelize"
+alias psql="/usr/local/bin/psql -U postgres"
