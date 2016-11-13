@@ -11,7 +11,8 @@ module.exports = {
       level: {
         type: Sequelize.INTEGER
       },
-      description: {
+      name: {
+        allowNull: false,
         type: Sequelize.STRING
       },
       createdAt: {
