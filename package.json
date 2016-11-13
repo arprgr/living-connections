@@ -13,8 +13,10 @@
     "grunt-blanket-mocha": "^0.4.1",
     "mocha": "^2.4.5",
     "pg": "4.x",
-    "pug": "2.0.0-beta6",
     "promise": "^7.1.1",
+    "pug": "2.0.0-beta6",
+    "sequelize": "^3.25.0",
+    "sequelize-cli": "^2.4.0",
     "winston": "^2.2.0",
     "yargs": "^4.6.0"
   },

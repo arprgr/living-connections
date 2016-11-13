@@ -1,0 +1,2 @@
+export LIVCONN_HOME=$PWD
+alias sequelize=./node_modules/.bin/sequelize
