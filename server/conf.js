@@ -1,4 +1,4 @@
-// config.js
+// conf.js
 
 module.exports = {
   pug: {

@@ -1,8 +1,8 @@
 /* server.js */
 
-const CONFIG = require("./config");
+const CONFIG = require("./conf");
 const pug = require("pug");
-const models = require("./server/models/index");
+const models = require("./models/index");
 
 function installBodyParsers(server) {
   var bodyParser = require("body-parser");
