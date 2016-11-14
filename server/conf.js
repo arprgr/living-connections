@@ -22,10 +22,7 @@ module.exports = {
   server: {
     port: 4545,
     mounts: {
-      "/assets": "assets",
-      "/css": "css",
-      "/js": "js",
-      "/js/lib": "lib",
+      "/": "./client",
       "/mocha": "./node_modules/grunt-blanket-mocha/node_modules/mocha",
       "/chai": "./node_modules/chai"
     }
