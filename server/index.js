@@ -1,8 +1,9 @@
-/* server.js */
+/* index.js */
 
 const CONFIG = require("./conf");
 const pug = require("pug");
 const models = require("./models/index");
+const users = require("./routers/users");
 
 function installBodyParsers(server) {
   var bodyParser = require("body-parser");
@@ -42,42 +43,7 @@ function handlePage(request, response) {
 
   server.get("/", handlePage);
   server.get("/pages/:page", handlePage);
-
-  // User CRUD
-  server.post("/users", function(req, res) {   // create
-    models.User.create({
-      level: req.body.level,
-      name: req.body.name
-    }).then(function(user) {
-      res.json(user);
-    }).catch(function(error) {
-      res.json(error);
-    });
-  });
-  server.get("/user/:id", function(req, res) {   // retrieve
-    models.User.find({
-      where: {
-        id: req.params.id
-      }
-    }).then(function(user) {
-      res.json(user);
-    });
-  });
-  server.put("/user/:id", function(req, res) {   // update
-    models.User.find({
-      where: {
-        id: req.params.id
-      }
-    }).then(function(user) {
-      if (user) {
-        user.updateAttributes({
-          level: req.body.level,
-          name: req.body.name
-        })
-        res.json(user);
-      }
-    });
-  });
+  server.use("/users", users);
 
   // EmailProfile CRUD
   server.post("/emailprofiles", function(req, res) {   // create
@@ -106,15 +72,6 @@ function handlePage(request, response) {
       res.json(emails);
     });
   });
-  server.get("/user/:user_id/emailprofile", function(req, res) {   // retrieve (by user_id)
-    models.EmailProfile.findAll({
-      where: {
-        UserId: req.params.user_id
-      }
-    }).then(function(assets) {
-      res.json(assets);
-    });
-  });
 
   // Session CRUD
   server.post("/sessions", function(req, res) {   // create
@@ -131,17 +88,6 @@ function handlePage(request, response) {
     models.Session.find({
       where: {
         externalId: req.params.external_id
-      }
-    }).then(function(sessions) {
-      res.json(sessions);
-    }).catch(function(error) {
-      res.json(error);
-    });
-  });
-  server.get("/user/:user_id/sessions", function(req, res) {   // retrieve (by user_id)
-    models.Session.findAll({
-      where: {
-        UserId: req.params.user_id
       }
     }).then(function(sessions) {
       res.json(sessions);
@@ -193,15 +139,6 @@ function handlePage(request, response) {
     models.Asset.find({
       where: {
         id: req.params.id
-      }
-    }).then(function(assets) {
-      res.json(assets);
-    });
-  });
-  server.get("/user/:user_id/assets", function(req, res) {   // retrieve (by user_id)
-    models.Asset.findAll({
-      where: {
-        UserId: req.params.user_id
       }
     }).then(function(assets) {
       res.json(assets);
