@@ -7,17 +7,16 @@ module.exports = {
 
     const promises = []
 
-console.log('well here we are 1');
     promises.push(queryInterface.insert(null, "Users", {
+      id: 0,
       name: "Admin",
       level: 0,
       createdAt: new Date(),
       updatedAt: new Date()
-    }, {}).then(function(user) {
-console.log('well here we are', user);
+    }, {}).then(function() {
       promises.push(queryInterface.insert(null, "EmailProfiles", {
         email: "admin@example.com",
-        //UserId: user.id,
+        UserId: 0,
         createdAt: new Date(),
         updatedAt: new Date()
       }, {}));
