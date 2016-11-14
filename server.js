@@ -79,6 +79,43 @@ function handlePage(request, response) {
     });
   });
 
+  // EmailProfile CRUD
+  server.post("/emailprofiles", function(req, res) {   // create
+    models.EmailProfile.create({
+      email: req.body.email,
+      UserId: req.body.user_id
+    }).then(function(asset) {
+      res.json(asset);
+    });
+  });
+  server.get("/emailprofile/:id", function(req, res) {   // retrieve (by id)
+    models.EmailProfile.find({
+      where: {
+        id: req.params.id
+      }
+    }).then(function(emails) {
+      res.json(emails);
+    });
+  });
+  server.get("/emailprofile/email/:email", function(req, res) {   // retrieve (by email)
+    models.EmailProfile.find({
+      where: {
+        email: req.params.email
+      }
+    }).then(function(emails) {
+      res.json(emails);
+    });
+  });
+  server.get("/user/:user_id/emailprofile", function(req, res) {   // retrieve (by user_id)
+    models.EmailProfile.findAll({
+      where: {
+        UserId: req.params.user_id
+      }
+    }).then(function(assets) {
+      res.json(assets);
+    });
+  });
+
   // Asset CRUD
   server.post("/assets", function(req, res) {   // create
     models.Asset.create({
