@@ -9,13 +9,23 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       key: {
+        allowNull: false,
         type: Sequelize.STRING
       },
       size: {
         type: Sequelize.INTEGER
       },
       mime: {
+        allowNull: false,
         type: Sequelize.STRING
+      },
+      UserId: {
+        allowNull: false,
+        type: Sequelize.INTEGER
+      },
+      StorageSystemId: {
+        allowNull: false,
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,
