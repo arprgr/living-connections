@@ -37,10 +37,6 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
     }
   }
 
-  function showTimeout(sessionManager) {
-    selectMessageBox().text("<p>Failed to initialize.  Refresh page to continue.</p>");
-  }
-
   function showError(e) {
     selectMessageBox().html(error.render(e));
   }
@@ -55,10 +51,7 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
         .done(function() {
           showApp(sessionManager);
         })
-        .fail(function() {
-          showTimeout(sessionManager);
-        })
-        .catch(showError);
-    }, 2000)
+        .fail(showError);
+    }, 1000)
   }
 });

@@ -1,6 +1,6 @@
 // session.js
 
-define([ "jquery" ], function($) {
+define([ "jquery", "error" ], function($, error) {
 
   // Manager is in one of the following states....
   var STATE_IDLE = 0;
@@ -9,7 +9,7 @@ define([ "jquery" ], function($) {
   var STATE_LOGGING_OUT = 3;
 
   var FETCH_INTERVAL = 5000;
-  var INIT_TIMEOUT = 15000;
+  var INIT_TIMEOUT = 10000;
 
   var COOKIE_NAME = "s";
 
@@ -133,7 +133,7 @@ define([ "jquery" ], function($) {
         setState(self, STATE_CONNECTING);
         var timeout = setTimeout(function() {
           self.initPromise = 0;
-          promise.reject(self);
+          promise.reject(new Error(error.codes.STARTUP_ERROR_TIMEOUT));
           listenerHandle.undo();
         }, INIT_TIMEOUT);
         var listenerHandle = self.addStateChangeListener(function() {
