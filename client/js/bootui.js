@@ -3,7 +3,7 @@
 define([ "jquery" ], function($) {
 
   // Animation constants.
-  const NDOTS = 5;
+  const NDOTS = 7;
   const DOT = "dot";
   const PERIOD = 750;
   const TICK = 25;

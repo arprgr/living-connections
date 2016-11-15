@@ -7,9 +7,9 @@ div {
   padding: 0;
 }
 .startupScreen {
-  width: 430px;
-  height: 420px;
   position: absolute;
+  width: 430px;
+  height: 500px;
   top: 0;
   bottom: 0;
   left: 0;
@@ -21,13 +21,6 @@ div {
   height: 380px;
   background: url(/assets/logo.png) center center no-repeat;
 }
-.startupScreen .dots {
-  width: 100%;
-  height: 40px;
-  margin-top: 5px;
-}
 .startupScreen .dot {
-  width: 30px;
-  height: 30px;
-  margin: 5px 28px;
+  margin: 5px 20px;
 }
