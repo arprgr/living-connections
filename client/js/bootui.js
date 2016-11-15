@@ -2,36 +2,21 @@
 
 define([ "jquery" ], function($) {
 
-  var NDOTS = 5;
-  var PERIOD = 750;
-  var TICK = 25;
-  var TICKS_PER_FADE = 1300 / TICK;
-
-  var DOT = "dot";
-  var DOTS = "dots";
-  var STARTUP_SCREEN = "startupScreen";
+  // Animation constants.
+  const NDOTS = 5;
+  const DOT = "dot";
+  const PERIOD = 750;
+  const TICK = 25;
+  const TICKS_PER_FADE = 1300 / TICK;
 
   function dotId(ix) {
     return DOT + ix;
   }
 
-  function render() {
-
-    var dotsDiv = $("<div>").addClass(DOTS);
-
-    $("body").append($("<div>")
-      .addClass(STARTUP_SCREEN)
-      .append($("<div>").addClass("logo"))
-      .append(dotsDiv)
-    );
-
+  function renderDots(container) {
     for (var i = 0; i < NDOTS; ++i) {
-      dotsDiv.append($("<canvas>").attr("id", dotId(i)).attr("width", 18).attr("height", 18).addClass(DOT));
+      $("<canvas>").attr("id", dotId(i)).attr("width", 18).attr("height", 18).addClass(DOT).appendTo(container);
     }
-  }
-
-  function erase() {
-    $("." + STARTUP_SCREEN).remove();
   }
 
   function now() {
@@ -55,7 +40,8 @@ define([ "jquery" ], function($) {
     context.fill();
   }
 
-  function Animation() {
+  function Animation(container) {
+    this.container = container;
     this.intervals = [];
   }
 
@@ -77,12 +63,14 @@ define([ "jquery" ], function($) {
 
   function startAnimation() {
     var self = this;
+    renderDots(self.container);
     (function kickOffNext() {
       if (self.intervals && self.intervals.length < NDOTS) {
         startNextAnimation(self);
         setTimeout(kickOffNext, PERIOD);
       }
     })();
+    return self;
   }
 
   function stopAnimation() {
@@ -92,6 +80,8 @@ define([ "jquery" ], function($) {
       clearInterval(intervals[i]);
     }
     self.intervals = null;
+    self.container.empty();
+    return self;
   }
 
   Animation.prototype = {
@@ -100,8 +90,6 @@ define([ "jquery" ], function($) {
   }
 
   return {
-    render: render,
-    erase: erase,
     Animation: Animation
   }
 });

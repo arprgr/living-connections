@@ -1,19 +1,14 @@
-// bootproc.js
+// sendmessage.js
+// UX manager for this piece.
 
 define([ "jquery", "media" ], function($, media) {
 
-  var APP_NAME = "LivingConnections";
-
-  function BootProcess() {
+  function Controller() {
     this.promise = $.Deferred();
   }
 
-  function start() {
+  function init() {
     var self = this;
-    var module = angular.module(APP_NAME, []);
-    var timeout = setTimeout(function() {
-      self.promise.resolve({});
-    }, 10000);
     try {
       var mediaService = new media.MediaService();
       mediaService.init();
@@ -25,11 +20,11 @@ define([ "jquery", "media" ], function($, media) {
     return self.promise;
   }
 
-  BootProcess.prototype = {
+  Controller.prototype = {
     start: start
   }
 
   return {
-    BootProcess: BootProcess
+    Controller: Controller
   }
 });

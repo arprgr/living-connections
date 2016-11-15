@@ -1,55 +1,64 @@
 // livconn.js
 // Living Connections main module
 //
-define([ "jquery", "bootui", "bootproc", "error" ], function($, bootui, bootproc, error) {
+define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, error) {
 
-  function renderBootUi() {
-    bootui.render();
+  function selectStartupScreen() {
+    return $(".startupScreen");
+  }
+
+  function selectDotsBox() {
+    return selectStartupScreen().find(".dots");
+  }
+
+  function selectMessageBox() {
+    return selectStartupScreen().find(".message");
   }
 
   function eraseBootUi() {
-    bootui.erase();
+    selectStartupScreen().empty();
   }
 
   function startBootAnimation() {
-    var bootAnimation = new bootui.Animation();
-    bootAnimation.start();
-    return bootAnimation;
+    return new bootui.Animation(selectDotsBox()).start();
   }
 
-  function startBootProcess() {
-    var bootProcess = new bootproc.BootProcess();
-    return bootProcess.start();
+  function showLogin(sessionManager) {
+    selectMessageBox().text("<p>Why don't you log in.</p>");
   }
 
-  function renderError(e) {
-    return error.render(e);
+  function showApp(sessionManager) {
+    if (sessionManager.userName) {
+      eraseBootUi();
+      $("body").append($("<p>").text(sessionManager.userName));
+    }
+    else {
+      showLogin(sessionManager);
+    }
   }
 
-  function showMessage(html) {
-    $("body")
-      .css("backgroundColor", "white")
-      .append($("<div>").html(html));
-  }
-
-  function showApp() {
-    eraseBootUi();
-    showMessage("<p>Started</p>");
+  function showTimeout(sessionManager) {
+    selectMessageBox().text("<p>Failed to initialize.  Refresh page to continue.</p>");
   }
 
   function showError(e) {
-    eraseBootUi();
-    showMessage(error.render(e));
+    selectMessageBox().html(error.render(e));
   }
 
-  // At module load time:
-  renderBootUi();
-
   return function() {
+    var sessionManager = new session.Manager();
     var bootAnimation = startBootAnimation();
-    startBootProcess()
-      .always(function() { bootAnimation.stop(); })
-      .done(showApp)
-      .catch(showError);
+
+    setTimeout(function() {
+      sessionManager.init()
+        .always(function() { bootAnimation.stop(); })
+        .done(function() {
+          showApp(sessionManager);
+        })
+        .fail(function() {
+          showTimeout(sessionManager);
+        })
+        .catch(showError);
+    }, 2000)
   }
 });
