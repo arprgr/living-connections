@@ -24,7 +24,7 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
   }
 
   function showLogin(sessionManager) {
-    selectMessageBox().text("<p>Why don't you log in.</p>");
+    selectMessageBox().html($("<p>").text("Why don't you log in?"));
   }
 
   function showApp(sessionManager) {
@@ -44,14 +44,9 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
   return function() {
     var sessionManager = new session.Manager();
     var bootAnimation = startBootAnimation();
-
-    setTimeout(function() {
-      sessionManager.init()
-        .always(function() { bootAnimation.stop(); })
-        .done(function() {
-          showApp(sessionManager);
-        })
-        .fail(showError);
-    }, 1000)
+    sessionManager.init()
+      .always(function() { bootAnimation.stop(); })
+      .done(function() { showApp(sessionManager); })
+      .fail(showError);
   }
 });

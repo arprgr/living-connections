@@ -17,6 +17,29 @@ define([ "jquery", "error" ], function($, error) {
     document.cookie = COOKIE_NAME + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
   }
 
+  function get(url, handleDone, handleError) {
+    var req = new XMLHttpRequest();
+    req.addEventListener("load", function() {
+      if (req.status === 200) {
+        if (handleDone) {
+          handleDone(JSON.parse(req.responseText));
+        }
+      }
+      else {
+        if (handleError) {
+          handleError(new Error("status " + req.status));
+        }
+      }
+    });
+    req.addEventListener("error", function(e) {
+      if (handleError) {
+        handleError(e);
+      }
+    });
+    req.open("GET", url);
+    req.send();
+  }
+
   // Manager constructor.
   function Manager() {
     var self = this;
@@ -92,9 +115,10 @@ define([ "jquery", "error" ], function($, error) {
 
   // private bound - Update my state to reflect the latest from server.
   function handleAResults(results) {
+    var self = this;
     var userName = results.userName;
     self.userName = userName;
-    setState(userName ? STATE_OPERATING : STATE_IDLE);
+    setState(self, userName ? STATE_OPERATING : STATE_IDLE);
     self.failCount = 0;
     if (!userName) {
       stopProcess(self);
@@ -105,11 +129,7 @@ define([ "jquery", "error" ], function($, error) {
   // Get the latest session information from the server.
   function poll() {
     var self = this;
-    var req = new XMLHttpRequest();
-    req.addEventListener("load", handleAResults.bind(self));
-    req.addEventListener("error", handleError.bind(self));
-    req.open("GET", "/a");
-    req.send();
+    get("/a", handleAResults.bind(self), handleError.bind(self));
   }
 
   // Start process of establish connection.
@@ -134,11 +154,13 @@ define([ "jquery", "error" ], function($, error) {
       startPolling(self);
       setState(self, STATE_CONNECTING);
       listenerHandle = self.addStateChangeListener(function() {
-        if (self.state == STATE_OPERATING) {
+        switch (self.state) {
+        case STATE_OPERATING:
+        case STATE_IDLE:
           clearTimeout(timeout);
           promise.resolve(self);
+          self.initPromise = 0;
         }
-        self.initPromise = 0;
         listenerHandle.undo();
       });
       timeout = setTimeout(function() {
@@ -154,6 +176,7 @@ define([ "jquery", "error" ], function($, error) {
   function logInWithEmail(email) {
     var self = this;
     var promise = $.Deferred();
+    stopProcess(self);
     $.ajax("/a", { data: { email: email }})
     .done(handleAResults.bind(self))
     .done(function(results) {
