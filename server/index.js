@@ -21,11 +21,10 @@ var cookieParser = require("cookie-parser");
 server.use(cookieParser());
 
 // Index page.
-var pageFunction = (function() {
-  var pug = require("pug");
-  return pug.compileFile("templates/page.pug", CONFIG.pug);
-})();
+var pug = require("pug");
 server.get("/", function(request, response) {
+  // Recompile every time, because why not?
+  var pageFunction = pug.compileFile("templates/page.pug", CONFIG.pug);
   response.set("Content-Type", "text/html");
   response.send(pageFunction(CONFIG.pages.livconn));
 });

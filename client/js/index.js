@@ -1,18 +1,18 @@
-// livconn.js
+// index.js
 // Living Connections main module
 //
 define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, error) {
 
   function selectStartupScreen() {
-    return $(".startupScreen");
+    return $(".startup");
   }
 
-  function selectDotsBox() {
-    return selectStartupScreen().find(".dots");
+  function selectInner() {
+    return selectStartupScreen().find(".inner");
   }
 
-  function selectMessageBox() {
-    return selectStartupScreen().find(".message");
+  function selectUnderBox() {
+    return selectStartupScreen().find(".under");
   }
 
   function eraseBootUi() {
@@ -20,11 +20,19 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
   }
 
   function startBootAnimation() {
-    return new bootui.Animation(selectDotsBox()).start();
+    return new bootui.WaitingAnimation(selectUnderBox()).start();
   }
 
   function showLogin(sessionManager) {
-    selectMessageBox().html($("<p>").text("Why don't you log in?"));
+    selectInner().css("top", -338);
+    selectUnderBox()
+      .empty()
+      .append($("<div>")
+        .addClass("login")
+        .append($("<div>").text("Log in with your email address:"))
+        .append($("<input>").attr("type", "text"))
+        .append($("<button>").text("Go!"))
+      );
   }
 
   function showApp(sessionManager) {
@@ -38,7 +46,7 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
   }
 
   function showError(e) {
-    selectMessageBox().html(error.render(e));
+    selectUnderBox().empty().html(error.render(e));
   }
 
   return function() {

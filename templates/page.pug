@@ -14,13 +14,12 @@ html
           "*": { "jquery": "jquery-private" }, 
           "jquery-private": { "jquery": "jquery" } 
         },
-        deps: [ "#{mainModule}" ], 
+        deps: [ "index" ], 
         callback: function(app) { app && app(); } 
       }
     script(src="/js/lib/require.js")
   body
-    div(class="startupScreen")
-      div(class="logo")
-      div(class="dots")
-      div(class="login")
-      div(class="message")
+    div(class="startup")
+      div(class="inner")
+        div(class="logo")
+        div(class="under")

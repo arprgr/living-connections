@@ -1,26 +1,44 @@
 body {
-	font-family: Arial;
+	font-family: "Palatino Linotype";
   background-color: #fefcff;
 }
 div {
   margin: 0;
   padding: 0;
 }
-.startupScreen {
+.startup {
   position: absolute;
-  width: 430px;
+  width: 450px;
   height: 500px;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
   margin: auto;
+  padding: 10px;
+  overflow: hidden;
 }
-.startupScreen .logo {
+.startup .inner {
+  position: relative;
+}
+.startup .logo {
   width: 430px;
   height: 380px;
   background: url(/assets/logo.png) center center no-repeat;
 }
-.startupScreen .dot {
+.startup .dot {
   margin: 5px 20px;
+}
+.startup .login {
+  position: relative;
+  margin-top: 16px;
+  margin-left: 68px;
+  color: #670;
+}
+.startup .login input {
+  width: 220px;
+  font-size: 14px;
+}
+.startup .login button {
+  font-size: 14px;
 }

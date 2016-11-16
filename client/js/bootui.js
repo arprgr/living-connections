@@ -1,95 +1,98 @@
 // bootui.js
 
-define([ "jquery" ], function($) {
+define([ "jquery", "anim" ], function($, anim) {
 
   // Animation constants.
-  const NDOTS = 7;
-  const DOT = "dot";
-  const PERIOD = 750;
-  const TICK = 25;
-  const TICKS_PER_FADE = 1300 / TICK;
+  var NDOTS = 7;
+  var DOT = "dot";
+  var PERIOD = 330;
+  var TICK = 25;
+  var FRAMES_PER_FADE = 48;
 
-  function dotId(ix) {
-    return DOT + ix;
-  }
-
-  function renderDots(container) {
-    for (var i = 0; i < NDOTS; ++i) {
-      $("<canvas>").attr("id", dotId(i)).attr("width", 18).attr("height", 18).addClass(DOT).appendTo(container);
-    }
-  }
-
-  function now() {
-    return new Date().getTime();
-  }
-
-  function drawCircle(canvasId, alpha) {
-    var canvas = document.getElementById(canvasId);
-    var context = canvas.getContext("2d");
-    var centerX = canvas.width / 2;
-    var centerY = canvas.height / 2;
-    var radius = Math.min(centerX, centerY);
-    var gradient = context.createRadialGradient(75,50,5,90,60,100);
-    gradient.addColorStop(0, "white");
-    gradient.addColorStop(1, "green");
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.globalAlpha = alpha;
-    context.beginPath();
-    context.arc(centerX, centerY, 5, 0, 2 * Math.PI, false);
-    context.fillStyle = gradient;
-    context.fill();
-  }
-
-  function Animation(container) {
-    this.container = container;
-    this.intervals = [];
-  }
-
-  function startNextAnimation(self) {
-    var ix = self.intervals.length;
-    var canvasId = dotId(ix);
-    var startTime = now();
-
-    function step() {
-      var elapsedTime = now() - startTime;
-      var frameIndex = (elapsedTime % (PERIOD * NDOTS)) / TICK;
-      var alpha = Math.max(0, (TICKS_PER_FADE - frameIndex) / TICKS_PER_FADE);
-      drawCircle(canvasId, alpha);
-    }
-
-    step();
-    self.intervals.push(setInterval(step, TICK));
-  }
-
-  function startAnimation() {
+  function DotAnimation(container, canvasId) {
     var self = this;
-    renderDots(self.container);
+    self.canvasId = canvasId;
+    anim.Animation.call(self, { period: PERIOD });
+
+    $("<canvas>")
+      .attr("id", canvasId)
+      .attr("width", 18)
+      .attr("height", 18)
+      .addClass(DOT)
+      .appendTo(container);
+  }
+
+  function renderInitialDot() {
+    var self = this;
+    self.render(1.0);
+  }
+
+  function renderTweenDot(frameIndex) {
+    var self = this;
+    var alpha = Math.max(0, (FRAMES_PER_FADE - frameIndex) / FRAMES_PER_FADE);
+    self.render(alpha);
+  }
+
+  function renderDot(alpha) {
+    var self = this;
+    var canvasId = self.canvasId;
+    var canvas = document.getElementById(canvasId);
+    if (canvas) {
+      var context = canvas.getContext("2d");
+      var centerX = canvas.width / 2;
+      var centerY = canvas.height / 2;
+      var radius = Math.min(centerX, centerY);
+      var gradient = context.createRadialGradient(75,50,5,90,60,100);
+      gradient.addColorStop(0, "white");
+      gradient.addColorStop(1, "green");
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.globalAlpha = alpha;
+      context.beginPath();
+      context.arc(centerX, centerY, 5, 0, 2 * Math.PI, false);
+      context.fillStyle = gradient;
+      context.fill();
+    }
+    else {
+      console.log("can't find canvas", canvasId, self);
+      self.stop();
+    }
+  }
+
+  function renderFinalDot() {
+    var self = this;
+    $("#" + self.canvasId).remove();
+  }
+
+  DotAnimation.prototype = $.extend({}, anim.Animation.prototype, {
+    renderInitial: renderInitialDot,
+    renderTween: renderTweenDot,
+    renderFinal: renderFinalDot,
+    render: renderDot
+  });
+
+  function WaitingAnimation(container) {
+    var self = this;
+    self.container = container;
+    anim.AnimationGroup.call(self);
+  }
+
+  function startWaitingAnimation() {
+    var self = this;
     (function kickOffNext() {
-      if (self.intervals && self.intervals.length < NDOTS) {
-        startNextAnimation(self);
+      var ix = self.animations.length;
+      if (ix < NDOTS) {
+        self.addAnimation(new DotAnimation(self.container, DOT + ix).start());
         setTimeout(kickOffNext, PERIOD);
       }
     })();
     return self;
   }
 
-  function stopAnimation() {
-    var self = this;
-    var intervals = self.intervals;
-    for (var i in intervals) {
-      clearInterval(intervals[i]);
-    }
-    self.intervals = null;
-    self.container.empty();
-    return self;
-  }
-
-  Animation.prototype = {
-    start: startAnimation,
-    stop: stopAnimation
-  }
+  WaitingAnimation.prototype = $.extend({}, anim.AnimationGroup.prototype, {
+    start: startWaitingAnimation
+  });
 
   return {
-    Animation: Animation
+    WaitingAnimation: WaitingAnimation
   }
 });
