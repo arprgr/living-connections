@@ -14,6 +14,11 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: function(models) {
         User.hasMany(models.Asset);
+      },
+      findById: function(id) {
+        return User.find({
+          where: { id: id }
+        });
       }
     }
   });

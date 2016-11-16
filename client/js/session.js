@@ -79,7 +79,7 @@ define([ "jquery", "error" ], function($, error) {
   function startProcess(self, func) {
     stopProcess(self);   // there can be only one
     self.failCount = 0;
-    self.interval = setInterval(func, FETCH_INTERVAL);
+    self.interval = setInterval(func.bind(self), FETCH_INTERVAL);
   }
 
   // private unbound - Stop process.
@@ -97,7 +97,7 @@ define([ "jquery", "error" ], function($, error) {
     setState(userName ? STATE_OPERATING : STATE_IDLE);
     self.failCount = 0;
     if (!userName) {
-      stopProcess();
+      stopProcess(self);
     }
     self.actionItems = results.actionItems || [];
   }
@@ -105,46 +105,47 @@ define([ "jquery", "error" ], function($, error) {
   // Get the latest session information from the server.
   function poll() {
     var self = this;
-    $.get("/a", {})
-    .done(handleAResults.bind(self))
-    .fail(handleError.bind(self));
+    var req = new XMLHttpRequest();
+    req.addEventListener("load", handleAResults.bind(self));
+    req.addEventListener("error", handleError.bind(self));
+    req.open("GET", "/a");
+    req.send();
   }
 
   // Start process of establish connection.
   function startPolling(self) {
-    startProcess(poll.bind(self));
+    startProcess(self, poll);
   }
 
   // public - Initiate startup processes.
   function init() {
     var self = this;
     var promise;
-    if (self.state == STATE_CONNECTING) {
+    var timeout, listenerHandle;
+    switch (self.state) {
+    case STATE_CONNECTING:
       promise = this.initPromise;
-    }
-    else {
-      promise = $.Deferred();
-      if (self.state == STATE_OPERATING) {
-        promise.resolve(self);
-      }
-      else {
-        self.initPromise = promise;
-        startPolling(self);
-        setState(self, STATE_CONNECTING);
-        var timeout = setTimeout(function() {
-          self.initPromise = 0;
-          promise.reject(new Error(error.codes.STARTUP_ERROR_TIMEOUT));
-          listenerHandle.undo();
-        }, INIT_TIMEOUT);
-        var listenerHandle = self.addStateChangeListener(function() {
-          if (self.state == STATE_OPERATING) {
-            clearTimeout(timeout);
-            self.initPromise = 0;
-            promise.resolve(self);
-            listenerHandle.undo();
-          }
-        });
-      }
+      break;
+    case STATE_OPERATING:
+      promise = $.Deferred().resolve(self);
+      break;
+    default:
+      self.initPromise = promise = $.Deferred();
+      startPolling(self);
+      setState(self, STATE_CONNECTING);
+      listenerHandle = self.addStateChangeListener(function() {
+        if (self.state == STATE_OPERATING) {
+          clearTimeout(timeout);
+          promise.resolve(self);
+        }
+        self.initPromise = 0;
+        listenerHandle.undo();
+      });
+      timeout = setTimeout(function() {
+        self.initPromise = 0;
+        promise.reject(new Error(error.codes.STARTUP_ERROR_TIMEOUT));
+        listenerHandle.undo();
+      }, INIT_TIMEOUT);
     }
     return promise;
   }
@@ -153,7 +154,7 @@ define([ "jquery", "error" ], function($, error) {
   function logInWithEmail(email) {
     var self = this;
     var promise = $.Deferred();
-    $.get("/a", { email: email })
+    $.ajax("/a", { data: { email: email }})
     .done(handleAResults.bind(self))
     .done(function(results) {
       if (results.userName) {
@@ -177,7 +178,7 @@ define([ "jquery", "error" ], function($, error) {
     $.get("/o", {})
     .done(function() {
       self.failCount = 0;
-      stopProcesses(self);
+      stopProcess(self);
       setState(self, STATE_IDLE);
     })
     .fail(handleError.bind(self));
@@ -189,7 +190,7 @@ define([ "jquery", "error" ], function($, error) {
     clearCookie();
     self.userName = null;
     setState(self, STATE_LOGGING_OUT);
-    startProcess(self, terminate.bind(self));
+    startProcess(self, terminate);
   }
 
   Manager.prototype = {

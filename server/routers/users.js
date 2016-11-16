@@ -19,11 +19,8 @@ module.exports = (function() {
 
   // Retrieve by ID
   router.get("/:id", function(req, res) {
-    models.User.find({
-      where: {
-        id: req.params.id
-      }
-    }).then(function(user) {
+    models.User.findById(req.params.id)
+    then(function(user) {
       res.json(user);
     });
   });
@@ -61,11 +58,8 @@ module.exports = (function() {
 
   // Retrieve all current sessions
   router.get("/:user_id/sessions", function(req, res) {
-    models.Session.findAll({
-      where: {
-        UserId: req.params.user_id
-      }
-    }).then(function(sessions) {
+    models.Session.findByUserId(req.params.user_id)
+    .then(function(sessions) {
       res.json(sessions);
     }).catch(function(error) {
       res.json(error);

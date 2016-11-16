@@ -7,11 +7,6 @@ module.exports = {
     debug: false,
   },
   pages: {
-    "webrtc": {
-      title: "WebRTC demo",
-      stylesheet: "css/styles.css",
-      mainModule: "app"
-    },
     "livconn": {
       title: "Living Connections",
       stylesheet: "css/livconn.css",

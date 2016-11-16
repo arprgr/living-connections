@@ -9,6 +9,11 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: function(models) {
         Session.belongsTo(models.User);
+      },
+      findByUserId: function(userId) {
+        return Session.findAll({
+          where: { UserId: userId }
+        });
       }
     }
   });

@@ -9,6 +9,16 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: function(models) {
         EmailProfile.belongsTo(models.User);
+      },
+      findById: function(id) {
+        return EmailProfile.find({
+          where: { id: id }
+        });
+      },
+      findByEmail: function(email) {
+        models.EmailProfile.findOne({
+          where: { email: email }
+        });
       }
     }
   });
