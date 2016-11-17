@@ -25,7 +25,7 @@ define([ "jquery" ], function($) {
     self.interval = setInterval(function() {
       animationStep(self);
     }, TICK);
-    //self.renderInitial();
+    self.renderInitial();
     return self;
   }
 

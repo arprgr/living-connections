@@ -102,7 +102,9 @@ define([ "jquery", "error" ], function($, error) {
   function startProcess(self, func) {
     stopProcess(self);   // there can be only one
     self.failCount = 0;
-    self.interval = setInterval(func.bind(self), FETCH_INTERVAL);
+    func = func.bind(self);
+    func();
+    self.interval = setInterval(func, FETCH_INTERVAL);
   }
 
   // private unbound - Stop process.

@@ -39,6 +39,12 @@ div {
   width: 220px;
   font-size: 14px;
 }
+.startup .login input.invalid {
+  border: solid 2px red;
+}
 .startup .login button {
   font-size: 14px;
+}
+.startup .login .error {
+  color: red;
 }

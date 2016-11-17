@@ -78,14 +78,21 @@ define([ "jquery", "anim" ], function($, anim) {
       var ix = self.animations.length;
       if (ix < NDOTS) {
         self.addAnimation(new DotAnimation(self.container, DOT + ix).start());
-        setTimeout(kickOffNext, PAUSE);
+        self.timeout = setTimeout(kickOffNext, PAUSE);
       }
     })();
     return self;
   }
 
+  function stopWaitingAnimation() {
+    var self = this;
+    clearTimeout(self.timeout);
+    anim.AnimationGroup.prototype.stop.call(self);
+  }
+
   WaitingAnimation.prototype = $.extend({}, anim.AnimationGroup.prototype, {
-    start: startWaitingAnimation
+    start: startWaitingAnimation,
+    stop: stopWaitingAnimation
   });
 
   return {
