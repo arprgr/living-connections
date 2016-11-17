@@ -142,6 +142,7 @@ define([ "jquery", "error" ], function($, error) {
       });
       timeout = setTimeout(function() {
         self.initPromise = 0;
+        stopPolling(self);
         promise.reject(new Error(error.codes.STARTUP_ERROR_TIMEOUT));
         listenerHandle.undo();
       }, INIT_TIMEOUT);
