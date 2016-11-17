@@ -4,18 +4,13 @@ module.exports = (function() {
   const Promise = require("promise");
   const models = require("../models/index");
   
-  function yearsFromNow(nyears) {
-    var now = Date.now();
-    return new Date(now.getYear() + nyears, now.getMonth(), now.getDate());
-  }
-
   const DIGITS = "abcdefghijklmnopqrstuvwxyz" +
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
     "0123456789";
 
-  function randomDigits(n) {
+  function randomDigits(len) {
     var result = "";
-    for (var i = 0; i < n; ++i) {
+    for (var i = 0; i < len; ++i) {
       result += DIGITS[Math.floor(Math.random() * DIGITS.length)];
     }
     return result;
@@ -38,7 +33,7 @@ module.exports = (function() {
         models.EmailProfile.findByEmail(email)
         .then(function(emailProfile) {
           if (emailProfile) {
-            self.userId = emailProfile.UserId;
+            self.newUserId = emailProfile.UserId;
             resolve(self);
           }
           else {
@@ -55,25 +50,34 @@ module.exports = (function() {
       var sessionId = self.request.cookies.s;
       if (sessionId) {
         console.log("findSession", sessionId);
-        return models.Session.findByExternalId(sessionId)
+        models.Session.findByExternalId(sessionId)
         .then(function(session) {
+          console.log("found session", session.id);
           self.session = session;
+          resolve(self);
         })
+        .catch(reject);
       }
-      else if (typeof self.userId === "number") {
-        var externalId = randomDigits(4) + "-" + randomDigits(6) + "-" + randomDigits(6);
+      else if (typeof self.newUserId === "number") {
+        var externalId = randomDigits(8) + "-" + randomDigits(12) + "-" + randomDigits(12);
         console.log("createSession", externalId);
         models.Session.create({
           externalId: externalId,
-          UserId: self.userId
+          UserId: self.newUserId
         })
         .then(function(session) {
-          self.session = session;
-          self.response.cookie("s", session.externalId, {
-            expires: yearsFromNow(5),
-            path: "/",
-          });
-          resolve(self);
+          try {
+            console.log("created session", session.id);
+            self.session = session;
+            self.response.cookie("s", session.externalId, {
+              maxAge: 900000,
+              path: "/",
+            });
+            resolve(self);
+          }
+          catch (e) {
+            reject(e);
+          }
         })
         .catch(reject);
       }
@@ -84,13 +88,18 @@ module.exports = (function() {
   }
 
   function retrieveUserName(self) {
+    console.log("retrieveUserName");
     return new Promise(function(resolve, reject) {
       if (!self.session) {
+        console.log("no session");
         resolve(self);
       }
       else {
-        models.User.findById(self.session.UserId)
+        var userId = self.session.UserId;
+        console.log("retrieving user name for", userId);
+        models.User.findById(userId)
         .then(function(user) {
+          console.log("retrieved user name", user.name);
           self.userName = user.name;
           resolve(self);
         })
@@ -108,45 +117,48 @@ module.exports = (function() {
     });
   }
 
-  ActionHandler.prototype = {
+  function runActionHandler() {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      var steps = [
+        logInIfRequested,
+        resolveSession,
+        retrieveUserName,
+        retrieveActionItems
+      ];
 
-    run: function() {
-      var self = this;
-      return new Promise(function(resolve, reject) {
-        var steps = [
-          logInIfRequested,
-          resolveSession,
-          retrieveUserName,
-          retrieveActionItems
-        ];
+      (function next() {
+        var f = steps.shift();
+        if (f) {
+          f.call(null, self)
+            .then(next)
+            .catch(reject);
+        }
+        else {
+          resolve(self);
+        }
+      })();
+    });
+  }
 
-        (function next() {
-          var f = steps.shift();
-          if (f) {
-            f.call(null, self)
-              .then(next)
-              .catch(reject);
-          }
-          else {
-            resolve(self);
-          }
-        })();
-      });
-    },
-
-    runAndRespond: function() {
-      var self = this;
-      self.run()
-        .then(function() {
-          self.response.json({
-            userName: self.userName,
-            actionItems: self.actionItems
-          });
-        })
-        .catch(function(error) {
-          self.response.json({ error: error });
+  function runActionHandlerAndRespond() {
+    var self = this;
+    self.run()
+      .then(function() {
+        self.response.json({
+          userName: self.userName,
+          actionItems: self.actionItems
         });
-    }
+      })
+      .catch(function(error) {
+        self.response.json({ error: String(error) });
+      }
+    );
+  }
+
+  ActionHandler.prototype = {
+    run: runActionHandler,
+    runAndRespond: runActionHandlerAndRespond
   };
 
   const express = require("express");
@@ -156,4 +168,3 @@ module.exports = (function() {
   });
   return router;
 })();
-

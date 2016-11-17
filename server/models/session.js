@@ -10,6 +10,11 @@ module.exports = function(sequelize, DataTypes) {
       associate: function(models) {
         Session.belongsTo(models.User);
       },
+      findByExternalId: function(externalId) {
+        return Session.find({
+          where: { externalId: externalId }
+        });
+      },
       findByUserId: function(userId) {
         return Session.findAll({
           where: { UserId: userId }
