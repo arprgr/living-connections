@@ -9,33 +9,7 @@ define([ "jquery", "anim" ], function($, anim) {
   var PERIOD = PAUSE * NDOTS;
   var FRAMES_PER_FADE = 24;
 
-  function DotAnimation(container, canvasId) {
-    var self = this;
-    self.canvasId = canvasId;
-    anim.Animation.call(self, { period: PERIOD });
-
-    $("<canvas>")
-      .attr("id", canvasId)
-      .attr("width", 18)
-      .attr("height", 18)
-      .addClass(DOT)
-      .appendTo(container);
-  }
-
-  function renderInitialDot() {
-    var self = this;
-    self.render(1.0);
-  }
-
-  function renderTweenDot(frameIndex) {
-    var self = this;
-    var alpha = Math.max(0, FRAMES_PER_FADE - frameIndex);
-    self.render(alpha);
-  }
-
-  function renderDot(alpha) {
-    var self = this;
-    var canvasId = self.canvasId;
+  function renderDot(canvasId, alpha) {
     var canvas = document.getElementById(canvasId);
     if (canvas) {
       var context = canvas.getContext("2d");
@@ -54,17 +28,39 @@ define([ "jquery", "anim" ], function($, anim) {
     }
   }
 
-  function renderFinalDot() {
-    var self = this;
-    $("#" + self.canvasId).remove();
+  function renderInitialDot(canvasId, container) {
+    $("<canvas>")
+      .attr("id", canvasId)
+      .attr("width", 18)
+      .attr("height", 18)
+      .addClass(DOT)
+      .appendTo(container);
+    renderDot(canvasId, 1.0);
   }
 
-  DotAnimation.prototype = $.extend({}, anim.Animation.prototype, {
-    renderInitial: renderInitialDot,
-    renderTween: renderTweenDot,
-    renderFinal: renderFinalDot,
-    render: renderDot
-  });
+  function renderTweenDot(canvasId, frameIndex) {
+    var alpha = Math.max(0, FRAMES_PER_FADE - frameIndex);
+    renderDot(canvasId, alpha);
+  }
+
+  function renderFinalDot(canvasId) {
+    $("#" + canvasId).remove();
+  }
+
+  function newDotAnimation(container, canvasId) {
+    return new anim.Animation({
+      period: PERIOD,
+      renderInitial: function() {
+        renderInitialDot(canvasId, container);
+      },
+      renderTween: function(frameIndex) {
+        renderTweenDot(canvasId, frameIndex);
+      },
+      renderFinal: function() {
+        renderFinalDot(canvasId);
+      }
+    });
+  }
 
   function WaitingAnimation(container) {
     var self = this;
@@ -77,7 +73,7 @@ define([ "jquery", "anim" ], function($, anim) {
     (function kickOffNext() {
       var ix = self.animations.length;
       if (ix < NDOTS) {
-        self.addAnimation(new DotAnimation(self.container, DOT + ix).start());
+        self.addAnimation(newDotAnimation(self.container, DOT + ix).start());
         self.timeout = setTimeout(kickOffNext, PAUSE);
       }
     })();

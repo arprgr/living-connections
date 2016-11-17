@@ -1,7 +1,7 @@
 // index.js
 // Living Connections main module
 //
-define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, error) {
+define([ "jquery", "bootui", "session", "anim", "error" ], function($, bootui, session, anim, error) {
 
   function selectStartupScreen() {
     return $(".startup");
@@ -29,12 +29,12 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
     return str.match(EMAIL_REGEX);
   }
 
-  function showLogin(sessionManager) {
+  function showLogin(sessionManager, doAnimation) {
 
-    var label;
-    var input;
-    var button;
-    var validationErrorBox;
+    var label = $("<div>").text("Log in with your email address:");
+    var input = $("<input>").attr("type", "text");
+    var button = $("<button>").text("Go!");
+    var validationErrorBox = $("<div>").addClass("error");
 
     function removeValidation() {
       input.removeClass("invalid");
@@ -78,23 +78,50 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
       return true;
     }
 
-    var label = $("<div>").text("Log in with your email address:");
-    var input = $("<input>").attr("type", "text").on("keydown", handleKeyDown)
-    var button = $("<button>").text("Go!").click(handleLoginClick);
-    var validationErrorBox = $("<div>").addClass("error");
+    var TOP = -338;
+    var PERIOD = 900;
 
-    selectInner().css("top", -338);
-    selectUnderBox()
-      .empty()
-      .append($("<div>")
-        .addClass("login")
-        .append(label)
+    function showInnerInPosition(top) {
+      selectInner().css("top", top);
+    }
+
+    function showInnerInFinalPosition() {
+      showInnerInPosition(TOP);
+    }
+
+    function renderLoginForm() {
+      showInnerInFinalPosition();
+
+      input.on("keydown", handleKeyDown)
+      button.click(handleLoginClick);
+
+      selectUnderBox()
+        .empty()
         .append($("<div>")
-          .append(input)
-          .append(button))
-        .append(validationErrorBox)
-      );
-    input.focus();
+          .addClass("login")
+          .append(label)
+          .append($("<div>")
+            .append(input)
+            .append(button))
+          .append(validationErrorBox)
+        );
+      input.focus();
+    }
+
+    if (doAnimation) {
+      new anim.Animation({
+        period: PERIOD,
+        frameTime: 1,
+        iterations: 1,
+        renderTween: function(frameIndex) {
+          showInnerInPosition(frameIndex * TOP / PERIOD);
+        },
+        renderFinal: renderLoginForm
+      }).start();
+    }
+    else {
+      renderLoginForm();
+    }
   }
 
   function showApp(sessionManager) {
@@ -103,7 +130,7 @@ define([ "jquery", "bootui", "session", "error" ], function($, bootui, session, 
       $("body").append($("<p>").text("Welcome, " + sessionManager.userName));
     }
     else {
-      showLogin(sessionManager);
+      showLogin(sessionManager, true);
     }
   }
 
