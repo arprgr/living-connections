@@ -21,19 +21,6 @@ module.exports = (function() {
     return result;
   }
 
-  function alreadyDone() {
-    return Promise.resolve(null);
-  }
-
-  function executeSequence(steps, catcher) {
-    (function next() {
-      var f = steps.shift();
-      if (f) {
-        f().then(next).catch(catcher);
-      }
-    })();
-  }
-
   function ActionHandler(req, res) {
     var self = this;
     self.request = req;
@@ -41,116 +28,131 @@ module.exports = (function() {
   }
 
   function logInIfRequested(self) {
-    var email = self.request.query.email;
-    if (!email) {
-      return alreadyDone();
-    }
-    console.log("log in", email);
     return new Promise(function(resolve, reject) {
-      models.EmailProfile.findByEmail(email)
-      .then(function(emailProfile) {
-        if (emailProfile) {
-          self.userId = emailProfile.UserId;
-          resolve(self);
-        }
-        else {
-          reject("Login failed");
-        }
-      })
-      .catch(function(error) {
-        reject(error);
-      })
+      var email = self.request.query.email;
+      if (!email) {
+        resolve(self);
+      }
+      else {
+        console.log("log in", email);
+        models.EmailProfile.findByEmail(email)
+        .then(function(emailProfile) {
+          if (emailProfile) {
+            self.userId = emailProfile.UserId;
+            resolve(self);
+          }
+          else {
+            reject("Login failed");
+          }
+        })
+        .catch(reject);
+      }
     });
   }
 
   function resolveSession(self) {
-    var sessionId = self.request.cookies.s;
-    if (sessionId) {
-      console.log("findSession", sessionId);
-      return models.Session.findByExternalId(sessionId)
-      .then(function(session) {
-        self.session = session;
-      })
-    }
-    else if (self.userId) {
-      var externalId = randomDigits(4) + "-" + randomDigits(6) + "-" + randomDigits(6);
-      console.log("createSession", externalId);
-      return models.Session.create({
-        externalId: externalId,
-        UserId: self.userId
-      })
-      .then(function(session) {
-        self.session = session;
-        self.response.cookie("s", session.externalId, {
-          expires: yearsFromNow(5),
-          path: "/",
-        });
-      });
-    }
-    else {
-      return alreadyDone();
-    }
+    return new Promise(function(resolve, reject) {
+      var sessionId = self.request.cookies.s;
+      if (sessionId) {
+        console.log("findSession", sessionId);
+        return models.Session.findByExternalId(sessionId)
+        .then(function(session) {
+          self.session = session;
+        })
+      }
+      else if (self.userId) {
+        var externalId = randomDigits(4) + "-" + randomDigits(6) + "-" + randomDigits(6);
+        console.log("createSession", externalId);
+        models.Session.create({
+          externalId: externalId,
+          UserId: self.userId
+        })
+        .then(function(session) {
+          self.session = session;
+          self.response.cookie("s", session.externalId, {
+            expires: yearsFromNow(5),
+            path: "/",
+          });
+          resolve(self);
+        })
+        .catch(reject);
+      }
+      else {
+        resolve(self);
+      }
+    });
   }
 
   function retrieveUserName(self) {
-    if (!self.session) {
-      return alreadyDone();
-    }
-    else {
-      return models.User.findById(self.session.UserId)
-      .then(function(user) {
-        self.userName = user.name;
-      })
-    }
+    return new Promise(function(resolve, reject) {
+      if (!self.session) {
+        resolve(self);
+      }
+      else {
+        return models.User.findById(self.session.UserId)
+        .then(function(user) {
+          self.userName = user.name;
+          resolve(self);
+        })
+        .catch(reject);
+      }
+    });
   }
 
   function retrieveActionItems(self) {
-    self.actionItems = [];
-    return alreadyDone();
-  }
-
-  function sendJson(self) {
-    var payload = {};
-    if (self.userName) {
-      payload.userName = self.userName;
-      payload.actionItems = self.actionItems;
-    }
-    self.response.json(payload);
-    return alreadyDone();
+    return new Promise(function(resolve, reject) {
+      if (typeof self.userId === "number") {
+        self.actionItems = [];
+      }
+      resolve();
+    });
   }
 
   ActionHandler.prototype = {
 
     run: function() {
       var self = this;
-      executeSequence([
-        function() {
-          logInIfRequested(self);
-        },
-        function() {
-          resolveSession(self);
-        },
-        function() {
-          retrieveUserName(self);
-        },
-        function() {
-          retrieveActionItems(self);
-        },
-        function() {
-          sendJson(self);
-        }
-      ],
-        function() {
+      return new Promise(function(resolve, reject) {
+        var steps = [
+          logInIfRequested,
+          resolveSession,
+          retrieveUserName,
+          retrieveActionItems
+        ];
+
+        (function next() {
+          var f = steps.shift();
+          if (f) {
+            f.call(null, self)
+              .then(next)
+              .catch(reject);
+          }
+          else {
+            resolve(self);
+          }
+        })();
+      });
+    },
+
+    runAndRespond: function() {
+      var self = this;
+      self.run()
+        .then(function() {
+          self.response.json({
+            userName: self.userName,
+            actionItems: self.actionItems
+          });
+        })
+        .catch(function(error) {
           self.response.json({ error: error });
-        }
-      );
+        });
     }
   };
 
   const express = require("express");
   const router = express.Router();
   router.get("/", function(req, res) {
-    new ActionHandler(req, res).run();
+    new ActionHandler(req, res).runAndRespond();
   });
   return router;
 })();
