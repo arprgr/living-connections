@@ -5,9 +5,9 @@ define([ "jquery", "anim" ], function($, anim) {
   // Animation constants.
   var NDOTS = 7;
   var DOT = "dot";
-  var PERIOD = 330;
-  var TICK = 25;
-  var FRAMES_PER_FADE = 48;
+  var PAUSE = 400;
+  var PERIOD = PAUSE * NDOTS;
+  var FRAMES_PER_FADE = 24;
 
   function DotAnimation(container, canvasId) {
     var self = this;
@@ -29,7 +29,7 @@ define([ "jquery", "anim" ], function($, anim) {
 
   function renderTweenDot(frameIndex) {
     var self = this;
-    var alpha = Math.max(0, (FRAMES_PER_FADE - frameIndex) / FRAMES_PER_FADE);
+    var alpha = Math.max(0, FRAMES_PER_FADE - frameIndex);
     self.render(alpha);
   }
 
@@ -51,10 +51,6 @@ define([ "jquery", "anim" ], function($, anim) {
       context.arc(centerX, centerY, 5, 0, 2 * Math.PI, false);
       context.fillStyle = gradient;
       context.fill();
-    }
-    else {
-      console.log("can't find canvas", canvasId, self);
-      self.stop();
     }
   }
 
@@ -82,7 +78,7 @@ define([ "jquery", "anim" ], function($, anim) {
       var ix = self.animations.length;
       if (ix < NDOTS) {
         self.addAnimation(new DotAnimation(self.container, DOT + ix).start());
-        setTimeout(kickOffNext, PERIOD);
+        setTimeout(kickOffNext, PAUSE);
       }
     })();
     return self;

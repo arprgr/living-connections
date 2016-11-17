@@ -2,7 +2,8 @@
 
 define([ "jquery" ], function($) {
 
-  const TICK = 25;
+  const TICK = 20;
+  const FRAME_TIME = 50;
   const DEFAULT_PERIOD = 1000;
 
   var DEFAULT_ANIMATION_OPTIONS = {
@@ -16,21 +17,21 @@ define([ "jquery" ], function($) {
   function Animation(options) {
     var self = this;
     self.options = $.extend({}, DEFAULT_ANIMATION_OPTIONS, options);
-    self.startTime = now();
   }
 
   function startAnimation() {
     var self = this;
+    self.startTime = now();
     self.interval = setInterval(function() {
       animationStep(self);
     }, TICK);
-    self.renderInitial();
+    //self.renderInitial();
     return self;
   }
 
   function animationStep(animation) {
     var elapsedTime = now() - animation.startTime;
-    var frameIndex = (elapsedTime % animation.options.period) / TICK;
+    var frameIndex = Math.floor((elapsedTime % animation.options.period) / FRAME_TIME);
     animation.renderTween(frameIndex);
   }
 
@@ -43,11 +44,11 @@ define([ "jquery" ], function($) {
   }
 
   Animation.prototype = {
+    start: startAnimation,
+    stop: stopAnimation,
     renderInitial: function() {},
     renderTween: function() {},
-    renderFinal: function() {},
-    start: startAnimation,
-    stop: stopAnimation
+    renderFinal: function() {}
   }
 
   function AnimationGroup() {
