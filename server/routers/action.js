@@ -60,7 +60,7 @@ module.exports = (function() {
           self.session = session;
         })
       }
-      else if (self.userId) {
+      else if (typeof self.userId === "number") {
         var externalId = randomDigits(4) + "-" + randomDigits(6) + "-" + randomDigits(6);
         console.log("createSession", externalId);
         models.Session.create({
@@ -89,7 +89,7 @@ module.exports = (function() {
         resolve(self);
       }
       else {
-        return models.User.findById(self.session.UserId)
+        models.User.findById(self.session.UserId)
         .then(function(user) {
           self.userName = user.name;
           resolve(self);
