@@ -16,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
         });
       },
       findByEmail: function(email) {
-        models.EmailProfile.findOne({
+        return EmailProfile.findOne({
           where: { email: email }
         });
       }

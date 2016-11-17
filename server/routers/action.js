@@ -25,6 +25,15 @@ module.exports = (function() {
     return Promise.resolve(null);
   }
 
+  function executeSequence(steps, catcher) {
+    (function next() {
+      var f = steps.shift();
+      if (f) {
+        f().then(next).catch(catcher);
+      }
+    })();
+  }
+
   function ActionHandler(req, res) {
     var self = this;
     self.request = req;
@@ -37,19 +46,24 @@ module.exports = (function() {
       return alreadyDone();
     }
     console.log("log in", email);
-    return models.EmailProfile.findByEmail(email)
-    .then(function(emailProfile) {
-      if (emailProfile) {
-        self.userId = emailProfile.UserId;
-      }
-      else {
-        self.sendError("Login failed");
-      }
+    return new Promise(function(resolve, reject) {
+      models.EmailProfile.findByEmail(email)
+      .then(function(emailProfile) {
+        if (emailProfile) {
+          self.userId = emailProfile.UserId;
+          resolve(self);
+        }
+        else {
+          reject("Login failed");
+        }
+      })
+      .catch(function(error) {
+        reject(error);
+      })
     });
   }
 
-  function resolveSession() {
-    var self = this;
+  function resolveSession(self) {
     var sessionId = self.request.cookies.s;
     if (sessionId) {
       console.log("findSession", sessionId);
@@ -78,8 +92,7 @@ module.exports = (function() {
     }
   }
 
-  function retrieveUserName() {
-    var self = this;
+  function retrieveUserName(self) {
     if (!self.session) {
       return alreadyDone();
     }
@@ -88,43 +101,49 @@ module.exports = (function() {
       .then(function(user) {
         self.userName = user.name;
       })
-      .catch(reportError);
     }
   }
 
-  function retrieveActionItems() {
-    var self = this;
+  function retrieveActionItems(self) {
     self.actionItems = [];
     return alreadyDone();
   }
 
-  function sendJson() {
-    var self = this;
+  function sendJson(self) {
     var payload = {};
     if (self.userName) {
       payload.userName = self.userName;
       payload.actionItems = self.actionItems;
     }
     self.response.json(payload);
-  }
-
-  function sendError(error) {
-    var self = this;
-    self.response.json({ error: error });
+    return alreadyDone();
   }
 
   ActionHandler.prototype = {
 
-    sendError: sendError,
-
     run: function() {
       var self = this;
-      logInIfRequested(self)
-      .then(resolveSession.bind(self))
-      .then(retrieveUserName.bind(self))
-      .then(retrieveActionItems.bind(self))
-      .then(sendJson.bind(self))
-      .catch(sendError.bind(self));
+      executeSequence([
+        function() {
+          logInIfRequested(self);
+        },
+        function() {
+          resolveSession(self);
+        },
+        function() {
+          retrieveUserName(self);
+        },
+        function() {
+          retrieveActionItems(self);
+        },
+        function() {
+          sendJson(self);
+        }
+      ],
+        function() {
+          self.response.json({ error: error });
+        }
+      );
     }
   };
 

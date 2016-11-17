@@ -6,7 +6,6 @@ define([ "jquery", "error" ], function($, error) {
   var STATE_IDLE = 0;
   var STATE_CONNECTING = 1;
   var STATE_OPERATING = 2;
-  var STATE_LOGGING_OUT = 3;
 
   var FETCH_INTERVAL = 5000;
   var INIT_TIMEOUT = 10000;
@@ -31,11 +30,11 @@ define([ "jquery", "error" ], function($, error) {
         }
       }
     });
-    req.addEventListener("error", function(e) {
-      if (handleError) {
+    if (handleError) {
+      req.addEventListener("error", function(e) {
         handleError(e);
-      }
-    });
+      });
+    }
     req.open("GET", url);
     req.send();
   }
@@ -48,7 +47,6 @@ define([ "jquery", "error" ], function($, error) {
     self.actionItems = [];
     self.stateChangeListeners = [];
     self.errorListeners = [];
-    self.errorCount = 0;
   }
 
   // public - Add a state change listener.
@@ -71,14 +69,14 @@ define([ "jquery", "error" ], function($, error) {
     }
   }
 
-  // private unbound - Notify state change listeners.
+  // private - Notify state change listeners.
   function notifyStateChangeListeners(self) {
     for (var i = 0; i < self.stateChangeListeners.length; ++i) {
       self.stateChangeListeners[i](self);
     }
   }
 
-  // private unbound - Change state.
+  // private - Change state.
   function setState(self, state) {
     if (state != self.state) {
       self.state = state;
@@ -86,57 +84,34 @@ define([ "jquery", "error" ], function($, error) {
     }
   }
 
-  // private bound - Change error state.
-  function handleError(error) {
-    var self = this;
-    self.error = error;
-    if (error) {
-      self.errorCount += 1;
-    }
-    else {
-      self.errorCount = 0;
+  // private - Start the process of pulling the latest session info from the server.
+  function startPolling(self) {
+    if (!self.interval) {
+      function poll() {
+        get("/a", function(results) {
+          handleAResults(self, results);
+        });
+      }
+      poll();
+      self.interval = setInterval(poll, FETCH_INTERVAL);
     }
   }
 
-  // private unbound - Start a process.
-  function startProcess(self, func) {
-    stopProcess(self);   // there can be only one
-    self.failCount = 0;
-    func = func.bind(self);
-    func();
-    self.interval = setInterval(func, FETCH_INTERVAL);
-  }
-
-  // private unbound - Stop process.
-  function stopProcess(self) {
+  // private - Stop process.
+  function stopPolling(self) {
     if (self.interval) {
       clearInterval(self.interval);
       self.interval = 0;
     }
   }
 
-  // private bound - Update my state to reflect the latest from server.
-  function handleAResults(results) {
-    var self = this;
+  // private - Update my state to reflect the latest from server.
+  function handleAResults(self, results) {
     var userName = results.userName;
     self.userName = userName;
     setState(self, userName ? STATE_OPERATING : STATE_IDLE);
-    self.failCount = 0;
-    if (!userName) {
-      stopProcess(self);
-    }
+    userName ? startPolling(self) : stopPolling(self);
     self.actionItems = results.actionItems || [];
-  }
-
-  // Get the latest session information from the server.
-  function poll() {
-    var self = this;
-    get("/a", handleAResults.bind(self), handleError.bind(self));
-  }
-
-  // Start process of establish connection.
-  function startPolling(self) {
-    startProcess(self, poll);
   }
 
   // public - Initiate startup processes.
@@ -177,45 +152,29 @@ define([ "jquery", "error" ], function($, error) {
   // public - Log in with an email address.
   function logInWithEmail(email) {
     var self = this;
+    stopPolling(self);
     var promise = $.Deferred();
-    stopProcess(self);
-    $.ajax("/a", { data: { email: email }})
-    .done(handleAResults.bind(self))
-    .done(function(results) {
-      if (results.userName) {
-        startPolling(self);
+    get("/a?email=" + encodeURIComponent(email), function(response) {
+      handleAResults(self, response);
+      if (self.userName) {
         promise.resolve(self);
       }
       else {
-        promise.reject(results.error);
+        promise.reject("Login failed.");
       }
-    })
-    .fail(handleError.bind(self))
-    .fail(function() {
-      promise.reject(error);
+    }, function(error) {
+      promise.reject("Login failed.");
     });
     return promise;
-  }
-
-  // bound private - Tell the server we're through.
-  function terminate() {
-    var self = this;
-    $.get("/o", {})
-    .done(function() {
-      self.failCount = 0;
-      stopProcess(self);
-      setState(self, STATE_IDLE);
-    })
-    .fail(handleError.bind(self));
   }
 
   // public - Initiate logout process.
   function logOut() {
     var self = this;
     clearCookie();
+    get("/o");
     self.userName = null;
-    setState(self, STATE_LOGGING_OUT);
-    startProcess(self, terminate);
+    setState(self, STATE_IDLE);
   }
 
   Manager.prototype = {
@@ -230,7 +189,6 @@ define([ "jquery", "error" ], function($, error) {
     STATE_IDLE: STATE_IDLE,
     STATE_CONNECTING: STATE_CONNECTING,
     STATE_OPERATING: STATE_OPERATING,
-    STATE_LOGGING_OUT: STATE_LOGGING_OUT,
     Manager: Manager
   }
 });
