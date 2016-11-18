@@ -2,10 +2,6 @@
 
 define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, session, loginui, waitanim, anim) {
 
-  function now() {
-    return new Date().getTime();
-  }
-
   function selectContainer() {
     return $("#startup");
   }
@@ -107,6 +103,7 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
     case session.STATE_OPERATING:
       removeWaitingState(self);
       hideUi();
+      break;
     default:
       showWaitingState(self);
     }
