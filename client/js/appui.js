@@ -30,6 +30,10 @@ define([ "jquery", "session" ], function($, session) {
     });
   }
 
+  function logOut(self) {
+    self.sessionManager.logOut();
+  }
+
   function renderHeader(self) {
     selectHeader()
       .append($("<span>")
@@ -37,7 +41,14 @@ define([ "jquery", "session" ], function($, session) {
         .text("Welcome, "))
       .append($("<span>")
         .addClass("who")
-        .text(self.sessionManager.userName));
+        .text(self.sessionManager.userName + " "))
+      .append($("<a>")
+        .addClass("function")
+        .text("Log out")
+        .attr("href", "#")
+        .click(function() {
+          logOut(self);
+        }))
   }
 
   function renderActionItems(self) {
