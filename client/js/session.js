@@ -12,7 +12,13 @@ define([ "jquery", "error" ], function($, error) {
 
   var COOKIE_NAME = "s";
 
-  function clearCookie() {
+  function getSessionCookie() {
+    var value = "; " + document.cookie;
+    var parts = value.split("; s=");
+    if (parts.length == 2) return parts.pop().split(";").shift();
+  }
+
+  function clearSessionCookie() {
     document.cookie = COOKIE_NAME + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
   }
 
@@ -172,8 +178,11 @@ define([ "jquery", "error" ], function($, error) {
   // public - Initiate logout process.
   function logOut() {
     var self = this;
-    get("/o");    // One last use of the cookie.
-    clearCookie();
+    var sid = getSessionCookie();
+    if (sid) {
+      get("/o/" + encodeURIComponent(sid));
+      clearSessionCookie();
+    }
     self.userName = null;
     setState(self, STATE_IDLE);
   }

@@ -48,17 +48,7 @@ module.exports = (function() {
   function resolveSession(self) {
     return new Promise(function(resolve, reject) {
       var sessionId = self.request.cookies.s;
-      if (sessionId) {
-        console.log("findSession", sessionId);
-        models.Session.findByExternalId(sessionId)
-        .then(function(session) {
-          console.log("found session", session.id);
-          self.session = session;
-          resolve(self);
-        })
-        .catch(reject);
-      }
-      else if (typeof self.newUserId === "number") {
+      if (typeof self.newUserId === "number") {
         var externalId = randomDigits(8) + "-" + randomDigits(12) + "-" + randomDigits(12);
         console.log("createSession", externalId);
         models.Session.create({
@@ -78,6 +68,16 @@ module.exports = (function() {
           catch (e) {
             reject(e);
           }
+        })
+        .catch(reject);
+      }
+      else if (sessionId) {
+        console.log("findSession", sessionId);
+        models.Session.findByExternalId(sessionId)
+        .then(function(session) {
+          console.log("found session", session.id);
+          self.session = session;
+          resolve(self);
         })
         .catch(reject);
       }

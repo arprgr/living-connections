@@ -13,19 +13,9 @@ module.exports = (function() {
   function runLogoutHandler() {
     var self = this;
     return new Promise(function(resolve, reject) {
-      console.log("logging out");
-      var sessionId = self.request.cookies.s;
-      if (sessionId) {
-        console.log("remove session id", sessionId);
-        models.Session.destroyByExternalId(sessionId)
-        .then(function() {
-          resolve(self);
-        })
-        .catch(reject);
-      }
-      else {
-        resolve(self);
-      }
+      var sessionId = self.request.params.sid;
+      console.log("remove session id", sessionId);
+      resolve(models.Session.destroyByExternalId(sessionId));
     });
   }
 
@@ -48,7 +38,7 @@ module.exports = (function() {
 
   const express = require("express");
   const router = express.Router();
-  router.get("/", function(req, res) {
+  router.get("/:sid", function(req, res) {
     new LogoutHandler(req, res).runAndRespond();
   });
   return router;
