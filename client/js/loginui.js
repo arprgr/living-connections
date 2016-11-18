@@ -77,6 +77,7 @@ define([ "jquery" ], function($) {
       .append(validationErrorBox);
 
     button.click(function() {
+      removeValidation(self);
       submit(self);
       return true;
     });
