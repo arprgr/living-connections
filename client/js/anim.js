@@ -61,31 +61,7 @@ define([ "jquery" ], function($) {
     stop: stopAnimation
   }
 
-  function AnimationGroup() {
-    this.animations = [];
-  }
-
-  function addAnimation(animation) {
-    var self = this;
-    self.animations.push(animation);
-  }
-
-  function stopAnimationGroup() {
-    var self = this;
-    for (var i in self.animations) {
-      self.animations[i].stop();
-    }
-    return self;
-  }
-
-  AnimationGroup.prototype = {
-    addAnimation: addAnimation,
-    start: function() { return this; },
-    stop: stopAnimationGroup
-  }
-
   return {
-    Animation: Animation,
-    AnimationGroup: AnimationGroup
+    Animation: Animation
   }
 });

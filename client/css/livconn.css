@@ -6,7 +6,7 @@ div {
   margin: 0;
   padding: 0;
 }
-.startup {
+#startup {
   position: absolute;
   width: 450px;
   height: 500px;
@@ -18,33 +18,33 @@ div {
   padding: 10px;
   overflow: hidden;
 }
-.startup .inner {
+#startup .inner {
   position: relative;
 }
-.startup .logo {
+#startup .logo {
   width: 430px;
   height: 380px;
   background: url(/assets/logo.png) center center no-repeat;
 }
-.startup .dot {
+#startup .fadedot {
   margin: 5px 20px;
 }
-.startup .login {
+#startup .login {
   position: relative;
   margin-top: 16px;
   margin-left: 68px;
   color: #670;
 }
-.startup .login input {
+#startup .login input {
   width: 220px;
   font-size: 14px;
 }
-.startup .login input.invalid {
+#startup .login input.invalid {
   border: solid 2px red;
 }
-.startup .login button {
+#startup .login button {
   font-size: 14px;
 }
-.startup .login .error {
+#startup .login .error {
   color: red;
 }
