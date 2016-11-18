@@ -19,6 +19,13 @@ module.exports = function(sequelize, DataTypes) {
         return Session.findAll({
           where: { UserId: userId }
         });
+      },
+      destroyByExternalId: function(externalId) {
+        return Session.destroy({
+          where: {
+            externalId: externalId
+          }
+        });
       }
     }
   });

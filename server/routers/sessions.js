@@ -45,11 +45,8 @@ module.exports = (function() {
 
   // Delete
   router.delete("/session/:external_id", function(req, res) {
-    models.Session.destroy({
-      where: {
-        externalId: req.params.external_id
-      }
-    }).then(function() {
+    models.Session.destroyByExternalId(req.params.external_id)
+    .then(function() {
       res.json({});
     }).catch(function(error) {
       res.json(error);

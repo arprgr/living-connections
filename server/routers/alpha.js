@@ -1,4 +1,4 @@
-/* action.js */
+/* alpha.js */
 
 module.exports = (function() {
   const Promise = require("promise");

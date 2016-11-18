@@ -172,8 +172,8 @@ define([ "jquery", "error" ], function($, error) {
   // public - Initiate logout process.
   function logOut() {
     var self = this;
+    get("/o");    // One last use of the cookie.
     clearCookie();
-    get("/o");
     self.userName = null;
     setState(self, STATE_IDLE);
   }
