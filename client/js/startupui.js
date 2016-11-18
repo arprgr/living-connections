@@ -23,10 +23,7 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
   }
 
   var LOGIN_TOP = -338;
-
-  function uiIsInLoginState() {
-    return selectInner().css("top") != 0;
-  }
+  var TRANSITION_PERIOD = 900;
 
   function showInnerInPosition(top) {
     selectInner().css("top", top);
@@ -55,31 +52,32 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
     selectUnderBox().empty().html(error.render({}));
   }
 
-  function showLoginState(self) {
+  function showLoginForm(self) {
+    showInnerInLoginPosition();
+    self.loginController.show();
+    selectInner().addClass("loginpos");
+  }
 
-    var PERIOD = 900;
+  function showLoginState(self) {
 
     if (!self.loginController) {
       self.loginController = new loginui.Controller(self.sessionManager);
     }
 
-    function showLoginForm() {
-      showInnerInLoginPosition();
-      self.loginController.show();
-    }
-
-    if (uiIsInLoginState) {
-      showLoginForm();
+    if (selectInner().hasClass("loginpos")) {
+      showLoginForm(self);
     }
     else {
       new anim.Animation({
-        period: PERIOD,
+        period: TRANSITION_PERIOD,
         frameTime: 1,
         iterations: 1,
         renderTween: function(frameIndex) {
-          showInnerInPosition(frameIndex * TOP / PERIOD);
+          showInnerInPosition(frameIndex * LOGIN_TOP / TRANSITION_PERIOD);
         },
-        renderFinal: showLoginForm
+        renderFinal: function() {
+          showLoginForm(self);
+        }
       }).start();
     }
   }
@@ -89,6 +87,7 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
       self.waitingController = new waitanim.Controller();
     }
     showInnerInWaitingPosition();
+    selectInner().removeClass("loginpos");
     self.waitingController.show().start();
   }
 
