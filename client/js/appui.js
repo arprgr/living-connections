@@ -36,6 +36,7 @@ define([ "jquery", "session" ], function($, session) {
 
   function renderHeader(self) {
     selectHeader()
+      .empty()
       .append($("<span>")
         .addClass("welcome")
         .text("Welcome, "))

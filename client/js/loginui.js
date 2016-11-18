@@ -101,7 +101,7 @@ define([ "jquery" ], function($) {
       render(self);
     }
     selectContainer().show();
-    self.input.focus();
+    self.input.focus().select();
   }
 
   function hide() {

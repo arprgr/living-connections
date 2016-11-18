@@ -10,8 +10,8 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
     return $("#startup .inner");
   }
 
-  function uiIsVisible() {
-    return selectContainer().is(":visible");
+  function showUi() {
+    selectContainer().show();
   }
 
   function hideUi() {
@@ -98,6 +98,7 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
     switch (sessionManager.state) {
     case session.STATE_IDLE:
       removeWaitingState(self);
+      showUi();
       sessionManager.userName ? showErrorState(self) : showLoginState(self);
       break;
     case session.STATE_OPERATING:
