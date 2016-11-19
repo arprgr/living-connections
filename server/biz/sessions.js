@@ -75,7 +75,7 @@ module.exports = (function() {
   }
 
   // Exported
-  function lookupUserName(session, target) {
+  function lookupUser(session, target) {
     if (!session) {
       return Promise.resolve(target);
     }
@@ -83,7 +83,8 @@ module.exports = (function() {
     return findUserForSession(session)
     .then(function(user) {
       if (user) {
-        console.log("retrieved user name", user.name);
+        console.log("retrieved user", user.name);
+        target.user = user;
         target.userName = user.name;
       }
       else {
@@ -95,6 +96,6 @@ module.exports = (function() {
   return {
     logInWithEmail: logInWithEmail,
     restoreSession: restoreSession,
-    lookupUserName: lookupUserName
+    lookupUser: lookupUser
   }
 })();

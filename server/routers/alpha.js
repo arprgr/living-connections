@@ -52,12 +52,12 @@ module.exports = (function() {
     });
   }
 
-  function retrieveUserName(self) {
-    return sessionLogic.lookupUserName(self.session, self);
+  function retrieveUserInfo(self) {
+    return sessionLogic.lookupUser(self.session, self);
   }
 
   function retrieveActionItems(self) {
-    return actionLogic.compileActions(self.userId, self);
+    return actionLogic.compileActions(self.user, self);
   }
 
   function runActionHandler() {
@@ -66,7 +66,7 @@ module.exports = (function() {
       var steps = [
         logInIfRequested,
         resolveSession,
-        retrieveUserName,
+        retrieveUserInfo,
         retrieveActionItems
       ];
 
