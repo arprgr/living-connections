@@ -45,7 +45,7 @@ module.exports = (function() {
   function msgActionItem(msg, action) {
     return {
       type: msgActionType(msg, action),
-      priority: priorityOf(msg, action)
+      priority: priorityOfMsgAction(msg, action)
     }
   }
 

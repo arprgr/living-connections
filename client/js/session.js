@@ -12,6 +12,10 @@ define([ "jquery", "error" ], function($, error) {
 
   var COOKIE_NAME = "s";
 
+  function salt() {
+    return String(Math.floor(0xffffffff * Math.random()));
+  }
+
   function getSessionCookie() {
     var value = "; " + document.cookie;
     var parts = value.split("; s=");
@@ -90,11 +94,22 @@ define([ "jquery", "error" ], function($, error) {
     }
   }
 
+  // private - Update my state to reflect the latest from server.
+  function handleAResults(self, results) {
+    var userName = results.userName;
+    // Update the model first...
+    self.userName = userName;
+    self.actionItems = results.actionItems || [];
+    // Then fire a state change, which triggers handlers that observe the model.
+    setState(self, userName ? STATE_OPERATING : STATE_IDLE);
+    userName ? startPolling(self) : stopPolling(self);
+  }
+
   // private - Start the process of pulling the latest session info from the server.
   function startPolling(self) {
     if (!self.interval) {
       function poll() {
-        get("/a", function(results) {
+        get("/a?_=" + salt(), function(results) {
           handleAResults(self, results);
         });
       }
@@ -109,15 +124,6 @@ define([ "jquery", "error" ], function($, error) {
       clearInterval(self.interval);
       self.interval = 0;
     }
-  }
-
-  // private - Update my state to reflect the latest from server.
-  function handleAResults(self, results) {
-    var userName = results.userName;
-    self.userName = userName;
-    setState(self, userName ? STATE_OPERATING : STATE_IDLE);
-    userName ? startPolling(self) : stopPolling(self);
-    self.actionItems = results.actionItems || [];
   }
 
   // public - Initiate startup processes.
@@ -161,7 +167,7 @@ define([ "jquery", "error" ], function($, error) {
     var self = this;
     stopPolling(self);
     var promise = $.Deferred();
-    get("/a?email=" + encodeURIComponent(email), function(response) {
+    get("/a?email=" + encodeURIComponent(email) + "&_=" + salt(), function(response) {
       handleAResults(self, response);
       if (self.userName) {
         promise.resolve(self);
@@ -180,7 +186,7 @@ define([ "jquery", "error" ], function($, error) {
     var self = this;
     var sid = getSessionCookie();
     if (sid) {
-      get("/o/" + encodeURIComponent(sid));
+      get("/o/" + encodeURIComponent(sid) + "?_=" + salt());
       clearSessionCookie();
     }
     self.userName = null;

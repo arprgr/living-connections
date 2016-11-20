@@ -52,7 +52,30 @@ define([ "jquery", "session" ], function($, session) {
         }))
   }
 
+  function iconUri(item) {
+    return "/assets/" + item.type + ".png";
+  }
+
   function renderActionItems(self) {
+    var $body = selectBody().empty();
+    var actionItems = self.sessionManager.actionItems;
+console.log(self);
+console.log(self.sessionManager);
+console.log(actionItems);
+    if (actionItems) {
+      for (var i = 0; i < actionItems.length; ++i) {
+        var item = actionItems[i];
+        $body.append($("<div>")
+          .addClass("action")
+          .append($("<img>")
+            .attr("src", item.type + ".png")
+            .css("width", 40)
+            .css("height", 40))
+          .append($("<span>")
+            .text(item.type))
+        );
+      }
+    }
   }
 
   function render(self) {
