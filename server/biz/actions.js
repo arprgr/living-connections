@@ -30,6 +30,9 @@ module.exports = (function() {
     "rec": 10
   }
 
+  const ACTION_ITEM_LIMIT = 20;
+  const MSG_LIMIT = 5;
+
   function byPriorityDesc(a, b) {
     return b.priority - a.priority;
   }
@@ -54,6 +57,7 @@ module.exports = (function() {
   }
 
   function addItemsForNormalUsers(context) {
+    context.actionItems.push(msgActionItem(MSG_INVITATION, ACTION_CREATE));
   }
 
   function addItemsForAll() {

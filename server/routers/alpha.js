@@ -3,6 +3,7 @@
 module.exports = (function() {
   const Promise = require("promise");
   const models = require("../models/index");
+  const exec = require("../util/exec");
   const sessionLogic = require("../biz/sessions");
   const actionLogic = require("../biz/actions");
 
@@ -62,26 +63,12 @@ module.exports = (function() {
 
   function runActionHandler() {
     var self = this;
-    return new Promise(function(resolve, reject) {
-      var steps = [
-        logInIfRequested,
-        resolveSession,
-        retrieveUserInfo,
-        retrieveActionItems
-      ];
-
-      (function next() {
-        var f = steps.shift();
-        if (f) {
-          f.call(null, self)
-            .then(next)
-            .catch(reject);
-        }
-        else {
-          resolve(self);
-        }
-      })();
-    });
+    return exec.executeSequence(self, [
+      logInIfRequested,
+      resolveSession,
+      retrieveUserInfo,
+      retrieveActionItems
+    ]);
   }
 
   function runActionHandlerAndRespond() {
