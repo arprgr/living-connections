@@ -33,6 +33,7 @@ server.get("/", function(request, response) {
 server.use("/users", require("./routers/users"));
 server.use("/sessions", require("./routers/sessions"));
 server.use("/assets", require("./routers/assets"));
+server.use("/messages", require("./routers/messages"));
 server.use("/emailprofiles", require("./routers/emailprofiles"));
 server.use("/announcements", require("./routers/announcements"));
 server.use("/a", require("./routers/alpha"));
