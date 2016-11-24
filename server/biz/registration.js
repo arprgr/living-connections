@@ -18,31 +18,39 @@ module.exports = (function() {
     });
   }
 
+  function createNewConnection(userId, connectionId) {
+    return models.Connection.create({
+      UserId: userId,
+      connectionId, connectionId
+    });
+  }
+
   // Exported
   function register(options, target) {
     return new Promise(function(resolve, reject) {
 
       var name = options.name;
       if (!name) {
-          reject("name missing");
+        reject("name missing");
       }
       var level = typeof options.level == "number" ? options.level : 1;
+      var email = options.email;
+      if (!email) {
+        reject("email missing");
+      }
 
       createNewUser(name, level)
       .then(function(user) {
         target.user = user;
-
-        if (options.email) {
-          createNewEmailProfile(options.email, user.id)
-          .then(function(emailProfile) {
-            target.emailProfile = emailProfile;
-            resolve(target);
-          })
-          .catch(reject);
-        }
-        else {
-          reject("email missing");
-        }
+        return createNewEmailProfile(options.email, user.id);
+      })
+      .then(function(emailProfile) {
+        target.emailProfile = emailProfile;
+        return createNewConnection(target.user.id, 0);
+      })
+      .then(function(connection) {
+        target.connection = connection;
+        resolve(target);
       })
       .catch(reject);
     });
