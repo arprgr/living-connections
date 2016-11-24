@@ -38,7 +38,7 @@ server.use("/emailprofiles", require("./routers/emailprofiles"));
 server.use("/announcements", require("./routers/announcements"));
 server.use("/a", require("./routers/alpha"));
 server.use("/o", require("./routers/omega"));
-server.use("/scripts", require("./routers/scripts"));
+server.use("/admin", require("./routers/admin"));
 
 var port = process.env.PORT || CONFIG.server.port;
 server.set("port", port);
