@@ -12,7 +12,7 @@ module.exports = function(sequelize, DataTypes) {
         return Connection.findAll({
           where: { UserId: userId },
           limit: options && options.limit,
-          order: "grade DESC"
+          order: [ [ "grade", "DESC" ] ]
         });
       }
     }
