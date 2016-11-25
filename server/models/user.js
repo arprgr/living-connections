@@ -16,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
         User.hasMany(models.Asset);
       },
       findById: function(id) {
-        return User.find({
+        return User.findOne({
           where: { id: id }
         });
       }

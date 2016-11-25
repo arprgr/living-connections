@@ -20,7 +20,7 @@ module.exports = (function() {
     });
   }
 
-  function executeGroup(context, group, arg) {
+  function executeGroup(context, group) {
     group = group.slice();
     var pendingCount = 0;
     var rejected = false;
@@ -28,7 +28,7 @@ module.exports = (function() {
       for (var i = 0; i < group.length; ++i) {
         var promise = group[i](context);
         ++pendingCount;
-        promise.then(function(arg) {
+        promise.then(function() {
           if (!rejected && --pendingCount == 0) {
             resolve(context);
           }
