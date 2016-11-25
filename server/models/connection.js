@@ -6,7 +6,7 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: function(models) {
         Connection.belongsTo(models.User);
-        Connection.belongsTo(models.User, { as: "connection" });
+        Connection.belongsTo(models.User, { as: "peer" });
       },
       findByUserId: function(userId, options) {
         return Connection.findAll({

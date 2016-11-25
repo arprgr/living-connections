@@ -90,7 +90,7 @@ module.exports = (function() {
     if (connections) {
       for (var i = 0; i < connections.length; ++i) {
         var conn = connections[i];
-        addActionItem(compiler, MSG_GREETING, ACTION_CREATE, { connectionId: conn.connectionId });
+        addActionItem(compiler, MSG_GREETING, ACTION_CREATE, { peerId: conn.peerId });
       }
     }
   }

@@ -18,10 +18,10 @@ module.exports = (function() {
     });
   }
 
-  function createNewConnection(userId, connectionId) {
+  function createNewConnection(userId, peerId) {
     return models.Connection.create({
       UserId: userId,
-      connectionId, connectionId
+      peerId, peerId
     });
   }
 
