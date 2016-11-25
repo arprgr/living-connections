@@ -59,9 +59,6 @@ define([ "jquery", "session" ], function($, session) {
   function renderActionItems(self) {
     var $body = selectBody().empty();
     var actionItems = self.sessionManager.actionItems;
-console.log(self);
-console.log(self.sessionManager);
-console.log(actionItems);
     if (actionItems) {
       for (var i = 0; i < actionItems.length; ++i) {
         var item = actionItems[i];
@@ -69,10 +66,10 @@ console.log(actionItems);
           .addClass("action")
           .append($("<img>")
             .attr("src", item.type + ".png")
-            .css("width", 40)
-            .css("height", 40))
+            .css("width", 60)
+            .css("height", 60))
           .append($("<span>")
-            .text(item.type))
+            .text(item.title))
         );
       }
     }

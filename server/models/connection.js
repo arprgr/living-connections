@@ -1,5 +1,8 @@
 'use strict';
+
 module.exports = function(sequelize, DataTypes) {
+  var extend = require("extend");
+
   var Connection = sequelize.define('Connection', {
     grade: DataTypes.REAL
   }, {
@@ -9,11 +12,9 @@ module.exports = function(sequelize, DataTypes) {
         Connection.belongsTo(models.User, { as: "peer" });
       },
       findByUserId: function(userId, options) {
-        return Connection.findAll({
-          where: { UserId: userId },
-          limit: options && options.limit,
-          order: [ [ "grade", "DESC" ] ]
-        });
+        return Connection.findAll(extend({
+          where: { UserId: userId }
+        }, options));
       }
     }
   });

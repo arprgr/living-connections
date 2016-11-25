@@ -17,23 +17,24 @@ module.exports = (function() {
   const ACTION_REVIEW = "rev";       // Take another look at a message that you created.
   const ACTION_RECEIVE = "rec";      // Interact with an incoming message.
 
-  const MSG_PRIORITY = {
-    "inv": 9,
-    "gre": 7,
-    "rem": 10,
-    "pro": 5,
-    "ann": 8
+  const MESSAGES = {
+    "inv": { priority: 9, what: "an invitation" },
+    "gre": { priority: 7, what: "a greeting" },
+    "rem": { priority: 10, what: "a reminder" },
+    "pro": { priority: 5, what: "a profile message" },
+    "ann": { priority: 8, what: "an announcement" }
   }
 
-  const ACTION_PRIORITY = {
-    "cre": 8,
-    "upd": 4,
-    "rev": 6,
-    "rec": 10
+  const ACTIONS = {
+    "cre": { priority: 8, verbage: "Create" },
+    "upd": { priority: 4, verbage: "Update" },
+    "rev": { priority: 6, verbage: "Review" },
+    "rec": { priority: 10, verbage: "View" }
   }
 
   const MAX_ACTION_ITEMS = 20;
   const MAX_MESSAGES = 5;
+  const MAX_CONNECTIONS = 10;
 
   function byPriorityDesc(a, b) {
     return b.priority - a.priority;
@@ -44,13 +45,14 @@ module.exports = (function() {
   }
 
   function priorityOfMsgAction(msg, action) {
-    return MSG_PRIORITY[msg] * ACTION_PRIORITY[action];
+    return MESSAGES[msg].priority * ACTIONS[action].priority;
   }
 
   function msgActionItem(msg, action, data) {
     return extend({
       type: msgActionType(msg, action),
-      priority: priorityOfMsgAction(msg, action)
+      priority: priorityOfMsgAction(msg, action),
+      title: ACTIONS[action].verbage + " " + MESSAGES[msg].what
     }, data);
   }
 
@@ -65,7 +67,15 @@ module.exports = (function() {
   function fetchAssociatedData(compiler) {
     return exec.executeGroup(compiler, [
       function() {
-        return models.Connection.findByUserId(compiler.user.id)
+        return models.Connection.findByUserId(compiler.user.id, {
+          include: [{
+            model: models.User,
+            as: "peer",
+            required: true
+          }],
+          limit: MAX_CONNECTIONS,
+          order: [ [ "grade", "DESC" ] ]
+        })
         .then(function(connections) {
           compiler.connections = connections;
         })
@@ -90,9 +100,12 @@ module.exports = (function() {
     if (connections) {
       for (var i = 0; i < connections.length; ++i) {
         var conn = connections[i];
-        addActionItem(compiler, MSG_GREETING, ACTION_CREATE, { peerId: conn.peerId });
+        addActionItem(compiler, MSG_GREETING, ACTION_CREATE, {
+          title: "Send a greeting to " + conn.peer.name
+        });
       }
     }
+    addActionItem(compiler, MSG_PROFILE, ACTION_CREATE);
   }
 
   function createActionItems(compiler) {
