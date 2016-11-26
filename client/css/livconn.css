@@ -48,3 +48,29 @@ div {
 #startup .login .error {
   color: red;
 }
+#app {
+  position: absolute;
+  max-width: 450px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  padding: 20px;
+  overflow: scroll;
+}
+#app .header {
+  background-color: #dfd;
+  padding: 10px;
+}
+#app .action {
+  border: solid 2px #884;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: white;
+}
+#app .action img {
+  border: solid 2px #884;
+  width: 60px;
+  height: 60px;
+}

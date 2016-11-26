@@ -65,9 +65,7 @@ define([ "jquery", "session" ], function($, session) {
         $body.append($("<div>")
           .addClass("action")
           .append($("<img>")
-            .attr("src", item.type + ".png")
-            .css("width", 60)
-            .css("height", 60))
+            .attr("src", item.type + ".png"))
           .append($("<span>")
             .text(item.title))
         );
