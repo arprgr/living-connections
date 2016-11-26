@@ -31,5 +31,17 @@ module.exports = (function() {
     });
   });
 
+  router.post("/connect/:userId/:peerId", function(req, res) {
+    models.Connection.findOrCreate({
+      where: { UserId: req.params.userId, peerId: req.params.peerId }
+    })
+    .then(function(info) {
+      res.json(info);
+    })
+    .catch(function(error) {
+      res.json({ error: String(error) });
+    });
+  });
+
   return router;
 })();
