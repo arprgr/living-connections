@@ -1,6 +1,6 @@
 // appui.js
 
-define([ "jquery", "session" ], function($, session) {
+define([ "jquery", "session", "vid" ], function($, session, vid) {
 
   function selectContainer() {
     return $("#app");
@@ -56,19 +56,47 @@ define([ "jquery", "session" ], function($, session) {
     return "/assets/" + item.type + ".png";
   }
 
+  function closeActivity(self) {
+    self.activity = null;
+    renderActionItems(self);
+  }
+
+  function renderActivity(self) {
+    selectBody()
+      .empty()
+      .append($("<div>").text(self.activity.title))
+      .append($("<div>").append($("<button>").text("Back").click(function() { closeActivity(self); })))
+      .append($("<div>")
+        .html("<video id='localVideo' autoplay></video>"))
+    ;
+    var localVideo = document.getElementById("localVideo");
+    var localVideoController = new vid.LocalVideoController(localVideo);
+  }
+
+  function handleClick(self, item) {
+    self.activity = item;
+    renderActivity(self);
+  }
+
+  function renderActionItem(self, item) {
+    return $("<div>")
+      .addClass("action")
+      .append($("<img>")
+        .attr("src", iconUri(item)))
+      .append($("<span>")
+        .text(item.title))
+      .click(function() {
+        handleClick(self, item);
+      });
+  }
+
   function renderActionItems(self) {
     var $body = selectBody().empty();
     var actionItems = self.sessionManager.actionItems;
     if (actionItems) {
       for (var i = 0; i < actionItems.length; ++i) {
         var item = actionItems[i];
-        $body.append($("<div>")
-          .addClass("action")
-          .append($("<img>")
-            .attr("src", item.type + ".png"))
-          .append($("<span>")
-            .text(item.title))
-        );
+        $body.append(renderActionItem(self, item));
       }
     }
   }
