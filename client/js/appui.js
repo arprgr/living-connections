@@ -53,7 +53,7 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
   }
 
   function iconUri(item) {
-    return "/assets/" + item.type + ".png";
+    return "/img/" + item.type + ".png";
   }
 
   function closeActivity(self) {

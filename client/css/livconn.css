@@ -24,7 +24,7 @@ div {
 #startup .logo {
   width: 430px;
   height: 380px;
-  background: url(/assets/logo.png) center center no-repeat;
+  background: url(/img/logo.png) center center no-repeat;
 }
 #startup .fadedot {
   margin: 5px 20px;
