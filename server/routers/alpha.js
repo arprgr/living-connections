@@ -28,7 +28,7 @@ module.exports = (function() {
 
   function sendSessionCookie(self) {
     self.response.cookie("s", self.session.externalId, {
-      maxAge: 900000,
+      maxAge: 2147483647,
       path: "/",
     });
   }
