@@ -3,6 +3,13 @@
 define([ "jquery", "lib/webrtc-adapter" ], function($) {
 
   //
+  // Function IsCapable
+  //
+  function IsCapable() {
+    return !!navigator.mediaDevices;
+  }
+
+  //
   // Class LocalVideoController
   //
   function LocalVideoController() {
@@ -29,8 +36,8 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
     if (self.stream) {
       defered.resolve(self);
     }
-    else if (!navigator.mediaDevices) {
-      defered.reject("navigator.mediaDevices is null");
+    else if (!IsCapable()) {
+      defered.reject("browser not video-capable");
     }
     else {
       navigator.mediaDevices.getUserMedia({
@@ -67,6 +74,7 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
   // The module.
   //
   return {
+    IsCapable: IsCapable,
     LocalVideoController: LocalVideoController
   }
 });

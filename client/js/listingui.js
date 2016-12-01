@@ -10,24 +10,12 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
     return $("#app .header");
   }
 
-  function addHeader() {
-    return $("<div>")
-      .addClass("header")
-      .appendTo(selectContainer());
-  }
-
   function selectBody() {
     return $("#app .body");
   }
 
-  function addBody() {
-    return $("<div>")
-      .addClass("body")
-      .appendTo(selectContainer());
-  }
-
   function showUi() {
-    selectContainer().show();
+    selectContainer().show(3000);
   }
 
   function hideUi() {
@@ -37,9 +25,8 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
   function Controller(sessionManager) {
     var self = this;
     self.sessionManager = sessionManager;
-    sessionManager.addStateChangeListener(function() {
-      handleSessionManagerStateChange(self);
-    });
+    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+    sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
   }
 
   function logOut(self) {
@@ -47,21 +34,24 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
   }
 
   function renderHeader(self) {
-    selectHeader().remove();
-    addHeader()
+    var header = selectHeader()
+      .empty()
       .append($("<span>")
         .addClass("welcome")
-        .text("Welcome, "))
-      .append($("<span>")
-        .addClass("who")
-        .text(self.sessionManager.userName + " "))
-      .append($("<a>")
-        .addClass("function")
-        .text("Log out")
-        .attr("href", "#")
-        .click(function() {
-          logOut(self);
-        }))
+        .text("Welcome, "));
+    if (self.sessionManager.user) {
+      header
+        .append($("<span>")
+          .addClass("who")
+          .text(self.sessionManager.user.name + " "))
+        .append($("<a>")
+          .addClass("function")
+          .text("Log out")
+          .attr("href", "#")
+          .click(function() {
+            logOut(self);
+          }));
+    }
   }
 
   function iconUri(item) {
@@ -74,8 +64,8 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
   }
 
   function renderActivity(self) {
-    selectBody().remove();
-    addBody()
+    selectBody()
+      .empty()
       .append($("<div>").text(self.activity.title))
       .append($("<div>").append($("<button>").text("Back").click(function() { closeActivity(self); })))
       .append($("<div>")
@@ -113,20 +103,19 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
     }
   }
 
-  function render(self) {
+  function handleSessionManagerStateChange(self) {
+    var self = this;
     renderHeader(self);
+  }
+
+  function handleSessionManagerActionChange() {
+    var self = this;
     renderActionItems(self);
   }
 
-  function handleSessionManagerStateChange(self) {
-    var sessionManager = self.sessionManager;
-    if (sessionManager.state == session.STATE_OPERATING) {
-      render(self);
-      showUi();
-    }
-    else {
-      hideUi();
-    }
+  Controller.prototype = {
+    showUi: showUi,
+    hideUi: hideUi
   }
 
   return {

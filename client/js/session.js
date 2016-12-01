@@ -2,28 +2,24 @@
 
 define([ "jquery", "error" ], function($, error) {
 
-  // Manager is in one of the following states....
-  var STATE_IDLE = 0;
-  var STATE_CONNECTING = 1;
-  var STATE_OPERATING = 2;
-
-  var FETCH_INTERVAL = 5000;
-  var INIT_TIMEOUT = 10000;
+  // Session cookie functions.
 
   var COOKIE_NAME = "s";
 
-  function salt() {
-    return String(Math.floor(0xffffffff * Math.random()));
-  }
-
   function getSessionCookie() {
     var value = "; " + document.cookie;
-    var parts = value.split("; s=");
+    var parts = value.split("; " + COOKIE_NAME + "=");
     if (parts.length == 2) return parts.pop().split(";").shift();
   }
 
   function clearSessionCookie() {
     document.cookie = COOKIE_NAME + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+  }
+
+  // AJAX functions.
+
+  function salt() {
+    return String(Math.floor(0xffffffff * Math.random()));
   }
 
   function get(url, handleDone, handleError) {
@@ -49,162 +45,205 @@ define([ "jquery", "error" ], function($, error) {
     req.send();
   }
 
-  // Manager constructor.
+  // Observable functions.
+
+  function addListener(listeners, listener) {
+    listeners.push(listener);
+    return {
+      undo: function() {
+        removeListener(listeners, listener);
+      }
+    }
+  }
+
+  function removeListener(listeners, listener) {
+    var ix = listeners.indexOf(listener);
+    if (ix >= 0) {
+      listeners.splice(ix, 1);
+    }
+  }
+
+  function notifyListeners(listeners, data) {
+    for (var i = 0; i < listeners.length; ++i) {
+      listeners[i](data);
+    }
+  }
+
+  // Class session.Manager.
+
+  var FETCH_INTERVAL = 5000;
+  var TRIES = 3;
+
   function Manager() {
     var self = this;
 
-    // state is initially undefined.
-    self.actionItems = [];
+    self.responseCount = 0;
+    self.errorCount = 0;
+    self.localErrorCount = 0;
+
+    // The session manager notifies listeners of general state changes.
     self.stateChangeListeners = [];
-    self.errorListeners = [];
+
+    // The session manager maintains the current list of action items, and notifies
+    // listeners of changes.
+    self.actionItems = [];  // The current list of action items.
+    self.actionListeners = [];
+  }
+
+  // Not yet logged in, or explicitly logged out.
+  function isLoginRequired() {
+    var self = this;
+    return self.responseCount > 0 && !this.user;
+  }
+
+  // In application mode.
+  function isActive() {
+    return getSessionCookie() && this.user;
+  }
+
+  // Unresponsive (regardless of mode).
+  function isUnresponsive() {
+    return this.localErrorCount >= TRIES;
   }
 
   // public - Add a state change listener.
   function addStateChangeListener(listener) {
-    var self = this;
-    self.stateChangeListeners.push(listener);
-    return {
-      undo: function() {
-        self.removeStateChangeListener(listener);
-      }
-    }
+    return addListener(this.stateChangeListeners, listener);
   }
 
-  // public - Remove a state change listener.
-  function removeStateChangeListener(listener) {
-    var self = this;
-    var ix = self.stateChangeListeners.indexOf(listener);
-    if (ix >= 0) {
-      self.stateChangeListeners.splice(ix, 1);
-    }
+  // public - Add an action listener.
+  function addActionListener(listener) {
+    return addListener(this.actionListeners, listener);
   }
 
   // private - Notify state change listeners.
   function notifyStateChangeListeners(self) {
-    for (var i = 0; i < self.stateChangeListeners.length; ++i) {
-      self.stateChangeListeners[i](self);
-    }
+    notifyListeners(self.stateChangeListeners, self);
   }
 
-  // private - Change state.
-  function setState(self, state) {
-    if (state != self.state) {
-      self.state = state;
-      notifyStateChangeListeners(self);
-    }
+  // private - Notify action listeners.
+  function notifyActionListeners(self) {
+    notifyListeners(self.actionListeners, self.actionItems);
   }
 
-  // private - Update my state to reflect the latest from server.
+  // private - Update state to reflect a valid response from server.
   function handleAResults(self, results) {
+    self.responseCount += 1;
+    self.localErrorCount = 0;
+    self.waiting = false;
+
     var userName = results.userName;
-    // Update the model first...
-    self.userName = userName;
-    self.actionItems = results.actionItems || [];
-    // Then fire a state change, which triggers handlers that observe the model.
-    setState(self, userName ? STATE_OPERATING : STATE_IDLE);
+    if (userName) {
+      if (!self.user) {
+        self.user = {};
+      }
+      self.user.name = userName;
+      // TODO: additional user info 
+    }
+
     userName ? startPolling(self) : stopPolling(self);
+
+    var actionItems = results.actionItems;
+    if (actionItems) {
+      // TODO: do differencing
+      self.actionItems = actionItems;
+      notifyActionListeners(self);
+    }
+
+    // Then trigger handlers that observe the model.
+    notifyStateChangeListeners(self);
+  }
+
+  // private - Update state to reflect an error, either network or backend.
+  function handleAError(self, error) {
+    self.errorCount += 1;
+    self.localErrorCount += 1;
+    console.log(error);
+    if (self.isUnresponsive()) {
+      self.waiting = false;
+    }
+    notifyStateChangeListeners(self);
   }
 
   // private - Start the process of pulling the latest session info from the server.
   function startPolling(self) {
-    if (!self.interval) {
+    if (!self.pollInterval) {
       function poll() {
         get("/a?_=" + salt(), function(results) {
           handleAResults(self, results);
+        }, function(error) {
+          handleAError(self, error);
         });
       }
       poll();
-      self.interval = setInterval(poll, FETCH_INTERVAL);
+      self.pollInterval = setInterval(poll, FETCH_INTERVAL);
     }
   }
 
   // private - Stop process.
   function stopPolling(self) {
-    if (self.interval) {
-      clearInterval(self.interval);
-      self.interval = 0;
+    if (self.pollInterval) {
+      clearInterval(self.pollInterval);
+      self.pollInterval = 0;
     }
   }
 
   // public - Initiate startup processes.
   function init() {
     var self = this;
-    var promise;
-    var timeout, listenerHandle;
-    switch (self.state) {
-    case STATE_CONNECTING:
-      promise = this.initPromise;
-      break;
-    case STATE_OPERATING:
-      promise = $.Deferred().resolve(self);
-      break;
-    default:
-      self.initPromise = promise = $.Deferred();
+    if (!self.responseCount) {
+      self.waiting = true;
       startPolling(self);
-      setState(self, STATE_CONNECTING);
-      listenerHandle = self.addStateChangeListener(function() {
-        switch (self.state) {
-        case STATE_OPERATING:
-        case STATE_IDLE:
-          clearTimeout(timeout);
-          promise.resolve(self);
-          self.initPromise = 0;
-        }
-        listenerHandle.undo();
-      });
-      timeout = setTimeout(function() {
-        self.initPromise = 0;
-        stopPolling(self);
-        promise.reject(new Error(error.codes.STARTUP_ERROR_TIMEOUT));
-        listenerHandle.undo();
-      }, INIT_TIMEOUT);
+      notifyStateChangeListeners(self);
     }
-    return promise;
   }
 
   // public - Log in with an email address.
   function logInWithEmail(email) {
     var self = this;
     stopPolling(self);
+    self.user = null;
     var promise = $.Deferred();
     get("/a?email=" + encodeURIComponent(email) + "&_=" + salt(), function(response) {
       handleAResults(self, response);
-      if (self.userName) {
+      if (self.user) {
         promise.resolve(self);
       }
       else {
         promise.reject("Login failed.");
       }
     }, function(error) {
-      promise.reject("Login failed.");
+      handleAError(self, error);
+      promise.reject("Can't reach server.");
     });
+    notifyStateChangeListeners(self);
     return promise;
   }
 
   // public - Initiate logout process.
   function logOut() {
     var self = this;
+    self.user = null;
     var sid = getSessionCookie();
     if (sid) {
       get("/o/" + encodeURIComponent(sid) + "?_=" + salt());
       clearSessionCookie();
     }
-    self.userName = null;
-    setState(self, STATE_IDLE);
+    notifyStateChangeListeners(self);
   }
 
   Manager.prototype = {
     addStateChangeListener: addStateChangeListener,
-    removeStateChangeListener: removeStateChangeListener,
+    addActionListener: addActionListener,
+    isLoginRequired: isLoginRequired,
+    isActive: isActive,
+    isUnresponsive: isUnresponsive,
     init: init,
     logInWithEmail: logInWithEmail,
     logOut: logOut
   }
 
   return {
-    STATE_IDLE: STATE_IDLE,
-    STATE_CONNECTING: STATE_CONNECTING,
-    STATE_OPERATING: STATE_OPERATING,
     Manager: Manager
   }
 });

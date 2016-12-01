@@ -1,6 +1,9 @@
 // startupui.js
 
-define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, session, loginui, waitanim, anim) {
+define([ "jquery", "session", "loginui", "waitanim", "anim", "vid" ],
+  function($, session, loginui, waitanim, anim, vid) {
+
+  var SHOW_HIDE_DURATION = 3000;
 
   function selectContainer() {
     return $("#startup");
@@ -10,12 +13,16 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
     return $("#startup .inner");
   }
 
+  function selectMessageBox() {
+    return $("#startup .message");
+  }
+
   function showUi() {
-    selectContainer().show();
+    selectContainer().show(SHOW_HIDE_DURATION);
   }
 
   function hideUi() {
-    selectContainer().hide();
+    selectContainer().hide(SHOW_HIDE_DURATION);
   }
 
   var LOGIN_TOP = -338;
@@ -37,15 +44,8 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
 
   function Controller(sessionManager) {
     var self = this;
-    self.sessionManager = sessionManager;
-    sessionManager.addStateChangeListener(function() {
-      handleSessionManagerStateChange(self);
-    });
-    showWaitingState(self);
-  }
-
-  function showErrorState(self) {
-    selectUnderBox().empty().html(error.render({}));
+    self.loginController = new loginui.Controller(sessionManager);
+    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
   }
 
   function showLoginForm(self) {
@@ -54,12 +54,42 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
     selectInner().addClass("loginpos");
   }
 
-  function showLoginState(self) {
+  function hideLoginForm(self) {
+    showInnerInWaitingPosition();
+    self.loginController.hide();
+    selectInner().removeClass("loginpos");
+  }
 
-    if (!self.loginController) {
-      self.loginController = new loginui.Controller(self.sessionManager);
+  function toBareState() {
+    var self = this;
+    if (!selectInner().hasClass("loginpos")) {
+      hideLoginForm(self);
     }
+    else {
+      new anim.Animation({
+        period: TRANSITION_PERIOD,
+        frameTime: 1,
+        iterations: 1,
+        renderTween: function(frameIndex) {
+          showInnerInPosition((TRANSITION_PERIOD - frameIndex) * LOGIN_TOP / TRANSITION_PERIOD);
+        },
+        renderFinal: function() {
+          hideLoginForm(self);
+        }
+      }).start();
+    }
+  }
 
+  function toLoginState() {
+    var self = this;
+    if (!self.browserChecked) {
+      self.browserChecked = true;
+      if (!vid.IsCapable()) {
+        showInnerInWaitingPosition();
+        selectMessageBox().text("Sorry, your crap browser is not capable of running the awesome Living Connections experience.");
+        return;
+      }
+    }
     if (selectInner().hasClass("loginpos")) {
       showLoginForm(self);
     }
@@ -78,7 +108,7 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
     }
   }
 
-  function showWaitingState(self) {
+  function showWaitingIndicator(self) {
     if (!self.waitingController) {
       self.waitingController = new waitanim.Controller();
     }
@@ -87,27 +117,34 @@ define([ "jquery", "session", "loginui", "waitanim", "anim" ], function($, sessi
     self.waitingController.show().start();
   }
 
-  function removeWaitingState(self) {
+  function removeWaitingIndicator(self) {
     if (self.waitingController) {
       self.waitingController.stop().hide();
     }
   }
 
-  function handleSessionManagerStateChange(self) {
-    var sessionManager = self.sessionManager;
-    switch (sessionManager.state) {
-    case session.STATE_IDLE:
-      removeWaitingState(self);
-      showUi();
-      sessionManager.userName ? showErrorState(self) : showLoginState(self);
-      break;
-    case session.STATE_OPERATING:
-      removeWaitingState(self);
-      hideUi();
-      break;
-    default:
-      showWaitingState(self);
+  function showUnresponsive() {
+    selectMessageBox().text("We're not able to connect to Living Connections' server at this time. " +
+      "We'll keep trying. In the meantime, please check your internet connection.");
+  }
+
+  function handleSessionManagerStateChange(sessionManager) {
+    var self = this;
+    sessionManager.waiting ? showWaitingIndicator(self) : removeWaitingIndicator(self);
+    if (sessionManager.isUnresponsive()) {
+      showUnresponsive(self);
     }
+  }
+
+  function toBrowerWarningState() {
+    selectMessageBox().text("Your browser is not capable of running Living Connections.");
+  }
+
+  Controller.prototype = {
+    showUi: showUi,
+    hideUi: hideUi,
+    toBareState: toBareState,
+    toLoginState: toLoginState
   }
 
   return {
