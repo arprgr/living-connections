@@ -1,6 +1,6 @@
 // listingui.js
 
-define([ "jquery", "session", "vid" ], function($, session, vid) {
+define([ "jquery", "activityui" ], function($, activityui) {
 
   function selectContainer() {
     return $("#app");
@@ -11,7 +11,7 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
   }
 
   function selectBody() {
-    return $("#app .body");
+    return $("#app .listing");
   }
 
   function showUi() {
@@ -20,6 +20,14 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
 
   function hideUi() {
     selectContainer().hide();
+  }
+
+  function showBody() {
+    selectBody().show();
+  }
+
+  function hideBody() {
+    selectBody().hide();
   }
 
   function Controller(sessionManager) {
@@ -59,25 +67,14 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
   }
 
   function closeActivity(self) {
-    self.activity = null;
-    renderActionItems(self);
+    self.openItem = null;
+    showBody();
   }
 
-  function renderActivity(self) {
-    selectBody()
-      .empty()
-      .append($("<div>").text(self.activity.title))
-      .append($("<div>").append($("<button>").text("Back").click(function() { closeActivity(self); })))
-      .append($("<div>")
-        .html("<video id='localVideo' autoplay></video>"))
-    ;
-    var localVideo = document.getElementById("localVideo");
-    var localVideoController = new vid.LocalVideoController(localVideo);
-  }
-
-  function handleClick(self, item) {
-    self.activity = item;
-    renderActivity(self);
+  function handleItemClick(self, item) {
+    var self = this;
+    self.openItem = item;
+    new activityui.Controller(self.sessionManager, closeActivity.bind(self)).open(item);
   }
 
   function renderActionItem(self, item) {
@@ -88,13 +85,12 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
       .append($("<span>")
         .text(item.title))
       .click(function() {
-        handleClick(self, item);
+        handleItemClick(self, item);
       });
   }
 
-  function renderActionItems(self) {
+  function renderActionItems(self, actionItems) {
     var $body = selectBody().empty();
-    var actionItems = self.sessionManager.actionItems;
     if (actionItems) {
       for (var i = 0; i < actionItems.length; ++i) {
         var item = actionItems[i];
@@ -108,9 +104,9 @@ define([ "jquery", "session", "vid" ], function($, session, vid) {
     renderHeader(self);
   }
 
-  function handleSessionManagerActionChange() {
+  function handleSessionManagerActionChange(actionItems) {
     var self = this;
-    renderActionItems(self);
+    renderActionItems(self, actionItems);
   }
 
   Controller.prototype = {

@@ -1,6 +1,6 @@
 // session.js
 
-define([ "jquery", "error" ], function($, error) {
+define([ "jquery", "obs" ], function($, obs) {
 
   // Session cookie functions.
 
@@ -45,30 +45,6 @@ define([ "jquery", "error" ], function($, error) {
     req.send();
   }
 
-  // Observable functions.
-
-  function addListener(listeners, listener) {
-    listeners.push(listener);
-    return {
-      undo: function() {
-        removeListener(listeners, listener);
-      }
-    }
-  }
-
-  function removeListener(listeners, listener) {
-    var ix = listeners.indexOf(listener);
-    if (ix >= 0) {
-      listeners.splice(ix, 1);
-    }
-  }
-
-  function notifyListeners(listeners, data) {
-    for (var i = 0; i < listeners.length; ++i) {
-      listeners[i](data);
-    }
-  }
-
   // Class session.Manager.
 
   var FETCH_INTERVAL = 5000;
@@ -82,12 +58,11 @@ define([ "jquery", "error" ], function($, error) {
     self.localErrorCount = 0;
 
     // The session manager notifies listeners of general state changes.
-    self.stateChangeListeners = [];
+    self.state = new obs.Observable(self);
 
     // The session manager maintains the current list of action items, and notifies
     // listeners of changes.
-    self.actionItems = [];  // The current list of action items.
-    self.actionListeners = [];
+    self.actionItems = new obs.Observable([]);
   }
 
   // Not yet logged in, or explicitly logged out.
@@ -108,22 +83,22 @@ define([ "jquery", "error" ], function($, error) {
 
   // public - Add a state change listener.
   function addStateChangeListener(listener) {
-    return addListener(this.stateChangeListeners, listener);
-  }
-
-  // public - Add an action listener.
-  function addActionListener(listener) {
-    return addListener(this.actionListeners, listener);
+    return this.state.addChangeListener(listener);
   }
 
   // private - Notify state change listeners.
   function notifyStateChangeListeners(self) {
-    notifyListeners(self.stateChangeListeners, self);
+    self.state.notifyChangeListeners();
+  }
+
+  // public - Add an action listener.
+  function addActionListener(listener) {
+    return this.actionItems.addChangeListener(listener);
   }
 
   // private - Notify action listeners.
   function notifyActionListeners(self) {
-    notifyListeners(self.actionListeners, self.actionItems);
+    self.actionItems.notifyChangeListeners();
   }
 
   // private - Update state to reflect a valid response from server.
@@ -146,7 +121,7 @@ define([ "jquery", "error" ], function($, error) {
     var actionItems = results.actionItems;
     if (actionItems) {
       // TODO: do differencing
-      self.actionItems = actionItems;
+      self.actionItems.value = actionItems;
       notifyActionListeners(self);
     }
 
