@@ -3,78 +3,19 @@
 define([ "jquery", "activityui" ], function($, activityui) {
 
   function selectContainer() {
-    return $("#app");
-  }
-
-  function selectHeader() {
-    return $("#app .header");
-  }
-
-  function selectBody() {
     return $("#app .listing");
   }
 
-  function showUi() {
-    selectContainer().show(3000);
-  }
-
-  function hideUi() {
-    selectContainer().hide();
-  }
-
-  function showBody() {
-    selectBody().show();
-  }
-
-  function hideBody() {
-    selectBody().hide();
-  }
-
-  function Controller(sessionManager) {
-    var self = this;
-    self.sessionManager = sessionManager;
-    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
-  }
-
-  function logOut(self) {
-    self.sessionManager.logOut();
-  }
-
-  function renderHeader(self) {
-    var header = selectHeader()
-      .empty()
-      .append($("<span>")
-        .addClass("welcome")
-        .text("Welcome, "));
-    if (self.sessionManager.user) {
-      header
-        .append($("<span>")
-          .addClass("who")
-          .text(self.sessionManager.user.name + " "))
-        .append($("<a>")
-          .addClass("function")
-          .text("Log out")
-          .attr("href", "#")
-          .click(function() {
-            logOut(self);
-          }));
-    }
+  function setVisible(doShow) {
+    selectContainer()[doShow ? "show" : "hide"](3000);
   }
 
   function iconUri(item) {
     return "/img/" + item.type + ".png";
   }
 
-  function closeActivity(self) {
-    self.openItem = null;
-    showBody();
-  }
-
   function handleItemClick(self, item) {
-    var self = this;
-    self.openItem = item;
-    new activityui.Controller(self.sessionManager, closeActivity.bind(self)).open(item);
+    self.isOpen && self.actionItemOpenFunc && self.actionItemOpenFunc(item);
   }
 
   function renderActionItem(self, item) {
@@ -89,29 +30,60 @@ define([ "jquery", "activityui" ], function($, activityui) {
       });
   }
 
-  function renderActionItems(self, actionItems) {
-    var $body = selectBody().empty();
+  function render(self) {
+    var $body = selectContainer().empty();
+    var actionItems = self.actionItems;
     if (actionItems) {
       for (var i = 0; i < actionItems.length; ++i) {
-        var item = actionItems[i];
-        $body.append(renderActionItem(self, item));
+        $body.append(renderActionItem(self, actionItems[i]));
       }
     }
   }
 
   function handleSessionManagerStateChange(self) {
     var self = this;
-    renderHeader(self);
   }
 
   function handleSessionManagerActionChange(actionItems) {
     var self = this;
-    renderActionItems(self, actionItems);
+    self.actionItems = actionItems;
+    if (self.isOpen) {
+      render(self);
+    }
+  }
+
+  function Controller(sessionManager) {
+    var self = this;
+    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+    sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
+  }
+
+  function open() {
+    var self = this;
+    if (!self.isOpen) {
+      render(self);
+      self.isOpen = true;
+    }
+    return self;
+  }
+
+  function close() {
+    var self = this;
+    self.isOpen = false;
+    return self;
+  }
+
+  function onActionItemOpen(func) {
+    var self = this;
+    self.actionItemOpenFunc = func;
+    return self;
   }
 
   Controller.prototype = {
-    showUi: showUi,
-    hideUi: hideUi
+    setVisible: setVisible,
+    open: open,
+    close: close,
+    onActionItemOpen: onActionItemOpen
   }
 
   return {

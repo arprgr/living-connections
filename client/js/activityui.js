@@ -2,62 +2,49 @@
 
 define([ "jquery", "vid" ], function($, vid) {
 
+  function ActionItem(data) {
+    $.extend(this, data);
+    this.title = "This is " + data.type;
+  }
+
   function selectContainer() {
     return $("#app .activity");
-  }
-
-  function showUi() {
-    selectContainer().show(3000);
-  }
-
-  function hideUi() {
-    selectContainer().hide(3000);
-  }
-
-  function Controller(sessionManager) {
-    var self = this;
-    self.sessionManager = sessionManager;
-    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
   }
 
   function iconUri(item) {
     return "/img/" + item.type + ".png";
   }
 
+  function fireClose(self) {
+    self.closeFunc && self.closeFunc();
+  }
+
   function render(self) {
-    var actionItem = self.actionItem;
-    var id = actionItem.id;
-    var type = actionItem.type;
+    var actionItem = self.openActionItem;
 
-    selectContainer()
-      .empty()
-      .append($("<div>").text(self.activity.title))
-      .append($("<div>").append($("<button>").text("Back").click(function() { closeActivity(self); })))
-      .append($("<div>")
-        .html("<video id='localVideo' autoplay></video>"))
-    ;
-    var localVideo = document.getElementById("localVideo");
-    var localVideoController = new vid.LocalVideoController(localVideo);
+    var container = selectContainer().empty();
+    
+    if (actionItem) {
+      var id = actionItem.id;
+      var type = actionItem.type;
 
-    localVideo.addEventListener('loadedmetadata', function() {
-      u.trace('Local video videoWidth: ' + this.videoWidth +
-        'px,  videoHeight: ' + this.videoHeight + 'px');
-    });
+      container
+        .append($("<div>").append($("<button>").text("Close").click(function() { fireClose(self); })))
+        .append($("<div>")
+          .html("<video id='localVideo' autoplay></video>"))
+      ;
+      var localVideo = document.getElementById("localVideo");
+      var localVideoController = new vid.LocalVideoController(localVideo);
 
-    localVideoController.onChangeStream(function(stream) {
-      localVideo.srcObject = stream;
-    });
-  }
+      localVideo.addEventListener('loadedmetadata', function() {
+        u.trace('Local video videoWidth: ' + this.videoWidth +
+          'px,  videoHeight: ' + this.videoHeight + 'px');
+      });
 
-  function open(actionItem) {
-    var self = this;
-    self.actionItem = actionItem;
-    render(self);
-  }
-
-  function close() {
-    var self = this;
+      localVideoController.onChangeStream(function(stream) {
+        localVideo.srcObject = stream;
+      });
+    }
   }
 
   function handleSessionManagerStateChange(self) {
@@ -70,7 +57,40 @@ define([ "jquery", "vid" ], function($, vid) {
     // TODO: show urgent items.
   }
 
+  function Controller(sessionManager) {
+    var self = this;
+    self.sessionManager = sessionManager;
+    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+    sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
+  }
+
+  function onActivityClose(func) {
+    var self = this;
+    self.closeFunc = func;
+    return self;
+  }
+
+  function showOrHide(doShow) {
+    selectContainer()[doShow ? "show" : "hide"](3000);
+  }
+
+  function open(actionItem) {
+    var self = this;
+    self.openActionItem = new ActionItem(actionItem);
+    render(self);
+    return self;
+  }
+
+  function close() {
+    var self = this;
+    self.openActionItem = null;
+    render(self);
+    return self;
+  }
+
   Controller.prototype = {
+    showOrHide: showOrHide,
+    onActivityClose: onActivityClose,
     open: open,
     close: close
   }

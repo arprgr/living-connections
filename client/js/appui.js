@@ -1,25 +1,27 @@
 // appui.js
 
-define([ "startupui", "listingui" ], function(startupui, listingui) {
+define([ "startupui", "mainui" ], function(startupui, mainui) {
 
   function Controller(sessionManager) {
     var self = this;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     self.startupController = new startupui.Controller(sessionManager);
-    self.listingController = new listingui.Controller(sessionManager);
+    self.mainController = new mainui.Controller(sessionManager);
   }
 
   function toLoginState(self) {
     self.startupController.toLoginState();
     self.startupController.showUi();
-    self.listingController.hideUi();
+    self.mainController.showOrHide(0);
+    self.mainController.close();
     self.active = false;
   }
 
-  function toListingState(self) {
+  function toMainState(self) {
     self.startupController.toBareState();
     self.startupController.hideUi();
-    self.listingController.showUi();
+    self.mainController.open();
+    self.mainController.showOrHide(1);
     self.active = true;
   }
 
@@ -29,7 +31,7 @@ define([ "startupui", "listingui" ], function(startupui, listingui) {
       toLoginState(self);
     }
     else if (sessionManager.isActive()) {
-      toListingState(self);
+      toMainState(self);
     }
   }
 

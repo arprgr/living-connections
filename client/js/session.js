@@ -121,6 +121,9 @@ define([ "jquery", "obs" ], function($, obs) {
     var actionItems = results.actionItems;
     if (actionItems) {
       // TODO: do differencing
+      for (var i = 0; i < actionItems.length; ++i) {
+        actionItems[i].titleFormat = actionItems[i].type;
+      }
       self.actionItems.value = actionItems;
       notifyActionListeners(self);
     }
@@ -171,6 +174,7 @@ define([ "jquery", "obs" ], function($, obs) {
       startPolling(self);
       notifyStateChangeListeners(self);
     }
+    return self;
   }
 
   // public - Log in with an email address.

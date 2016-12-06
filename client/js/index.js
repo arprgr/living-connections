@@ -1,11 +1,8 @@
 // index.js
 // Living Connections main module
 //
-define([ "startupui", "appui", "session" ], function(startupui, appui, session) {
-
+define([ "appui", "session" ], function(appui, session) {
   return function() {
-    var sessionManager = new session.Manager();
-    new appui.Controller(sessionManager);
-    sessionManager.init();
+    new appui.Controller(new session.Manager().init());
   }
 });

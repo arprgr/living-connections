@@ -45,8 +45,8 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
         video: true
       })
       .then(function(stream) {
-        console.log("localVideo.gotStream");
         self.stream = stream;
+        self.onChangeStreamFunc && self.onChangeStreamFunc(stream);
         dumpTracks(stream);
         deferred.resolve(self);
       })
@@ -63,11 +63,19 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
       track.stop();
     });
     self.stream = null;
+    self.onChangeStreamFunc && self.onChangeStreamFunc(null);
+  }
+
+  function onChangeStream(func) {
+    var self = this;
+    self.onChangeStreamFunc = func;
+    return self;
   }
 
   LocalVideoController.prototype = {
     open: openLocalVideo,
-    close: closeLocalVideo
+    close: closeLocalVideo,
+    onChangeStream: onChangeStream
   }
 
   //
