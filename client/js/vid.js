@@ -12,8 +12,6 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
   //
   // Class LocalVideoController
   //
-  function LocalVideoController() {
-  }
 
   function forEachTrack(stream, func) {
     if (stream) {
@@ -30,11 +28,11 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
     });
   }
 
-  function openLocalVideo() {
+  function open() {
     var self = this;
     var deferred = $.Deferred();
     if (self.stream) {
-      defered.resolve(self);
+      deferred.resolve(self.stream);
     }
     else if (!IsCapable()) {
       defered.reject("browser not video-capable");
@@ -46,36 +44,36 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
       })
       .then(function(stream) {
         self.stream = stream;
-        self.onChangeStreamFunc && self.onChangeStreamFunc(stream);
         dumpTracks(stream);
-        deferred.resolve(self);
+        deferred.resolve(stream);
       })
       .catch(function(error) {
         self.openError = error;
         deferred.reject(error);
       });
     }
+    return deferred;
   }
 
-  function closeLocalVideo() {
+  function close() {
     var self = this;
-    forEachTrack(function(track) {
+    forEachTrack(self.stream, function(track) {
       track.stop();
     });
     self.stream = null;
-    self.onChangeStreamFunc && self.onChangeStreamFunc(null);
   }
 
-  function onChangeStream(func) {
-    var self = this;
-    self.onChangeStreamFunc = func;
-    return self;
+  function isOpen() {
+    return !!this.stream;
+  }
+
+  function LocalVideoController() {
   }
 
   LocalVideoController.prototype = {
-    open: openLocalVideo,
-    close: closeLocalVideo,
-    onChangeStream: onChangeStream
+    open: open,
+    close: close,
+    isOpen: isOpen
   }
 
   //

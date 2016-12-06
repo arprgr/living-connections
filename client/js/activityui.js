@@ -39,14 +39,12 @@ define([ "jquery", "vid" ], function($, vid) {
           .html("<video id='localVideo' autoplay></video>"))
       ;
       var localVideo = document.getElementById("localVideo");
-      var localVideoController = new vid.LocalVideoController(localVideo);
 
-      localVideo.addEventListener('loadedmetadata', function() {
-        u.trace('Local video videoWidth: ' + this.videoWidth +
-          'px,  videoHeight: ' + this.videoHeight + 'px');
+      localVideo.addEventListener("loadedmetadata", function() {
+        console.log("Local video width=" + this.videoWidth + "  height=" + this.videoHeight);
       });
 
-      localVideoController.onChangeStream(function(stream) {
+      self.localVideoController.open().then(function(stream) {
         localVideo.srcObject = stream;
       });
     }
@@ -67,6 +65,7 @@ define([ "jquery", "vid" ], function($, vid) {
     self.sessionManager = sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
+    self.localVideoController = new vid.LocalVideoController();
   }
 
   function onActivityClose(func) {
@@ -89,6 +88,7 @@ define([ "jquery", "vid" ], function($, vid) {
   function close() {
     var self = this;
     self.openActionItem = null;
+    self.localVideoController.close();
     render(self);
     return self;
   }
