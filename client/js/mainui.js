@@ -37,7 +37,7 @@ define([ "jquery", "listingui", "activityui" ], function($, listingui, activityu
         .text(title))
       .append($("<span>").text(" "))
       .append($("<a>")
-        .addClass("function")
+        .addClass("logout")
         .text("Log out")
         .attr("href", "#")
         .click(function() {

@@ -23,7 +23,7 @@ define([ "jquery", "activityui" ], function($, activityui) {
       .addClass("action")
       .append($("<img>")
         .attr("src", iconUri(item)))
-      .append($("<span>")
+      .append($("<div>")
         .text(item.title))
       .click(function() {
         handleItemClick(self, item);

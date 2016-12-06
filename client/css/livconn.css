@@ -1,6 +1,6 @@
 body {
-	font-family: "Palatino Linotype";
-  background-color: #fefcff;
+	font-family: "Arial";
+  background-color: #aeacaf;
 }
 div {
   margin: 0;
@@ -60,17 +60,26 @@ div {
   overflow: scroll;
 }
 #app .header {
-  background-color: #dfd;
+  border-radius: 6px;
+  background-color: #eff;
   padding: 10px;
+}
+#app .header .logout {
+  float: right;
+  color: #cc8;
 }
 #app .action {
-  border: solid 2px #884;
-  margin-top: 20px;
-  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+  padding: 8px;
   background-color: white;
+  color: #004;
+  font-weight: bold;
 }
 #app .action img {
-  border: solid 2px #884;
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
+}
+#app .action div {
+  float: right;
 }
