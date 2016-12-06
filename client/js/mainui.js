@@ -79,16 +79,21 @@ define([ "jquery", "listingui", "activityui" ], function($, listingui, activityu
 
   function open() {
     var self = this;
-    var activityController = self.activityController;
-    var listingController = self.listingController;
-    var which = activityController.openActionItem ? activityController : listingController;
-    which.open();
+    if (!self.isOpen) {
+      if (!self.activityController.openActionItem) {
+        self.listingController.open();
+      }
+      self.isOpen = true;
+    }
   }
 
   function close() {
     var self = this;
-    self.activityController.close();
-    self.listingController.close();
+    if (self.isOpen) {
+      self.activityController.close();
+      self.listingController.close();
+      self.isOpen = false;
+    }
   }
 
   Controller.prototype = {

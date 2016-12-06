@@ -3,7 +3,13 @@
 define([ "jquery", "vid" ], function($, vid) {
 
   function ActionItem(data) {
-    $.extend(this, data);
+    var self = this;
+    $.extend(self, data);
+    Object.defineProperty(self, "titleFormat", {
+      get: function() {
+        return this.title || "Some activity for %u%"
+      }
+    });
   }
 
   function selectContainer() {
