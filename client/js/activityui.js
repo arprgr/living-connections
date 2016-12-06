@@ -4,7 +4,6 @@ define([ "jquery", "vid" ], function($, vid) {
 
   function ActionItem(data) {
     $.extend(this, data);
-    this.title = "This is " + data.type;
   }
 
   function selectContainer() {

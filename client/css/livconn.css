@@ -1,6 +1,6 @@
 body {
 	font-family: "Arial";
-  background-color: #aeacaf;
+  background-color: #bebcbf;
 }
 div {
   margin: 0;
@@ -63,6 +63,7 @@ div {
   border-radius: 6px;
   background-color: #eff;
   padding: 10px;
+  box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.10);
 }
 #app .header .logout {
   float: right;
@@ -75,6 +76,7 @@ div {
   background-color: white;
   color: #004;
   font-weight: bold;
+  box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.10);
 }
 #app .action img {
   width: 64px;
