@@ -34,10 +34,22 @@ define([ "jquery", "vid" ], function($, vid) {
       var type = actionItem.type;
 
       container
-        .append($("<div>").append($("<button>").text("Close").click(function() { fireClose(self); })))
         .append($("<div>")
-          .html("<video id='localVideo' autoplay></video>"))
-      ;
+          .addClass("action")
+          .append($("<img>")
+            .attr("src", iconUri(actionItem)))
+            .append($("<a>")
+              .addClass("exit")
+              .text("Exit")
+              .attr("href", "#")
+              .click(function() { fireClose(self); }))
+          .append($("<div>")
+            .addClass("vid")
+            .html("<video id='localVideo' autoplay></video>"))
+          .append($("<div>")
+            .addClass("functions")
+            .text("your functions here"))
+        );
       var localVideo = document.getElementById("localVideo");
 
       localVideo.addEventListener("loadedmetadata", function() {
@@ -45,7 +57,7 @@ define([ "jquery", "vid" ], function($, vid) {
       });
 
       self.localVideoController.open().then(function(stream) {
-        localVideo.srcObject = stream;
+        document.getElementById("localVideo").srcObject = stream;
       });
     }
   }

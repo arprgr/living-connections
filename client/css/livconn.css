@@ -82,6 +82,19 @@ div {
   width: 64px;
   height: 64px;
 }
-#app .action div {
+#app .action .title {
   float: right;
+}
+#app .action .exit {
+  float: right;
+}
+#app .action .vid {
+  width: 320px;
+  height: 240px;
+  clear: both;
+  margin: auto;
+}
+video {
+  width: 100%;
+  height: 100%;
 }

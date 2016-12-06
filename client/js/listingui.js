@@ -24,6 +24,7 @@ define([ "jquery", "activityui" ], function($, activityui) {
       .append($("<img>")
         .attr("src", iconUri(item)))
       .append($("<div>")
+        .addClass("title")
         .text(item.title))
       .click(function() {
         handleItemClick(self, item);
