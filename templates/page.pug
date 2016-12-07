@@ -14,8 +14,8 @@ html
           "*": { "jquery": "jquery-private" }, 
           "jquery-private": { "jquery": "jquery" } 
         },
-        deps: [ "index" ], 
-        callback: function(app) { app && app(); } 
+        deps: [ "appui" ], 
+        callback: function(App) { new App().open(); } 
       }
     script(src="/js/lib/require.js")
   body

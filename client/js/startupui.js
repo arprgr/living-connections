@@ -1,7 +1,7 @@
 // startupui.js
 
-define([ "jquery", "loginui", "waitanim", "anim", "vid" ],
-  function($, LoginController, WaitAnimController, Animation, LocalVideoController) {
+define([ "jquery", "services", "loginui", "waitanim", "anim", "vid" ],
+  function($, Services, LoginController, WaitAnimController, Animation, LocalVideoController) {
 
   function selectContainer() {
     return $("#startup");
@@ -114,10 +114,10 @@ define([ "jquery", "loginui", "waitanim", "anim", "vid" ],
     selectMessageBox().text("Your browser is not capable of running Living Connections.");
   }
 
-  function Controller(sessionManager) {
+  function Controller() {
     var self = this;
-    self.loginController = new LoginController(sessionManager);
-    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+    self.loginController = new LoginController();
+    Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
   }
 
   Controller.prototype = {

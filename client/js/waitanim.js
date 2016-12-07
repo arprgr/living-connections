@@ -1,4 +1,4 @@
-// waitanim.js
+// waitanim.js - WaitAnimController
 
 define([ "jquery", "fadedot" ], function($, FadeDotController) {
 
@@ -63,7 +63,7 @@ define([ "jquery", "fadedot" ], function($, FadeDotController) {
         }
         self.running = false;
       }
-      return self
+      return self;
     }
   }
 

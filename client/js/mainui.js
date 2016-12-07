@@ -1,6 +1,7 @@
 // mainui.js
 
-define([ "jquery", "listingui", "activityui" ], function($, ListingController, ActivityController) {
+define([ "jquery", "services", "listingui", "activityui" ],
+  function($, Services, ListingController, ActivityController) {
 
   function selectContainer() {
     return $("#app");
@@ -11,7 +12,7 @@ define([ "jquery", "listingui", "activityui" ], function($, ListingController, A
   }
 
   function expandString(self, format) {
-    var sessionManager = self.sessionManager;
+    var sessionManager = Services.sessionManager;
     var openActionItem = self.activityController.openActionItem || {};
     var stuff = {
       u: (sessionManager.user && sessionManager.user.name) || "",
@@ -21,7 +22,7 @@ define([ "jquery", "listingui", "activityui" ], function($, ListingController, A
   }
 
   function renderHeader(self) {
-    var sessionManager = self.sessionManager;
+    var sessionManager = Services.sessionManager;
     var openActionItem = self.activityController.openActionItem || {};
     var title = "";
     if (sessionManager.user) {
@@ -63,9 +64,9 @@ define([ "jquery", "listingui", "activityui" ], function($, ListingController, A
     renderHeader(self);
   }
 
-  function Controller(sessionManager) {
+  function Controller() {
     var self = this;
-    self.sessionManager = sessionManager;
+    var sessionManager = Services.sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     self.listingController = new ListingController(sessionManager)
       .onActionItemOpen(handleActivityOpen.bind(self));

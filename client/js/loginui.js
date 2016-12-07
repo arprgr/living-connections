@@ -1,6 +1,6 @@
 // loginui.js
 
-define([ "jquery" ], function($) {
+define([ "jquery", "services" ], function($, Services) {
 
   // Email validation
 
@@ -42,7 +42,7 @@ define([ "jquery" ], function($) {
     var text = self.input.val();
     if (text) {
       if (isValidEmail(text)) {
-        self.sessionManager.logInWithEmail(text)
+        Services.sessionManager.logInWithEmail(text)
         .catch(function(e) {
           showInvalid(self, "Login failed.");
         })
@@ -88,8 +88,7 @@ define([ "jquery" ], function($) {
     return true;
   }
 
-  function Controller(sessionManager) {
-    this.sessionManager = sessionManager;
+  function Controller() {
   }
 
   Controller.prototype = {

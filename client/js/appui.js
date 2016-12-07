@@ -1,13 +1,12 @@
 // appui.js
 
-define([ "startupui", "mainui" ], function(StartupController, MainController) {
+define([ "services", "startupui", "mainui" ], function(Services, StartupController, MainController) {
 
   function toLoginState(self) {
     self.startupController.toLoginState();
     self.startupController.showUi();
     self.mainController.showOrHide(0);
     self.mainController.close();
-    self.active = false;
   }
 
   function toMainState(self) {
@@ -15,7 +14,6 @@ define([ "startupui", "mainui" ], function(StartupController, MainController) {
     self.startupController.hideUi();
     self.mainController.open();
     self.mainController.showOrHide(1);
-    self.active = true;
   }
 
   function handleSessionManagerStateChange(sessionManager) {
@@ -28,11 +26,17 @@ define([ "startupui", "mainui" ], function(StartupController, MainController) {
     }
   }
 
-  function Controller(sessionManager) {
+  function Controller() {
     var self = this;
-    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    self.startupController = new StartupController(sessionManager);
-    self.mainController = new MainController(sessionManager);
+    self.startupController = new StartupController();
+    self.mainController = new MainController();
+    Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+  }
+
+  Controller.prototype = {
+    open: function() {
+      Services.sessionManager.init();
+    }
   }
 
   return Controller;

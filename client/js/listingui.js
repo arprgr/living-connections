@@ -1,6 +1,6 @@
 // listingui.js
 
-define([ "jquery" ], function($) {
+define([ "jquery", "services" ], function($, Services) {
 
   function selectContainer() {
     return $("#app .listing");
@@ -49,10 +49,10 @@ define([ "jquery" ], function($) {
     }
   }
 
-  function Controller(sessionManager) {
+  function Controller() {
     var self = this;
-    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
+    Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+    Services.sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
   }
 
   Controller.prototype = {

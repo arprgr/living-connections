@@ -1,6 +1,6 @@
 // activityui.js
 
-define([ "jquery", "vid" ], function($, LocalVideoController) {
+define([ "jquery", "services", "vid" ], function($, Services, LocalVideoController) {
 
   function ActionItem(data) {
     var self = this;
@@ -72,9 +72,9 @@ define([ "jquery", "vid" ], function($, LocalVideoController) {
     // TODO: show urgent items.
   }
 
-  function Controller(sessionManager) {
+  function Controller() {
     var self = this;
-    self.sessionManager = sessionManager;
+    var sessionManager = Services.sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
     self.localVideoController = new LocalVideoController();
