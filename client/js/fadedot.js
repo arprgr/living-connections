@@ -69,7 +69,5 @@ define([ "jquery" ], function($) {
     stop: stop
   }
 
-  return {
-    Controller: Controller
-  }
+  return Controller;
 });

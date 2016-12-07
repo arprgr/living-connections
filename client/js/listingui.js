@@ -1,6 +1,6 @@
 // listingui.js
 
-define([ "jquery", "activityui" ], function($, activityui) {
+define([ "jquery" ], function($) {
 
   function selectContainer() {
     return $("#app .listing");
@@ -87,7 +87,5 @@ define([ "jquery", "activityui" ], function($, activityui) {
     onActionItemOpen: onActionItemOpen
   }
 
-  return {
-    Controller: Controller
-  }
+  return Controller;
 });

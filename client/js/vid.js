@@ -76,11 +76,7 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
     isOpen: isOpen
   }
 
-  //
-  // The module.
-  //
-  return {
-    IsCapable: IsCapable,
-    LocalVideoController: LocalVideoController
-  }
+  LocalVideoController.IsCapable = IsCapable;
+
+  return LocalVideoController;
 });

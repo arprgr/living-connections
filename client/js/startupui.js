@@ -1,7 +1,7 @@
 // startupui.js
 
-define([ "jquery", "session", "loginui", "waitanim", "anim", "vid" ],
-  function($, session, loginui, waitanim, anim, vid) {
+define([ "jquery", "loginui", "waitanim", "anim", "vid" ],
+  function($, LoginController, WaitAnimController, anim, LocalVideoController) {
 
   var SHOW_HIDE_DURATION = 3000;
 
@@ -44,7 +44,7 @@ define([ "jquery", "session", "loginui", "waitanim", "anim", "vid" ],
 
   function Controller(sessionManager) {
     var self = this;
-    self.loginController = new loginui.Controller(sessionManager);
+    self.loginController = new LoginController(sessionManager);
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
   }
 
@@ -84,7 +84,7 @@ define([ "jquery", "session", "loginui", "waitanim", "anim", "vid" ],
     var self = this;
     if (!self.browserChecked) {
       self.browserChecked = true;
-      if (!vid.IsCapable()) {
+      if (!LocalVideoController.IsCapable()) {
         showInnerInWaitingPosition();
         selectMessageBox().text("Sorry, your crap browser is not capable of running the awesome Living Connections experience.");
         return;
@@ -110,7 +110,7 @@ define([ "jquery", "session", "loginui", "waitanim", "anim", "vid" ],
 
   function showWaitingIndicator(self) {
     if (!self.waitingController) {
-      self.waitingController = new waitanim.Controller();
+      self.waitingController = new WaitAnimController();
     }
     showInnerInWaitingPosition();
     selectInner().removeClass("loginpos");
@@ -147,7 +147,5 @@ define([ "jquery", "session", "loginui", "waitanim", "anim", "vid" ],
     toLoginState: toLoginState
   }
 
-  return {
-    Controller: Controller
-  }
+  return Controller;
 });

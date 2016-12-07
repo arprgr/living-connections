@@ -24,7 +24,7 @@ define([], function() {
     }
   }
 
-  // Class obs.Observable.
+  // Class Observable.
 
   function Observable(value) {
     var self = this;
@@ -50,7 +50,5 @@ define([], function() {
     notifyChangeListeners: notifyChangeListeners
   }
 
-  return {
-    Observable: Observable
-  }
+  return Observable;
 });

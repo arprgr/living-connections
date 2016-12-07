@@ -1,6 +1,6 @@
 // session.js
 
-define([ "jquery", "obs" ], function($, obs) {
+define([ "jquery", "obs" ], function($, Observable) {
 
   // Session cookie functions.
 
@@ -58,11 +58,11 @@ define([ "jquery", "obs" ], function($, obs) {
     self.localErrorCount = 0;
 
     // The session manager notifies listeners of general state changes.
-    self.state = new obs.Observable(self);
+    self.state = new Observable(self);
 
     // The session manager maintains the current list of action items, and notifies
     // listeners of changes.
-    self.actionItems = new obs.Observable([]);
+    self.actionItems = new Observable([]);
   }
 
   // Not yet logged in, or explicitly logged out.
@@ -222,7 +222,5 @@ define([ "jquery", "obs" ], function($, obs) {
     logOut: logOut
   }
 
-  return {
-    Manager: Manager
-  }
+  return Manager;
 });

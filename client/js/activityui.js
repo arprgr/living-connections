@@ -1,6 +1,6 @@
 // activityui.js
 
-define([ "jquery", "vid" ], function($, vid) {
+define([ "jquery", "vid" ], function($, LocalVideoController) {
 
   function ActionItem(data) {
     var self = this;
@@ -77,7 +77,7 @@ define([ "jquery", "vid" ], function($, vid) {
     self.sessionManager = sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
-    self.localVideoController = new vid.LocalVideoController();
+    self.localVideoController = new LocalVideoController();
   }
 
   function onActivityClose(func) {
@@ -112,7 +112,5 @@ define([ "jquery", "vid" ], function($, vid) {
     close: close
   }
 
-  return {
-    Controller: Controller
-  }
+  return Controller;
 });

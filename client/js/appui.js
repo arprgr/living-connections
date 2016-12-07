@@ -1,12 +1,12 @@
 // appui.js
 
-define([ "startupui", "mainui" ], function(startupui, mainui) {
+define([ "startupui", "mainui" ], function(StartupController, MainController) {
 
   function Controller(sessionManager) {
     var self = this;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    self.startupController = new startupui.Controller(sessionManager);
-    self.mainController = new mainui.Controller(sessionManager);
+    self.startupController = new StartupController(sessionManager);
+    self.mainController = new MainController(sessionManager);
   }
 
   function toLoginState(self) {
@@ -35,7 +35,5 @@ define([ "startupui", "mainui" ], function(startupui, mainui) {
     }
   }
 
-  return {
-    Controller: Controller
-  }
+  return Controller;
 });

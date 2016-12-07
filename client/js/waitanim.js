@@ -1,6 +1,6 @@
 // waitanim.js
 
-define([ "jquery", "fadedot" ], function($, fadedot) {
+define([ "jquery", "fadedot" ], function($, FadeDotController) {
 
   var NDOTS = 7;
   var PAUSE = 700;
@@ -40,7 +40,7 @@ define([ "jquery", "fadedot" ], function($, fadedot) {
     var self = this;
     self.dots = [];
     for (var i = 0; i < NDOTS; ++i) {
-      self.dots.push(new fadedot.Controller("dot" + i));
+      self.dots.push(new FadeDotController("dot" + i));
     }
   }
 
@@ -87,7 +87,5 @@ define([ "jquery", "fadedot" ], function($, fadedot) {
     stop: stop
   }
 
-  return {
-    Controller: Controller
-  }
+  return Controller;
 });

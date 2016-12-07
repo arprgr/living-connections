@@ -1,6 +1,6 @@
 // mainui.js
 
-define([ "jquery", "listingui", "activityui" ], function($, listingui, activityui) {
+define([ "jquery", "listingui", "activityui" ], function($, ListingController, ActivityController) {
 
   function selectContainer() {
     return $("#app");
@@ -71,9 +71,9 @@ define([ "jquery", "listingui", "activityui" ], function($, listingui, activityu
     var self = this;
     self.sessionManager = sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    self.listingController = new listingui.Controller(sessionManager)
+    self.listingController = new ListingController(sessionManager)
       .onActionItemOpen(handleActivityOpen.bind(self));
-    self.activityController = new activityui.Controller(sessionManager)
+    self.activityController = new ActivityController(sessionManager)
       .onActivityClose(handleActivityClose.bind(self));
   }
 
@@ -102,7 +102,5 @@ define([ "jquery", "listingui", "activityui" ], function($, listingui, activityu
     close: close
   }
 
-  return {
-    Controller: Controller
-  }
+  return Controller;
 });

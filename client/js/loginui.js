@@ -114,8 +114,5 @@ define([ "jquery" ], function($) {
     hide: hide
   }
 
-  // Exports
-  return {
-    Controller: Controller
-  }
+  return Controller;
 });
