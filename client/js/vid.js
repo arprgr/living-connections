@@ -1,9 +1,23 @@
-// vid.js - LocalVideoController
+// vid.js - VideoService
 
 define([ "jquery", "lib/webrtc-adapter" ], function($) {
 
-  function IsCapable() {
+  function hasMediaDevices() {
     return !!navigator.mediaDevices;
+  }
+
+  function hasMediaRecorder() {
+    return typeof MediaRecorder == "function";
+  }
+
+  function chooseMimeType(self) {
+    var mimePriorityList = self.mimePriorityList;
+    for (var i = 0; i < mimePriorityList.length; ++i) {
+      var mimeType = mimePriorityList[i];
+      if (MediaRecorder.isTypeSupported(mimeType)) {
+        return mimeType;
+      }
+    }
   }
 
   function forEachTrack(stream, func) {
@@ -26,8 +40,8 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
     if (self.stream) {
       deferred.resolve(self.stream);
     }
-    else if (!IsCapable()) {
-      defered.reject("browser not video-capable");
+    else if (!self.isCapable()) {
+      deferred.reject("browser not video-capable");
     }
     else {
       navigator.mediaDevices.getUserMedia({
@@ -54,22 +68,72 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
     self.stream = null;
   }
 
-  function LocalVideoController() {
+  function startRecording(self) {
+
+    var chunks = [];
+    var mimeType = chooseMimeType(self);
+
+    var mediaRecorder = new MediaRecorder(self.stream, {
+      mimeType: mimeType
+    });
+
+    mediaRecorder.ondataavailable = function(event) {
+      if (chunks.length == self.bufferLimit) {
+        stopRecording();
+      }
+      else {
+        chunks.push(event.data);
+      }
+    }
+
+    mediaRecorder.start(self.timeChunk);
+    console.log(mediaRecorder.state);
+
+    self.chunks = chunks;
+    self.mediaRecorder = mediaRecorder;
   }
 
-  LocalVideoController.prototype = {
-    open: function() {
-      return open(self);
-    },
-    close: function() {
-      close(self);
-    },
-    isOpen: function() {
-      return !!this.stream;
+  function stopRecording(self) {
+    if (mediaRecorder && mediaRecorder.state == "recording") {
+      mediaRecorder.ondataavailable = null;
+      mediaRecorder.stop();
+      console.log(mediaRecorder.state);
+      mediaRecorder = null;
     }
   }
 
-  LocalVideoController.IsCapable = IsCapable;
+  function captureVideoBlob(self) {
+    var blob = new Blob(self.chunks, { type: mimeType });
+    return window.URL.createObjectURL(blob);
+  }
 
-  return LocalVideoController;
+  function VideoService(options) {
+    $.extend(this, options);
+  }
+
+  VideoService.prototype = {
+    isCapable: function() {
+      return hasMediaDevices() && hasMediaRecorder() && chooseMimeType(this);
+    },
+    open: function() {
+      return open(this);
+    },
+    close: function() {
+      close(this);
+    },
+    isOpen: function() {
+      return !!this.stream;
+    },
+    startRecording: function() {
+      return startRecording(this);
+    },
+    stopRecording: function() {
+      return stopRecording(this);
+    },
+    captureVideoBlob: function() {
+      return captureVideoBlob(this);
+    }
+  }
+
+  return VideoService;
 });

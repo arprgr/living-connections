@@ -1,7 +1,7 @@
 // startupui.js
 
-define([ "jquery", "services", "loginui", "waitanim", "anim", "vid" ],
-  function($, Services, LoginController, WaitAnimController, Animation, LocalVideoController) {
+define([ "jquery", "services", "loginui", "waitanim", "anim" ],
+  function($, Services, LoginController, WaitAnimController, Animation) {
 
   function selectContainer() {
     return $("#startup");
@@ -73,7 +73,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "vid" ],
   function checkBrowser(self) {
     if (!self.browserChecked) {
       self.browserChecked = true;
-      if (!LocalVideoController.IsCapable()) {
+      if (!Services.videoService.isCapable()) {
         showInnerInWaitingPosition();
         selectMessageBox().text("Sorry, your crap browser is not capable of running the awesome Living Connections experience.");
         return false;

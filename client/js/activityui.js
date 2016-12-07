@@ -1,6 +1,9 @@
 // activityui.js
 
-define([ "jquery", "services", "vid" ], function($, Services, LocalVideoController) {
+define([ "jquery", "services" ], function($, Services) {
+
+  var sessionManager = Services.sessionManager;
+  var videoService = Services.videoService;
 
   function ActionItem(data) {
     var self = this;
@@ -76,7 +79,7 @@ define([ "jquery", "services", "vid" ], function($, Services, LocalVideoControll
       console.log("Local video width=" + this.videoWidth + "  height=" + this.videoHeight);
     });
 
-    self.localVideoController.open().then(function(stream) {
+    videoService.open().then(function(stream) {
       document.getElementById("localVideo").srcObject = stream;
     });
 
@@ -101,17 +104,15 @@ define([ "jquery", "services", "vid" ], function($, Services, LocalVideoControll
 
   function close(self) {
     self.openActionItem = null;
-    self.localVideoController.close();
+    videoService.close();
     selectContainer().empty();
     return self;
   }
 
   function Controller() {
     var self = this;
-    var sessionManager = Services.sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
-    self.localVideoController = new LocalVideoController();
   }
 
   Controller.prototype = {

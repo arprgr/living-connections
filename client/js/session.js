@@ -2,9 +2,6 @@
 
 define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Observable) {
 
-  var FETCH_INTERVAL = 5000;
-  var TRIES = 3;
-
   var ACTION_POLL_METHOD = new HttpMethod("/a?_=%salt%");
   var LOGIN_METHOD = new HttpMethod("/a?email=%email%&_=%salt%");
   var LOGOUT_METHOD = new HttpMethod("/o/%sid%?_=%salt%");
@@ -74,7 +71,7 @@ define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Ob
         });
       }
       poll();
-      self.pollInterval = setInterval(poll, FETCH_INTERVAL);
+      self.pollInterval = setInterval(poll, self.pollingPeriod);
     }
   }
 
@@ -86,8 +83,50 @@ define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Ob
     }
   }
 
-  function Manager() {
+  function init(self) {
+    if (!self.responseCount) {
+      self.waiting = true;
+      startPolling(self);
+      notifyStateChangeListeners(self);
+    }
+    return self;
+  }
+
+  function logInWithEmail(self, email) {
+    stopPolling(self);
+    self.user = null;
+    var promise = $.Deferred();
+    LOGIN_METHOD.execute({
+      email: email
+    }, function(response) {
+      handleAResults(self, response);
+      if (self.user) {
+        promise.resolve(self);
+      }
+      else {
+        promise.reject("Login failed.");
+      }
+    }, function(error) {
+      handleAError(self, error);
+      promise.reject("Can't reach server.");
+    });
+    notifyStateChangeListeners(self);
+    return promise;
+  }
+
+  function logOut(self) {
+    self.user = null;
+    var sid = COOKIE.get();
+    if (sid) {
+      LOGOUT_METHOD.execute({ sid: sid });
+      COOKIE.clear();
+    }
+    notifyStateChangeListeners(self);
+  }
+
+  function Manager(options) {
     var self = this;
+    $.extend(self, options);
 
     self.responseCount = 0;
     self.errorCount = 0;
@@ -123,52 +162,20 @@ define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Ob
 
     // Unresponsive (regardless of mode).
     isUnresponsive: function() {
-      return this.localErrorCount >= TRIES;
+      return this.localErrorCount >= this.retryTolerance;
     },
 
     // Initiate startup processes.
     init: function() {
-      var self = this;
-      if (!self.responseCount) {
-        self.waiting = true;
-        startPolling(self);
-        notifyStateChangeListeners(self);
-      }
-      return self;
+      return init(this);
     },
 
     logInWithEmail: function(email) {
-      var self = this;
-      stopPolling(self);
-      self.user = null;
-      var promise = $.Deferred();
-      LOGIN_METHOD.execute({
-        email: email
-      }, function(response) {
-        handleAResults(self, response);
-        if (self.user) {
-          promise.resolve(self);
-        }
-        else {
-          promise.reject("Login failed.");
-        }
-      }, function(error) {
-        handleAError(self, error);
-        promise.reject("Can't reach server.");
-      });
-      notifyStateChangeListeners(self);
-      return promise;
+      return logInWithEmail(this, email);
     },
 
     logOut: function() {
-      var self = this;
-      self.user = null;
-      var sid = COOKIE.get();
-      if (sid) {
-        LOGOUT_METHOD.execute({ sid: sid });
-        COOKIE.clear();
-      }
-      notifyStateChangeListeners(self);
+      return logOut(this);
     }
   }
 
