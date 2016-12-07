@@ -11,6 +11,13 @@ define([ "jquery", "services", "listingui", "activityui" ],
     return $("#app .header");
   }
 
+  // TODO: this seems the wrong place to do this.
+  selectContainer()
+    .append($("<div>").addClass("header"))
+    .append($("<div>").addClass("listing"))
+    .append($("<div>").addClass("activity"))
+    .hide();
+
   function expandString(self, format) {
     var sessionManager = Services.sessionManager;
     var openActionItem = self.activityController.openActionItem || {};
@@ -76,7 +83,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
 
   Controller.prototype = {
     showOrHide: function(doShow) {
-      selectContainer()[doShow ? "show" : "hide"](3000);
+      selectContainer()[doShow ? "show" : "hide"]();
     },
     open: function() {
       var self = this;
