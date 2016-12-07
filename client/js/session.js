@@ -1,40 +1,13 @@
 // session.js
 
-define([ "jquery", "cookie", "obs" ], function($, Cookie, Observable) {
-
-  // AJAX functions.
-
-  function salt() {
-    return String(Math.floor(0xffffffff * Math.random()));
-  }
-
-  function get(url, handleDone, handleError) {
-    var req = new XMLHttpRequest();
-    req.addEventListener("load", function() {
-      if (req.status === 200) {
-        if (handleDone) {
-          handleDone(JSON.parse(req.responseText));
-        }
-      }
-      else {
-        if (handleError) {
-          handleError(new Error("status " + req.status));
-        }
-      }
-    });
-    if (handleError) {
-      req.addEventListener("error", function(e) {
-        handleError(e);
-      });
-    }
-    req.open("GET", url);
-    req.send();
-  }
-
-  // Class session.Manager.
+define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Observable) {
 
   var FETCH_INTERVAL = 5000;
   var TRIES = 3;
+
+  var ACTION_POLL_METHOD = new HttpMethod("/a?_=%salt%");
+  var LOGIN_METHOD = new HttpMethod("/a?email=%email%&_=%salt%");
+  var LOGOUT_METHOD = new HttpMethod("/o/%sid%?_=%salt%");
 
   function Manager() {
     var self = this;
@@ -136,7 +109,8 @@ define([ "jquery", "cookie", "obs" ], function($, Cookie, Observable) {
   function startPolling(self) {
     if (!self.pollInterval) {
       function poll() {
-        get("/a?_=" + salt(), function(results) {
+        ACTION_POLL_METHOD.execute({
+        }, function(results) {
           handleAResults(self, results);
         }, function(error) {
           handleAError(self, error);
@@ -172,7 +146,9 @@ define([ "jquery", "cookie", "obs" ], function($, Cookie, Observable) {
     stopPolling(self);
     self.user = null;
     var promise = $.Deferred();
-    get("/a?email=" + encodeURIComponent(email) + "&_=" + salt(), function(response) {
+    LOGIN_METHOD.execute({
+      email: email
+    }, function(response) {
       handleAResults(self, response);
       if (self.user) {
         promise.resolve(self);
@@ -194,7 +170,7 @@ define([ "jquery", "cookie", "obs" ], function($, Cookie, Observable) {
     self.user = null;
     var sid = self.cookie.get();
     if (sid) {
-      get("/o/" + encodeURIComponent(sid) + "?_=" + salt());
+      LOGOUT_METHOD.execute({ sid: sid });
       self.cookie.clear();
     }
     notifyStateChangeListeners(self);
