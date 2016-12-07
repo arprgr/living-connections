@@ -20,46 +20,67 @@ define([ "jquery", "services", "vid" ], function($, Services, LocalVideoControll
     return "/img/" + item.type + ".png";
   }
 
-  function fireClose(self) {
-    self.closeFunc && self.closeFunc();
+  function functionButton(label, clickFunc) {
+    return $("<div>")
+      .addClass("function")
+      .text(label)
+      .click(clickFunc);
+  }
+
+  function startRecording(self) {
+    console.log("start");
+  }
+
+  function stopRecording(self) {
+    console.log("stop");
+  }
+
+  function renderFunctionButtons(self) {
+    var container = $("<div>").addClass("functions");
+
+    self.startRecordingButton = functionButton("Start Recording", function() {
+      startRecording(self);
+    }).appendTo(container);
+
+    self.stopRecordingButton = functionButton("Stop Recording", function() {
+      stopRecording(self);
+    }).appendTo(container);
+
+    return container;
   }
 
   function render(self) {
     var actionItem = self.openActionItem;
+    var id = actionItem.id;
+    var type = actionItem.type;
 
-    var container = selectContainer().empty();
-    
-    if (actionItem) {
-      var id = actionItem.id;
-      var type = actionItem.type;
-
-      container
+    selectContainer()
+      .empty()
+      .append($("<div>")
+        .addClass("action")
+        .append($("<img>")
+          .attr("src", iconUri(actionItem)))
+          .append($("<a>")
+            .addClass("exit")
+            .text("Exit")
+            .attr("href", "#")
+            .click(function() { self.closeFunc && self.closeFunc(); }))
         .append($("<div>")
-          .addClass("action")
-          .append($("<img>")
-            .attr("src", iconUri(actionItem)))
-            .append($("<a>")
-              .addClass("exit")
-              .text("Exit")
-              .attr("href", "#")
-              .click(function() { fireClose(self); }))
-          .append($("<div>")
-            .addClass("vid")
-            .html("<video id='localVideo' autoplay></video>"))
-          .append($("<div>")
-            .addClass("functions")
-            .text("your functions here"))
-        );
-      var localVideo = document.getElementById("localVideo");
+          .addClass("vid")
+          .html("<video id='localVideo' autoplay></video>"))
+        .append(renderFunctionButtons(self))
+      );
+    var localVideo = document.getElementById("localVideo");
 
-      localVideo.addEventListener("loadedmetadata", function() {
-        console.log("Local video width=" + this.videoWidth + "  height=" + this.videoHeight);
-      });
+    localVideo.addEventListener("loadedmetadata", function() {
+      console.log("Local video width=" + this.videoWidth + "  height=" + this.videoHeight);
+    });
 
-      self.localVideoController.open().then(function(stream) {
-        document.getElementById("localVideo").srcObject = stream;
-      });
-    }
+    self.localVideoController.open().then(function(stream) {
+      document.getElementById("localVideo").srcObject = stream;
+    });
+
+    renderFunctionButtons(self);
   }
 
   function handleSessionManagerStateChange(self) {
@@ -70,6 +91,19 @@ define([ "jquery", "services", "vid" ], function($, Services, LocalVideoControll
   function handleSessionManagerActionChange() {
     var self = this;
     // TODO: show urgent items.
+  }
+
+  function open(self, actionItem) {
+    self.openActionItem = new ActionItem(actionItem);
+    render(self);
+    return self;
+  }
+
+  function close(self) {
+    self.openActionItem = null;
+    self.localVideoController.close();
+    selectContainer().empty();
+    return self;
   }
 
   function Controller() {
@@ -90,17 +124,10 @@ define([ "jquery", "services", "vid" ], function($, Services, LocalVideoControll
       return self;
     },
     open: function(actionItem) {
-      var self = this;
-      self.openActionItem = new ActionItem(actionItem);
-      render(self);
-      return self;
+      return open(this, actionItem);
     },
     close: function() {
-      var self = this;
-      self.openActionItem = null;
-      self.localVideoController.close();
-      render(self);
-      return self;
+      return close(this);
     }
   }
 
