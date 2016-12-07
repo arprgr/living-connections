@@ -1,20 +1,6 @@
 // session.js
 
-define([ "jquery", "obs" ], function($, Observable) {
-
-  // Session cookie functions.
-
-  var COOKIE_NAME = "s";
-
-  function getSessionCookie() {
-    var value = "; " + document.cookie;
-    var parts = value.split("; " + COOKIE_NAME + "=");
-    if (parts.length == 2) return parts.pop().split(";").shift();
-  }
-
-  function clearSessionCookie() {
-    document.cookie = COOKIE_NAME + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-  }
+define([ "jquery", "cookie", "obs" ], function($, Cookie, Observable) {
 
   // AJAX functions.
 
@@ -63,6 +49,8 @@ define([ "jquery", "obs" ], function($, Observable) {
     // The session manager maintains the current list of action items, and notifies
     // listeners of changes.
     self.actionItems = new Observable([]);
+
+    self.cookie = new Cookie("s");
   }
 
   // Not yet logged in, or explicitly logged out.
@@ -73,7 +61,8 @@ define([ "jquery", "obs" ], function($, Observable) {
 
   // In application mode.
   function isActive() {
-    return getSessionCookie() && this.user;
+    var self = this;
+    return self.cookie.get() && self.user;
   }
 
   // Unresponsive (regardless of mode).
@@ -203,10 +192,10 @@ define([ "jquery", "obs" ], function($, Observable) {
   function logOut() {
     var self = this;
     self.user = null;
-    var sid = getSessionCookie();
+    var sid = self.cookie.get();
     if (sid) {
       get("/o/" + encodeURIComponent(sid) + "?_=" + salt());
-      clearSessionCookie();
+      self.cookie.clear();
     }
     notifyStateChangeListeners(self);
   }
