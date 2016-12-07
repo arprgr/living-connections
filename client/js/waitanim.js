@@ -5,17 +5,15 @@ define([ "jquery", "fadedot" ], function($, FadeDotController) {
   var NDOTS = 7;
   var PAUSE = 700;
 
-  // UI lifecycle methods
-
   function selectContainer() {
     return $("#startup .waiting");
   }
 
-  function uiIsRendered() {
+  function isRendered() {
     return selectContainer().children().length;
   }
 
-  function renderUi() {
+  function render() {
     for (var i = 0; i < NDOTS; ++i) {
       $("<canvas>")
         .attr("id", "dot" + i)
@@ -26,16 +24,6 @@ define([ "jquery", "fadedot" ], function($, FadeDotController) {
     }
   }
 
-  function hideUi() {
-    selectContainer().hide();
-  }
-
-  function showUi() {
-    selectContainer().show();
-  }
-
-  // Class Controller
-
   function Controller() {
     var self = this;
     self.dots = [];
@@ -44,47 +32,39 @@ define([ "jquery", "fadedot" ], function($, FadeDotController) {
     }
   }
 
-  function show() {
-    if (!uiIsRendered()) {
-      renderUi();
-    }
-    else {
-      showUi();
-    }
-    return this;
-  }
-
-  function hide() {
-    hideUi();
-  }
-
-  function start() {
-    var self = this;
-    var index = 0;
-    (function kickOffNext() {
-      self.dots[index].start();
-      self.timeout = setTimeout(kickOffNext, PAUSE);
-    })();
-    return self;
-  }
-
-  function stop() {
-    var self = this;
-    if (self.running) {
-      clearTimeout(self.timeout);
-      for (var i = 0; i < NDOTS; ++i) {
-        self.dots.stop();
-      }
-      self.running = false;
-    }
-    return self
-  }
-
   Controller.prototype = {
-    show: show,
-    hide: hide,
-    start: start,
-    stop: stop
+    show: function() {
+      if (!isRendered()) {
+        render();
+      }
+      else {
+        selectContainer().show();
+      }
+      return this;
+    },
+    hide: function() {
+      selectContainer().hide();
+    },
+    start: function start() {
+      var self = this;
+      var index = 0;
+      (function kickOffNext() {
+        self.dots[index].start();
+        self.timeout = setTimeout(kickOffNext, PAUSE);
+      })();
+      return self;
+    },
+    stop: function() {
+      var self = this;
+      if (self.running) {
+        clearTimeout(self.timeout);
+        for (var i = 0; i < NDOTS; ++i) {
+          self.dots.stop();
+        }
+        self.running = false;
+      }
+      return self
+    }
   }
 
   return Controller;

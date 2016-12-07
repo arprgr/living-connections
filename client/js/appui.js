@@ -2,13 +2,6 @@
 
 define([ "startupui", "mainui" ], function(StartupController, MainController) {
 
-  function Controller(sessionManager) {
-    var self = this;
-    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    self.startupController = new StartupController(sessionManager);
-    self.mainController = new MainController(sessionManager);
-  }
-
   function toLoginState(self) {
     self.startupController.toLoginState();
     self.startupController.showUi();
@@ -33,6 +26,13 @@ define([ "startupui", "mainui" ], function(StartupController, MainController) {
     else if (sessionManager.isActive()) {
       toMainState(self);
     }
+  }
+
+  function Controller(sessionManager) {
+    var self = this;
+    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+    self.startupController = new StartupController(sessionManager);
+    self.mainController = new MainController(sessionManager);
   }
 
   return Controller;

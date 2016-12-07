@@ -32,22 +32,16 @@ define([], function() {
     self.listeners = [];
   }
 
-  function addChangeListener(listener) {
-    addListener(this.listeners, listener);
-  }
-
-  function removeChangeListener(listener) {
-    removeListener(this.listeners, listener);
-  }
-
-  function notifyChangeListeners(listener) {
-    notifyListeners(this.listeners, this.value);
-  }
-
   Observable.prototype = {
-    addChangeListener: addChangeListener,
-    removeChangeListener: removeChangeListener,
-    notifyChangeListeners: notifyChangeListeners
+    addChangeListener: function(listener) {
+      addListener(this.listeners, listener);
+    },
+    removeChangeListener: function(listener) {
+      removeListener(this.listeners, listener);
+    },
+    notifyChangeListeners: function(listener) {
+      notifyListeners(this.listeners, this.value);
+    }
   }
 
   return Observable;

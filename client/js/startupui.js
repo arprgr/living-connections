@@ -1,9 +1,7 @@
 // startupui.js
 
 define([ "jquery", "loginui", "waitanim", "anim", "vid" ],
-  function($, LoginController, WaitAnimController, anim, LocalVideoController) {
-
-  var SHOW_HIDE_DURATION = 3000;
+  function($, LoginController, WaitAnimController, Animation, LocalVideoController) {
 
   function selectContainer() {
     return $("#startup");
@@ -15,14 +13,6 @@ define([ "jquery", "loginui", "waitanim", "anim", "vid" ],
 
   function selectMessageBox() {
     return $("#startup .message");
-  }
-
-  function showUi() {
-    selectContainer().show(SHOW_HIDE_DURATION);
-  }
-
-  function hideUi() {
-    selectContainer().hide(SHOW_HIDE_DURATION);
   }
 
   var LOGIN_TOP = -338;
@@ -40,14 +30,6 @@ define([ "jquery", "loginui", "waitanim", "anim", "vid" ],
     showInnerInPosition(LOGIN_TOP);
   }
 
-  // Class Controller
-
-  function Controller(sessionManager) {
-    var self = this;
-    self.loginController = new LoginController(sessionManager);
-    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-  }
-
   function showLoginForm(self) {
     showInnerInLoginPosition();
     self.loginController.show();
@@ -60,52 +42,44 @@ define([ "jquery", "loginui", "waitanim", "anim", "vid" ],
     selectInner().removeClass("loginpos");
   }
 
-  function toBareState() {
-    var self = this;
-    if (!selectInner().hasClass("loginpos")) {
-      hideLoginForm(self);
-    }
-    else {
-      new anim.Animation({
-        period: TRANSITION_PERIOD,
-        frameTime: 1,
-        iterations: 1,
-        renderTween: function(frameIndex) {
-          showInnerInPosition((TRANSITION_PERIOD - frameIndex) * LOGIN_TOP / TRANSITION_PERIOD);
-        },
-        renderFinal: function() {
-          hideLoginForm(self);
-        }
-      }).start();
-    }
+  function slideLogoDown(self) {
+    new Animation({
+      period: TRANSITION_PERIOD,
+      frameTime: 1,
+      iterations: 1,
+      renderTween: function(frameIndex) {
+        showInnerInPosition((TRANSITION_PERIOD - frameIndex) * LOGIN_TOP / TRANSITION_PERIOD);
+      },
+      renderFinal: function() {
+        hideLoginForm(self);
+      }
+    }).start();
   }
 
-  function toLoginState() {
-    var self = this;
+  function slideLogoUp(self) {
+    new Animation({
+      period: TRANSITION_PERIOD,
+      frameTime: 1,
+      iterations: 1,
+      renderTween: function(frameIndex) {
+        showInnerInPosition(frameIndex * LOGIN_TOP / TRANSITION_PERIOD);
+      },
+      renderFinal: function() {
+        showLoginForm(self);
+      }
+    }).start();
+  }
+
+  function checkBrowser(self) {
     if (!self.browserChecked) {
       self.browserChecked = true;
       if (!LocalVideoController.IsCapable()) {
         showInnerInWaitingPosition();
         selectMessageBox().text("Sorry, your crap browser is not capable of running the awesome Living Connections experience.");
-        return;
+        return false;
       }
     }
-    if (selectInner().hasClass("loginpos")) {
-      showLoginForm(self);
-    }
-    else {
-      new anim.Animation({
-        period: TRANSITION_PERIOD,
-        frameTime: 1,
-        iterations: 1,
-        renderTween: function(frameIndex) {
-          showInnerInPosition(frameIndex * LOGIN_TOP / TRANSITION_PERIOD);
-        },
-        renderFinal: function() {
-          showLoginForm(self);
-        }
-      }).start();
-    }
+    return true;
   }
 
   function showWaitingIndicator(self) {
@@ -140,11 +114,39 @@ define([ "jquery", "loginui", "waitanim", "anim", "vid" ],
     selectMessageBox().text("Your browser is not capable of running Living Connections.");
   }
 
+  function Controller(sessionManager) {
+    var self = this;
+    self.loginController = new LoginController(sessionManager);
+    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+  }
+
   Controller.prototype = {
-    showUi: showUi,
-    hideUi: hideUi,
-    toBareState: toBareState,
-    toLoginState: toLoginState
+    showUi: function() {
+      selectContainer().show();
+    },
+    hideUi: function() {
+      selectContainer().hide();
+    },
+    toBareState: function() {
+      var self = this;
+      if (!selectInner().hasClass("loginpos")) {
+        hideLoginForm(self);
+      }
+      else {
+        slideLogoDown(self);
+      }
+    },
+    toLoginState: function() {
+      var self = this;
+      if (checkBrowser(self)) { 
+        if (selectInner().hasClass("loginpos")) {
+          showLoginForm(self);
+        }
+        else {
+          slideLogoUp(self);
+        }
+      }
+    }
   }
 
   return Controller;

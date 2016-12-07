@@ -9,53 +9,10 @@ define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Ob
   var LOGIN_METHOD = new HttpMethod("/a?email=%email%&_=%salt%");
   var LOGOUT_METHOD = new HttpMethod("/o/%sid%?_=%salt%");
 
-  function Manager() {
-    var self = this;
+  var COOKIE = new Cookie("s");
 
-    self.responseCount = 0;
-    self.errorCount = 0;
-    self.localErrorCount = 0;
-
-    // The session manager notifies listeners of general state changes.
-    self.state = new Observable(self);
-
-    // The session manager maintains the current list of action items, and notifies
-    // listeners of changes.
-    self.actionItems = new Observable([]);
-
-    self.cookie = new Cookie("s");
-  }
-
-  // Not yet logged in, or explicitly logged out.
-  function isLoginRequired() {
-    var self = this;
-    return self.responseCount > 0 && !this.user;
-  }
-
-  // In application mode.
-  function isActive() {
-    var self = this;
-    return self.cookie.get() && self.user;
-  }
-
-  // Unresponsive (regardless of mode).
-  function isUnresponsive() {
-    return this.localErrorCount >= TRIES;
-  }
-
-  // public - Add a state change listener.
-  function addStateChangeListener(listener) {
-    return this.state.addChangeListener(listener);
-  }
-
-  // private - Notify state change listeners.
   function notifyStateChangeListeners(self) {
     self.state.notifyChangeListeners();
-  }
-
-  // public - Add an action listener.
-  function addActionListener(listener) {
-    return this.actionItems.addChangeListener(listener);
   }
 
   // private - Notify action listeners.
@@ -129,62 +86,90 @@ define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Ob
     }
   }
 
-  // public - Initiate startup processes.
-  function init() {
+  function Manager() {
     var self = this;
-    if (!self.responseCount) {
-      self.waiting = true;
-      startPolling(self);
-      notifyStateChangeListeners(self);
-    }
-    return self;
-  }
 
-  // public - Log in with an email address.
-  function logInWithEmail(email) {
-    var self = this;
-    stopPolling(self);
-    self.user = null;
-    var promise = $.Deferred();
-    LOGIN_METHOD.execute({
-      email: email
-    }, function(response) {
-      handleAResults(self, response);
-      if (self.user) {
-        promise.resolve(self);
-      }
-      else {
-        promise.reject("Login failed.");
-      }
-    }, function(error) {
-      handleAError(self, error);
-      promise.reject("Can't reach server.");
-    });
-    notifyStateChangeListeners(self);
-    return promise;
-  }
+    self.responseCount = 0;
+    self.errorCount = 0;
+    self.localErrorCount = 0;
 
-  // public - Initiate logout process.
-  function logOut() {
-    var self = this;
-    self.user = null;
-    var sid = self.cookie.get();
-    if (sid) {
-      LOGOUT_METHOD.execute({ sid: sid });
-      self.cookie.clear();
-    }
-    notifyStateChangeListeners(self);
+    // The session manager notifies listeners of general state changes.
+    self.state = new Observable(self);
+
+    // The session manager maintains the current list of action items, and notifies
+    // listeners of changes.
+    self.actionItems = new Observable([]);
   }
 
   Manager.prototype = {
-    addStateChangeListener: addStateChangeListener,
-    addActionListener: addActionListener,
-    isLoginRequired: isLoginRequired,
-    isActive: isActive,
-    isUnresponsive: isUnresponsive,
-    init: init,
-    logInWithEmail: logInWithEmail,
-    logOut: logOut
+
+    addStateChangeListener: function(listener) {
+      return this.state.addChangeListener(listener);
+    },
+
+    addActionListener: function(listener) {
+      return this.actionItems.addChangeListener(listener);
+    },
+
+    // Not yet logged in, or explicitly logged out.
+    isLoginRequired: function() {
+      return this.responseCount > 0 && !this.user;
+    },
+
+    // In application mode.
+    isActive: function() {
+      return COOKIE.get() && this.user;
+    },
+
+    // Unresponsive (regardless of mode).
+    isUnresponsive: function() {
+      return this.localErrorCount >= TRIES;
+    },
+
+    // Initiate startup processes.
+    init: function() {
+      var self = this;
+      if (!self.responseCount) {
+        self.waiting = true;
+        startPolling(self);
+        notifyStateChangeListeners(self);
+      }
+      return self;
+    },
+
+    logInWithEmail: function(email) {
+      var self = this;
+      stopPolling(self);
+      self.user = null;
+      var promise = $.Deferred();
+      LOGIN_METHOD.execute({
+        email: email
+      }, function(response) {
+        handleAResults(self, response);
+        if (self.user) {
+          promise.resolve(self);
+        }
+        else {
+          promise.reject("Login failed.");
+        }
+      }, function(error) {
+        handleAError(self, error);
+        promise.reject("Can't reach server.");
+      });
+      notifyStateChangeListeners(self);
+      return promise;
+    },
+
+    logOut: function() {
+      var self = this;
+      self.user = null;
+      var sid = COOKIE.get();
+      if (sid) {
+        LOGOUT_METHOD.execute({ sid: sid });
+        COOKIE.clear();
+      }
+      notifyStateChangeListeners(self);
+    }
   }
 
   return Manager;

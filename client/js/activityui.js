@@ -80,36 +80,28 @@ define([ "jquery", "vid" ], function($, LocalVideoController) {
     self.localVideoController = new LocalVideoController();
   }
 
-  function onActivityClose(func) {
-    var self = this;
-    self.closeFunc = func;
-    return self;
-  }
-
-  function showOrHide(doShow) {
-    selectContainer()[doShow ? "show" : "hide"](3000);
-  }
-
-  function open(actionItem) {
-    var self = this;
-    self.openActionItem = new ActionItem(actionItem);
-    render(self);
-    return self;
-  }
-
-  function close() {
-    var self = this;
-    self.openActionItem = null;
-    self.localVideoController.close();
-    render(self);
-    return self;
-  }
-
   Controller.prototype = {
-    showOrHide: showOrHide,
-    onActivityClose: onActivityClose,
-    open: open,
-    close: close
+    showOrHide: function(doShow) {
+      selectContainer()[doShow ? "show" : "hide"]();
+    },
+    onActivityClose: function(func) {
+      var self = this;
+      self.closeFunc = func;
+      return self;
+    },
+    open: function(actionItem) {
+      var self = this;
+      self.openActionItem = new ActionItem(actionItem);
+      render(self);
+      return self;
+    },
+    close: function() {
+      var self = this;
+      self.openActionItem = null;
+      self.localVideoController.close();
+      render(self);
+      return self;
+    }
   }
 
   return Controller;

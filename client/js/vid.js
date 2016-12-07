@@ -1,17 +1,10 @@
-// vid.js
+// vid.js - LocalVideoController
 
 define([ "jquery", "lib/webrtc-adapter" ], function($) {
 
-  //
-  // Function IsCapable
-  //
   function IsCapable() {
     return !!navigator.mediaDevices;
   }
-
-  //
-  // Class LocalVideoController
-  //
 
   function forEachTrack(stream, func) {
     if (stream) {
@@ -28,8 +21,7 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
     });
   }
 
-  function open() {
-    var self = this;
+  function open(self) {
     var deferred = $.Deferred();
     if (self.stream) {
       deferred.resolve(self.stream);
@@ -55,25 +47,26 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
     return deferred;
   }
 
-  function close() {
-    var self = this;
+  function close(self) {
     forEachTrack(self.stream, function(track) {
       track.stop();
     });
     self.stream = null;
   }
 
-  function isOpen() {
-    return !!this.stream;
-  }
-
   function LocalVideoController() {
   }
 
   LocalVideoController.prototype = {
-    open: open,
-    close: close,
-    isOpen: isOpen
+    open: function() {
+      return open(self);
+    },
+    close: function() {
+      close(self);
+    },
+    isOpen: function() {
+      return !!this.stream;
+    }
   }
 
   LocalVideoController.IsCapable = IsCapable;

@@ -10,10 +10,6 @@ define([ "jquery" ], function($) {
   var DURATION = 780;
   var TICK = 25;
 
-  function Controller(canvasId) {
-    this.canvasId = canvasId;
-  }
-
   function render(self) {
     var canvas = document.getElementById(self.canvasId);
     if (canvas) {
@@ -44,29 +40,29 @@ define([ "jquery" ], function($) {
     }
   }
 
-  function start() {
-    var self = this;
-    self.stop();
-    self.alpha = 1.0;
-    render(self);
-    self.running = true;
-    self.startTime = now();
-    setInterval(function() { tick(self); }, TICK);
-  }
-
-  function stop() {
-    var self = this;
-    if (self.running) {
-      clearInterval(self.interval);
-      self.running = false;
-      self.alpha = 0.0;
-      render(self);
-    }
+  function Controller(canvasId) {
+    this.canvasId = canvasId;
   }
 
   Controller.prototype = {
-    start: start,
-    stop: stop
+    start: function() {
+      var self = this;
+      self.stop();
+      self.alpha = 1.0;
+      render(self);
+      self.running = true;
+      self.startTime = now();
+      setInterval(function() { tick(self); }, TICK);
+    },
+    stop: function() {
+      var self = this;
+      if (self.running) {
+        clearInterval(self.interval);
+        self.running = false;
+        self.alpha = 0.0;
+        render(self);
+      }
+    }
   }
 
   return Controller;

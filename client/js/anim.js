@@ -20,21 +20,6 @@ define([ "jquery" ], function($) {
     return new Date().getTime();
   }
 
-  function Animation(options) {
-    var self = this;
-    self.options = $.extend({}, DEFAULT_ANIMATION_OPTIONS, options);
-  }
-
-  function startAnimation() {
-    var self = this;
-    self.startTime = now();
-    self.interval = setInterval(function() {
-      animationStep(self);
-    }, self.options.tick);
-    self.options.renderInitial();
-    return self;
-  }
-
   function animationStep(animation) {
     var options = animation.options;
     var elapsedTime = now() - animation.startTime;
@@ -48,20 +33,29 @@ define([ "jquery" ], function($) {
     }
   }
 
-  function stopAnimation() {
+  function Animation(options) {
     var self = this;
-    clearInterval(self.interval);
-    self.interval = 0;
-    self.options.renderFinal();
-    return self;
+    self.options = $.extend({}, DEFAULT_ANIMATION_OPTIONS, options);
   }
 
   Animation.prototype = {
-    start: startAnimation,
-    stop: stopAnimation
+    start: function() {
+      var self = this;
+      self.startTime = now();
+      self.interval = setInterval(function() {
+        animationStep(self);
+      }, self.options.tick);
+      self.options.renderInitial();
+      return self;
+    },
+    stop: function() {
+      var self = this;
+      clearInterval(self.interval);
+      self.interval = 0;
+      self.options.renderFinal();
+      return self;
+    }
   }
 
-  return {
-    Animation: Animation
-  }
+  return Animation;
 });

@@ -26,32 +26,30 @@ define(function() {
     }
   }
 
-  function execute(params, handleDone, handleError) {
-    var self = this;
-    var req = new XMLHttpRequest();
-    req.addEventListener("load", function() {
-      if (req.status === 200) {
-        if (handleDone) {
-          handleDone(JSON.parse(req.responseText));
-        }
-      }
-      else {
-        if (handleError) {
-          handleError(new Error("status " + req.status));
-        }
-      }
-    });
-    if (handleError) {
-      req.addEventListener("error", function(e) {
-        handleError(e);
-      });
-    }
-    req.open(self.method, formatUrl(self.uriPattern, params || {}));
-    req.send();
-  }
-
   Method.prototype = {
-    execute: execute
+    execute: function(params, handleDone, handleError) {
+      var self = this;
+      var req = new XMLHttpRequest();
+      req.addEventListener("load", function() {
+        if (req.status === 200) {
+          if (handleDone) {
+            handleDone(JSON.parse(req.responseText));
+          }
+        }
+        else {
+          if (handleError) {
+            handleError(new Error("status " + req.status));
+          }
+        }
+      });
+      if (handleError) {
+        req.addEventListener("error", function(e) {
+          handleError(e);
+        });
+      }
+      req.open(self.method, formatUrl(self.uriPattern, params || {}));
+      req.send();
+    }
   }
 
   return Method;

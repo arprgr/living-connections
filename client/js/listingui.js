@@ -6,10 +6,6 @@ define([ "jquery" ], function($) {
     return $("#app .listing");
   }
 
-  function setVisible(doShow) {
-    selectContainer()[doShow ? "show" : "hide"](3000);
-  }
-
   function iconUri(item) {
     return "/img/" + item.type + ".png";
   }
@@ -59,32 +55,28 @@ define([ "jquery" ], function($) {
     sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
   }
 
-  function open() {
-    var self = this;
-    if (!self.isOpen) {
-      render(self);
-      self.isOpen = true;
-    }
-    return self;
-  }
-
-  function close() {
-    var self = this;
-    self.isOpen = false;
-    return self;
-  }
-
-  function onActionItemOpen(func) {
-    var self = this;
-    self.actionItemOpenFunc = func;
-    return self;
-  }
-
   Controller.prototype = {
-    setVisible: setVisible,
-    open: open,
-    close: close,
-    onActionItemOpen: onActionItemOpen
+    setVisible: function(doShow) {
+      selectContainer()[doShow ? "show" : "hide"](3000);
+    },
+    open: function() {
+      var self = this;
+      if (!self.isOpen) {
+        render(self);
+        self.isOpen = true;
+      }
+      return self;
+    },
+    close: function() {
+      var self = this;
+      self.isOpen = false;
+      return self;
+    },
+    onActionItemOpen: function(func) {
+      var self = this;
+      self.actionItemOpenFunc = func;
+      return self;
+    }
   }
 
   return Controller;

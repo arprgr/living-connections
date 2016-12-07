@@ -24,12 +24,6 @@ define([ "jquery" ], function($) {
     return selectContainer().children().length;
   }
 
-  // Class Controller
-
-  function Controller(sessionManager) {
-    this.sessionManager = sessionManager;
-  }
-
   // Class Controller private
 
   function showInvalid(self, msg) {
@@ -94,24 +88,22 @@ define([ "jquery" ], function($) {
     return true;
   }
 
-  // Class Controller ... member functions
-
-  function show() {
-    var self = this;
-    if (!uiIsRendered()) {
-      render(self);
-    }
-    selectContainer().show();
-    self.input.focus().select();
-  }
-
-  function hide() {
-    selectContainer().hide();
+  function Controller(sessionManager) {
+    this.sessionManager = sessionManager;
   }
 
   Controller.prototype = {
-    show: show,
-    hide: hide
+    show: function() {
+      var self = this;
+      if (!uiIsRendered()) {
+        render(self);
+      }
+      selectContainer().show();
+      self.input.focus().select();
+    },
+    hide: function() {
+      selectContainer().hide();
+    }
   }
 
   return Controller;

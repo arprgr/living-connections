@@ -10,10 +10,6 @@ define([ "jquery", "listingui", "activityui" ], function($, ListingController, A
     return $("#app .header");
   }
 
-  function showOrHide(doShow) {
-    selectContainer()[doShow ? "show" : "hide"](3000);
-  }
-
   function expandString(self, format) {
     var sessionManager = self.sessionManager;
     var openActionItem = self.activityController.openActionItem || {};
@@ -77,29 +73,27 @@ define([ "jquery", "listingui", "activityui" ], function($, ListingController, A
       .onActivityClose(handleActivityClose.bind(self));
   }
 
-  function open() {
-    var self = this;
-    if (!self.isOpen) {
-      if (!self.activityController.openActionItem) {
-        self.listingController.open();
-      }
-      self.isOpen = true;
-    }
-  }
-
-  function close() {
-    var self = this;
-    if (self.isOpen) {
-      self.activityController.close();
-      self.listingController.close();
-      self.isOpen = false;
-    }
-  }
-
   Controller.prototype = {
-    showOrHide: showOrHide,
-    open: open,
-    close: close
+    showOrHide: function(doShow) {
+      selectContainer()[doShow ? "show" : "hide"](3000);
+    },
+    open: function() {
+      var self = this;
+      if (!self.isOpen) {
+        if (!self.activityController.openActionItem) {
+          self.listingController.open();
+        }
+        self.isOpen = true;
+      }
+    },
+    close: function() {
+      var self = this;
+      if (self.isOpen) {
+        self.activityController.close();
+        self.listingController.close();
+        self.isOpen = false;
+      }
+    }
   }
 
   return Controller;
