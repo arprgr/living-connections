@@ -1,6 +1,6 @@
 // session.js
 
-define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Observable) {
+define([ "jquery", "cookie", "http", "obs", "actionitem" ], function($, Cookie, HttpMethod, Observable, ActionItem) {
 
   var ACTION_POLL_METHOD = new HttpMethod("/a?_=%salt%");
   var LOGIN_METHOD = new HttpMethod("/a?email=%email%&_=%salt%");
@@ -38,7 +38,7 @@ define([ "jquery", "cookie", "http", "obs" ], function($, Cookie, HttpMethod, Ob
     if (actionItems) {
       // TODO: do differencing
       for (var i = 0; i < actionItems.length; ++i) {
-        actionItems[i].titleFormat = actionItems[i].type;
+        actionItems[i] = new ActionItem(actionItems[i]);
       }
       self.actionItems.value = actionItems;
       notifyActionListeners(self);

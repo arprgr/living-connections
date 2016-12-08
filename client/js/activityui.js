@@ -5,22 +5,6 @@ define([ "jquery", "services" ], function($, Services) {
   var sessionManager = Services.sessionManager;
   var videoService = Services.videoService;
 
-  function ActionItem(data) {
-    $.extend(this, data);
-
-    Object.defineProperty(this, "titleFormat", {
-      get: function() {
-        return this.title || "Some activity for %u%"
-      }
-    });
-
-    Object.defineProperty(this, "iconUri", {
-      get: function() {
-        return "/img/" + this.type + ".png";
-      }
-    });
-  }
-
   function selectContainer() {
     return $("#app .activity");
   }
@@ -72,47 +56,39 @@ define([ "jquery", "services" ], function($, Services) {
     updateFunctionButtons(self);
   }
 
-  function renderFunctionButtons(self) {
-    var container = $("<div>").addClass("functions");
-
-    self.startRecordingButton = functionButton("Start Recording", function() {
-      startRecording(self);
-    }).appendTo(container);
-
-    self.stopRecordingButton = functionButton("Stop Recording", function() {
-      stopRecording(self);
-    }).appendTo(container);
-
-    self.saveRecordingButton = functionButton("Save", function() {
-      saveRecording(self);
-    }).appendTo(container);
-
-    return container;
-  }
-
   function render(self) {
-    var actionItem = self.openActionItem;
-    var id = actionItem.id;
-    var type = actionItem.type;
-
     selectContainer()
       .empty()
       .append($("<div>")
         .addClass("action")
         .append($("<img>")
           .addClass("lilIcon")
-          .attr("src", actionItem.iconUri))
-          .append($("<a>")
-            .addClass("exit")
-            .text("Exit")
-            .attr("href", "#")
-            .click(function() { self.closeFunc && self.closeFunc(); }))
+          .attr("src", self.openActionItem.iconUri))
+        .append($("<a>")
+          .addClass("exit")
+          .text("Exit")
+          .attr("href", "#")
+          .click(function() { self.closeFunc && self.closeFunc(); }))
         .append($("<div>")
           .addClass("vid")
           .html("<video id='theVideo' autoplay></video>"))
-        .append(renderFunctionButtons(self))
+        .append($("<div>")
+          .addClass("functions")
+          .append(self.startRecordingButton = functionButton("Start Recording", function() {
+            startRecording(self);
+          }))
+          .append(self.stopRecordingButton = functionButton("Stop Recording", function() {
+            stopRecording(self);
+          }))
+          .append(self.saveRecordingButton = functionButton("Save", function() {
+            saveRecording(self);
+          }))
+        )
       );
+  }
 
+  function activate(self) {
+    render(self);
     provisionVideo(self);
     updateFunctionButtons(self);
   }
@@ -128,8 +104,8 @@ define([ "jquery", "services" ], function($, Services) {
   }
 
   function open(self, actionItem) {
-    self.openActionItem = new ActionItem(actionItem);
-    render(self);
+    self.openActionItem = actionItem;
+    activate(self);
     return self;
   }
 
