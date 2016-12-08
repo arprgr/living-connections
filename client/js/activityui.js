@@ -9,26 +9,27 @@ define([ "jquery", "services" ], function($, Services) {
     return $("#app .activity");
   }
 
-  function provisionVideo(self) {
+  function videoFromCamera() {
     var theVideo = document.getElementById("theVideo");
-
-    theVideo.addEventListener("loadedmetadata", function() {
-      //var ratio = this.videoWidth / this.videoHeight;
-    });
-
+    theVideo.src = "";
+    theVideo.controls = false;
     videoService.open().then(function(stream) {
       theVideo.srcObject = stream;
     });
   }
 
+  function videoFromUrl(url) {
+    var theVideo = document.getElementById("theVideo");
+    theVideo.srcObject = null;
+    theVideo.src = url;
+    theVideo.controls = true;
+  }
+
   function updateFunctionButtons(self) {
-    var startRecordingButton = self.startRecordingButton;
-    var stopRecordingButton = self.stopRecordingButton;
-    var saveRecordingButton = self.saveRecordingButton;
-    startRecordingButton.setVisible(!videoService.recording);
-    stopRecordingButton.setVisible(videoService.recording);
-    saveRecordingButton.setVisible(!!self.videoUrl && !videoService.recording);
-    startRecordingButton.text(self.videoUrl ? "Re-record" : "Start Recording");
+    self.startRecordingButton.setVisible(!self.videoUrl && !videoService.recording);
+    self.stopRecordingButton.setVisible(videoService.recording);
+    self.saveRecordingButton.setVisible(!!self.videoUrl && !videoService.recording);
+    self.discardRecordingButton.setVisible(!!self.videoUrl && !videoService.recording);
   }
 
   function functionButton(label, clickFunc) {
@@ -47,12 +48,18 @@ define([ "jquery", "services" ], function($, Services) {
   function stopRecording(self) {
     videoService.stopRecording();
     var url = videoService.captureVideoBlob();
-    $("#theVideo").replaceWith($("<video id='theVideo' controls>").attr("src", url));
     self.videoUrl = url;
+    videoFromUrl(url);
     updateFunctionButtons(self);
   }
 
   function saveRecording(self) {
+    updateFunctionButtons(self);
+  }
+
+  function discardRecording(self) {
+    self.videoUrl = null;
+    videoFromCamera();
     updateFunctionButtons(self);
   }
 
@@ -71,7 +78,7 @@ define([ "jquery", "services" ], function($, Services) {
           .click(function() { self.closeFunc && self.closeFunc(); }))
         .append($("<div>")
           .addClass("vid")
-          .html("<video id='theVideo' autoplay></video>"))
+          .html("<video id='theVideo'></video>"))
         .append($("<div>")
           .addClass("functions")
           .append(self.startRecordingButton = functionButton("Start Recording", function() {
@@ -83,13 +90,16 @@ define([ "jquery", "services" ], function($, Services) {
           .append(self.saveRecordingButton = functionButton("Save", function() {
             saveRecording(self);
           }))
+          .append(self.discardRecordingButton = functionButton("Discard", function() {
+            discardRecording(self);
+          }))
         )
       );
   }
 
   function activate(self) {
     render(self);
-    provisionVideo(self);
+    videoFromCamera();
     updateFunctionButtons(self);
   }
 
