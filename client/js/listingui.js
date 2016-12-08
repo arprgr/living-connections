@@ -18,6 +18,7 @@ define([ "jquery", "services" ], function($, Services) {
     return $("<div>")
       .addClass("action")
       .append($("<img>")
+        .addClass("bigIcon")
         .attr("src", iconUri(item)))
       .append($("<div>")
         .addClass("title")

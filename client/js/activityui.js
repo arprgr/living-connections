@@ -23,6 +23,18 @@ define([ "jquery", "services" ], function($, Services) {
     return "/img/" + item.type + ".png";
   }
 
+  function provisionVideo() {
+    var theVideo = document.getElementById("theVideo");
+
+    theVideo.addEventListener("loadedmetadata", function() {
+      var ratio = this.videoWidth / this.videoHeight;
+    });
+
+    videoService.open().then(function(stream) {
+      theVideo.srcObject = stream;
+    });
+  }
+
   function functionButton(label, clickFunc) {
     return $("<div>")
       .addClass("function")
@@ -31,11 +43,13 @@ define([ "jquery", "services" ], function($, Services) {
   }
 
   function startRecording(self) {
-    console.log("start");
+    videoService.startRecording();
   }
 
   function stopRecording(self) {
-    console.log("stop");
+    videoService.stopRecording();
+    var url = videoService.captureVideoBlob();
+    $("#theVideo").replaceWith($("<video id='theVideo' controls>").attr("src", url));
   }
 
   function renderFunctionButtons(self) {
@@ -62,6 +76,7 @@ define([ "jquery", "services" ], function($, Services) {
       .append($("<div>")
         .addClass("action")
         .append($("<img>")
+          .addClass("lilIcon")
           .attr("src", iconUri(actionItem)))
           .append($("<a>")
             .addClass("exit")
@@ -70,19 +85,11 @@ define([ "jquery", "services" ], function($, Services) {
             .click(function() { self.closeFunc && self.closeFunc(); }))
         .append($("<div>")
           .addClass("vid")
-          .html("<video id='localVideo' autoplay></video>"))
+          .html("<video id='theVideo' autoplay></video>"))
         .append(renderFunctionButtons(self))
       );
-    var localVideo = document.getElementById("localVideo");
 
-    localVideo.addEventListener("loadedmetadata", function() {
-      console.log("Local video width=" + this.videoWidth + "  height=" + this.videoHeight);
-    });
-
-    videoService.open().then(function(stream) {
-      document.getElementById("localVideo").srcObject = stream;
-    });
-
+    provisionVideo();
     renderFunctionButtons(self);
   }
 
