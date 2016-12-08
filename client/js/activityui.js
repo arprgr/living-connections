@@ -6,11 +6,17 @@ define([ "jquery", "services" ], function($, Services) {
   var videoService = Services.videoService;
 
   function ActionItem(data) {
-    var self = this;
-    $.extend(self, data);
-    Object.defineProperty(self, "titleFormat", {
+    $.extend(this, data);
+
+    Object.defineProperty(this, "titleFormat", {
       get: function() {
         return this.title || "Some activity for %u%"
+      }
+    });
+
+    Object.defineProperty(this, "iconUri", {
+      get: function() {
+        return "/img/" + this.type + ".png";
       }
     });
   }
@@ -19,15 +25,11 @@ define([ "jquery", "services" ], function($, Services) {
     return $("#app .activity");
   }
 
-  function iconUri(item) {
-    return "/img/" + item.type + ".png";
-  }
-
-  function provisionVideo() {
+  function provisionVideo(self) {
     var theVideo = document.getElementById("theVideo");
 
     theVideo.addEventListener("loadedmetadata", function() {
-      var ratio = this.videoWidth / this.videoHeight;
+      //var ratio = this.videoWidth / this.videoHeight;
     });
 
     videoService.open().then(function(stream) {
@@ -35,21 +37,39 @@ define([ "jquery", "services" ], function($, Services) {
     });
   }
 
+  function updateFunctionButtons(self) {
+    var startRecordingButton = self.startRecordingButton;
+    var stopRecordingButton = self.stopRecordingButton;
+    var saveRecordingButton = self.saveRecordingButton;
+    startRecordingButton.setVisible(!videoService.recording);
+    stopRecordingButton.setVisible(videoService.recording);
+    saveRecordingButton.setVisible(!!self.videoUrl && !videoService.recording);
+    startRecordingButton.text(self.videoUrl ? "Re-record" : "Start Recording");
+  }
+
   function functionButton(label, clickFunc) {
     return $("<div>")
       .addClass("function")
       .text(label)
-      .click(clickFunc);
+      .click(clickFunc)
+      .hide();
   }
 
   function startRecording(self) {
     videoService.startRecording();
+    updateFunctionButtons(self);
   }
 
   function stopRecording(self) {
     videoService.stopRecording();
     var url = videoService.captureVideoBlob();
     $("#theVideo").replaceWith($("<video id='theVideo' controls>").attr("src", url));
+    self.videoUrl = url;
+    updateFunctionButtons(self);
+  }
+
+  function saveRecording(self) {
+    updateFunctionButtons(self);
   }
 
   function renderFunctionButtons(self) {
@@ -61,6 +81,10 @@ define([ "jquery", "services" ], function($, Services) {
 
     self.stopRecordingButton = functionButton("Stop Recording", function() {
       stopRecording(self);
+    }).appendTo(container);
+
+    self.saveRecordingButton = functionButton("Save", function() {
+      saveRecording(self);
     }).appendTo(container);
 
     return container;
@@ -77,7 +101,7 @@ define([ "jquery", "services" ], function($, Services) {
         .addClass("action")
         .append($("<img>")
           .addClass("lilIcon")
-          .attr("src", iconUri(actionItem)))
+          .attr("src", actionItem.iconUri))
           .append($("<a>")
             .addClass("exit")
             .text("Exit")
@@ -89,8 +113,8 @@ define([ "jquery", "services" ], function($, Services) {
         .append(renderFunctionButtons(self))
       );
 
-    provisionVideo();
-    renderFunctionButtons(self);
+    provisionVideo(self);
+    updateFunctionButtons(self);
   }
 
   function handleSessionManagerStateChange(self) {
@@ -123,8 +147,8 @@ define([ "jquery", "services" ], function($, Services) {
   }
 
   Controller.prototype = {
-    showOrHide: function(doShow) {
-      selectContainer()[doShow ? "show" : "hide"]();
+    setVisible: function(visible) {
+      selectContainer().setVisible(visible);
     },
     onActivityClose: function(func) {
       var self = this;

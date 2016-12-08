@@ -58,7 +58,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
     var self = this;
     self.activityController.open(item);
     self.listingController.setVisible(0);
-    self.activityController.showOrHide(1);
+    self.activityController.setVisible(1);
     renderHeader(self);
   }
 
@@ -67,7 +67,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
     self.listingController.open();
     self.activityController.close();
     self.listingController.setVisible(1);
-    self.activityController.showOrHide(0);
+    self.activityController.setVisible(0);
     renderHeader(self);
   }
 
@@ -82,8 +82,8 @@ define([ "jquery", "services", "listingui", "activityui" ],
   }
 
   Controller.prototype = {
-    showOrHide: function(doShow) {
-      selectContainer()[doShow ? "show" : "hide"]();
+    setVisible: function(visible) {
+      selectContainer().setVisible(visible);
     },
     open: function() {
       var self = this;

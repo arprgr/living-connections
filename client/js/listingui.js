@@ -57,8 +57,8 @@ define([ "jquery", "services" ], function($, Services) {
   }
 
   Controller.prototype = {
-    setVisible: function(doShow) {
-      selectContainer()[doShow ? "show" : "hide"](3000);
+    setVisible: function(visible) {
+      selectContainer().setVisible(visible);
     },
     open: function() {
       var self = this;

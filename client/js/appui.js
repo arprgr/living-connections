@@ -5,7 +5,7 @@ define([ "services", "startupui", "mainui" ], function(Services, StartupControll
   function toLoginState(self) {
     self.startupController.toLoginState();
     self.startupController.showUi();
-    self.mainController.showOrHide(0);
+    self.mainController.setVisible(0);
     self.mainController.close();
   }
 
@@ -13,7 +13,7 @@ define([ "services", "startupui", "mainui" ], function(Services, StartupControll
     self.startupController.toBareState();
     self.startupController.hideUi();
     self.mainController.open();
-    self.mainController.showOrHide(1);
+    self.mainController.setVisible(1);
   }
 
   function handleSessionManagerStateChange(sessionManager) {
