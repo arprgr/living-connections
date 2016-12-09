@@ -20,7 +20,7 @@ module.exports = (function() {
   // Retrieve by ID
   router.get("/:id", function(req, res) {
     models.User.findById(req.params.id)
-    then(function(user) {
+    .then(function(user) {
       res.json(user);
     });
   });
