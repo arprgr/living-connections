@@ -80,8 +80,8 @@ module.exports = (function() {
           actionItems: self.actionItems
         });
       })
-      .catch(function(error) {
-        self.response.json({ error: String(error) });
+      .catch(function(msg) {
+        self.response.json({ msg: String(msg) });
       }
     );
   }

@@ -100,15 +100,10 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ], function($, Cookie, 
       email: email
     }, function(response) {
       handleAResults(self, response);
-      if (self.user) {
-        promise.resolve(self);
-      }
-      else {
-        promise.reject("Login failed.");
-      }
+      promise.resolve(response);
     }, function(error) {
       handleAError(self, error);
-      promise.reject("Can't reach server.");
+      promise.reject(error);
     });
     notifyStateChangeListeners(self);
     return promise;

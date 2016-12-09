@@ -43,12 +43,17 @@ define([ "jquery", "services" ], function($, Services) {
     if (text) {
       if (isValidEmail(text)) {
         Services.sessionManager.logInWithEmail(text)
+        .then(function(result) {
+          if (result.msg) {
+            showInvalid(self, result.msg);
+          }
+        })
         .catch(function(e) {
-          showInvalid(self, "Login failed.");
+          showInvalid(self, "Can't reach the server. Please try again.");
         })
       }
       else {
-        showInvalid(self, "Invalid email.");
+        showInvalid(self, "That doesn't look like an email address.");
       }
     }
   }

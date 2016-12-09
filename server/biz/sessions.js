@@ -3,6 +3,7 @@
 module.exports = (function() {
   const Promise = require("promise");
   const models = require("../models/index");
+  const email = require("../util/email");
   
   const DIGITS = "abcdefghijklmnopqrstuvwxyz" +
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
@@ -20,8 +21,8 @@ module.exports = (function() {
     return randomDigits(8) + "-" + randomDigits(12) + "-" + randomDigits(12);
   }
 
-  function findEmailProfile(email) {
-    return models.EmailProfile.findByEmail(email);
+  function findEmailProfile(emailAddress) {
+    return models.EmailProfile.findByEmail(emailAddress);
   }
 
   function createNewSession(userId) {
@@ -40,10 +41,10 @@ module.exports = (function() {
   }
 
   // Exported
-  function logInWithEmail(email, target) {
+  function logInWithEmail(emailAddress, target) {
     return new Promise(function(resolve, reject) {
 
-      findEmailProfile(email)
+      findEmailProfile(emailAddress)
       .then(function(emailProfile) {
         if (emailProfile) {
           target.emailProfile = emailProfile;
@@ -57,7 +58,21 @@ module.exports = (function() {
           .catch(reject);
         }
         else {
-          reject("Email not registered.");
+          /***
+          email.send({
+            to: emailAddress,
+            subject: "Living Connections",
+            text: "\n\nTesting, testing.\n\n"
+          })
+          .then(function(what) {
+            console.log(what);
+          })
+          .catch(function(what) {
+            console.log(what);
+          });
+          reject("Your invitation has been sent. Check your email.");
+          ***/
+          reject("Login failed");
         }
       })
       .catch(reject);

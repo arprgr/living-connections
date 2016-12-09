@@ -46,4 +46,3 @@ module.exports = (function() {
     executeGroup: executeGroup
   }
 })();
-
