@@ -15,11 +15,15 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
     return $("#startup .message");
   }
 
+  var originalHeight = selectContainer().height();
+
   var LOGIN_TOP = -338;
+  var HEIGHT_REDUX = 290;
   var TRANSITION_PERIOD = 900;
 
-  function showInnerInPosition(top) {
-    selectInner().css("top", top);
+  function showInnerInPosition(part) {
+    selectInner().css("top", part * LOGIN_TOP);
+    selectContainer().height(originalHeight - (part * HEIGHT_REDUX));
   }
 
   function showInnerInWaitingPosition() {
@@ -27,7 +31,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
   }
 
   function showInnerInLoginPosition() {
-    showInnerInPosition(LOGIN_TOP);
+    showInnerInPosition(1);
   }
 
   function showLoginForm(self) {
@@ -48,7 +52,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
       frameTime: 1,
       iterations: 1,
       renderTween: function(frameIndex) {
-        showInnerInPosition((TRANSITION_PERIOD - frameIndex) * LOGIN_TOP / TRANSITION_PERIOD);
+        showInnerInPosition((TRANSITION_PERIOD - frameIndex) / TRANSITION_PERIOD);
       },
       renderFinal: function() {
         hideLoginForm(self);
@@ -62,7 +66,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
       frameTime: 1,
       iterations: 1,
       renderTween: function(frameIndex) {
-        showInnerInPosition(frameIndex * LOGIN_TOP / TRANSITION_PERIOD);
+        showInnerInPosition(frameIndex / TRANSITION_PERIOD);
       },
       renderFinal: function() {
         showLoginForm(self);
@@ -75,7 +79,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
       self.browserChecked = true;
       if (!Services.videoService.isCapable()) {
         showInnerInWaitingPosition();
-        selectMessageBox().text("Sorry, your crap browser is not capable of running the awesome Living Connections experience.");
+        selectMessageBox().text("Sorry, your browser is not capable of running the awesome Living Connections experience.");
         return false;
       }
     }
