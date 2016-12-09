@@ -9,6 +9,35 @@ define([ "jquery", "services" ], function($, Services) {
     return $("#app .activity");
   }
 
+  var DEFAULT_FORM_DATA = {
+    renderAdditionalElements: function() {},
+    instructionsLoadless: "Record a video.",
+    instructionsLoaded: "Send or discard your video.",
+    saveButtonLabel: "Send",
+    saveFunction: function(resolve, reject) {
+      resolve();
+    }
+  }
+
+  var FORM_DATA_BY_TYPE = {
+    "inv-cre": {
+      renderAdditionalElements: function(div) {
+        div.append($("<div>")
+          .append($("<span>").text("Invite who: "))
+          .append($("<input>").attr("type", "text")));
+      },
+      instructionsLoadless: "Record a video to send with your invitation."
+    },
+    "pro-cre": {
+      saveButtonLabel: "Save",
+      instructionsLoadless: "Introduce yourself to your connections!"
+    }
+  }
+
+  function formDataFor(actionItem) {
+    return $.extend({}, DEFAULT_FORM_DATA, FORM_DATA_BY_TYPE[actionItem.type]);
+  }
+
   function videoFromCamera() {
     var theVideo = document.getElementById("theVideo");
     theVideo.src = "";
@@ -49,8 +78,7 @@ define([ "jquery", "services" ], function($, Services) {
     videoService.stopRecording();
     var url = videoService.captureVideoBlob();
     self.videoUrl = url;
-    videoFromUrl(url);
-    updateFunctionButtons(self);
+    toLoadedState(self);
   }
 
   function saveRecording(self) {
@@ -59,48 +87,73 @@ define([ "jquery", "services" ], function($, Services) {
 
   function discardRecording(self) {
     self.videoUrl = null;
+    updateFunctionButtons(self);
+    toLoadlessState(self);
+  }
+
+  function render(self) {
+    var actionDiv = $("<div>").addClass("action");
+
+    actionDiv
+      .append($("<img>")
+        .addClass("lilIcon")
+        .attr("src", self.openActionItem.iconUri))
+      .append($("<a>")
+        .addClass("exit")
+        .text("Exit")
+        .attr("href", "#")
+        .click(function() { self.closeFunc && self.closeFunc(); }))
+
+    self.formData.renderAdditionalElements(actionDiv);
+
+    actionDiv
+      .append(self.instructionsElement = $("<div>")
+        .addClass("instructions"))
+      .append($("<div>")
+        .addClass("vid")
+        .html("<video id='theVideo'></video>"))
+      .append($("<div>")
+        .addClass("functions")
+        .append(self.startRecordingButton = functionButton("Start Recording", function() {
+          startRecording(self);
+        }))
+        .append(self.stopRecordingButton = functionButton("Stop Recording", function() {
+          stopRecording(self);
+        }))
+        .append(self.saveRecordingButton = functionButton("Save", function() {
+          saveRecording(self);
+        }))
+        .append(self.discardRecordingButton = functionButton("Discard", function() {
+          discardRecording(self);
+        }))
+      );
+
+    selectContainer().empty().append(actionDiv);
+  }
+
+  function toLoadlessState(self) {
+    self.instructionsElement.text(self.formData.instructionsLoadless);
     videoFromCamera();
     updateFunctionButtons(self);
   }
 
-  function render(self) {
-    selectContainer()
-      .empty()
-      .append($("<div>")
-        .addClass("action")
-        .append($("<img>")
-          .addClass("lilIcon")
-          .attr("src", self.openActionItem.iconUri))
-        .append($("<a>")
-          .addClass("exit")
-          .text("Exit")
-          .attr("href", "#")
-          .click(function() { self.closeFunc && self.closeFunc(); }))
-        .append($("<div>")
-          .addClass("vid")
-          .html("<video id='theVideo'></video>"))
-        .append($("<div>")
-          .addClass("functions")
-          .append(self.startRecordingButton = functionButton("Start Recording", function() {
-            startRecording(self);
-          }))
-          .append(self.stopRecordingButton = functionButton("Stop Recording", function() {
-            stopRecording(self);
-          }))
-          .append(self.saveRecordingButton = functionButton("Save", function() {
-            saveRecording(self);
-          }))
-          .append(self.discardRecordingButton = functionButton("Discard", function() {
-            discardRecording(self);
-          }))
-        )
-      );
+  function toLoadedState(self) {
+    self.instructionsElement.text(self.formData.instructionsLoaded);
+    videoFromUrl(self.videoUrl);
+    updateFunctionButtons(self);
   }
 
   function activate(self) {
     render(self);
-    videoFromCamera();
-    updateFunctionButtons(self);
+    if (self.openActionItem.videoUrl) {
+      self.videoUrl = self.openActionItem.videoUrl;
+      toLoadedState(self);
+    }
+    else {
+      videoService.open().then(function(stream) {
+        toLoadlessState(self);
+      });
+    }
   }
 
   function handleSessionManagerStateChange(self) {
@@ -115,6 +168,7 @@ define([ "jquery", "services" ], function($, Services) {
 
   function open(self, actionItem) {
     self.openActionItem = actionItem;
+    self.formData = formDataFor(actionItem);
     activate(self);
     return self;
   }
