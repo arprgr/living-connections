@@ -6,9 +6,9 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        Message.belongsTo(models.User, { as: "sender" });
-        Message.belongsTo(models.User, { as: "recipient" });
-        Message.belongsTo(models.Asset);
+        Message.belongsTo(models.User, { as: "toUser" });
+        Message.belongsTo(models.User, { as: "fromUser" });
+        Message.belongsTo(models.Asset, { as: "asset" });
       }
     }
   });

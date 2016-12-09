@@ -9,11 +9,14 @@ module.exports = (function() {
   router.post("/", function(req, res) {
     models.Message.create({
       type: req.body.type,
-      senderId: req.body.senderId,
-      recipientId: req.body.recipientId,
-      AssetId: req.body.assetId
+      status: req.body.status,
+      fromUserId: req.body.fromUserId,
+      toUserId: req.body.toUserId,
+      assetId: req.body.assetId
     }).then(function(asset) {
       res.json(asset);
+    }).catch(function(error) {
+      res.json({ error: error });
     });
   });
 
@@ -37,9 +40,11 @@ module.exports = (function() {
     }).then(function(user) {
       if (user) {
         user.updateAttributes({
-          senderId: req.body.senderId,
-          recipientId: req.body.recipientId,
-          AssetId: req.body.assetId
+          type: req.body.type,
+          status: req.body.status,
+          fromUserId: req.body.fromUserId,
+          toUserId: req.body.toUserId,
+          assetId: req.body.assetId
         })
         res.json(user);
       }
