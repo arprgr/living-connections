@@ -21,15 +21,17 @@ module.exports = (function() {
     "inv": { priority: 9, what: "an invitation" },
     "gre": { priority: 7, what: "a greeting" },
     "rem": { priority: 10, what: "a reminder" },
-    "pro": { priority: 5, what: "a profile message" },
+    "pro": { priority: 5, what: "a message for your profile" },
     "ann": { priority: 8, what: "an announcement" }
   }
 
   const ACTIONS = {
-    "cre": { priority: 8, verbage: "Create" },
-    "upd": { priority: 4, verbage: "Update" },
-    "rev": { priority: 6, verbage: "Review" },
-    "rec": { priority: 10, verbage: "View" }
+    "cre": { priority: 8, verbage: function(msgType) {
+      return msgType == MSG_PROFILE ? "Create" : "Send"
+    } },
+    "upd": { priority: 4, verbage: function() { return "Update" } },
+    "rev": { priority: 6, verbage: function() { return "Review" } },
+    "rec": { priority: 10, verbage: function() { return "View" } }
   }
 
   const MAX_ACTION_ITEMS = 20;
@@ -52,7 +54,7 @@ module.exports = (function() {
     return extend({
       type: msgActionType(msg, action),
       priority: priorityOfMsgAction(msg, action),
-      title: ACTIONS[action].verbage + " " + MESSAGES[msg].what
+      title: ACTIONS[action].verbage(msg) + " " + MESSAGES[msg].what
     }, data);
   }
 
