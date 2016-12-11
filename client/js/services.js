@@ -1,8 +1,11 @@
 // services.js - Services
 
-define([ "session", "vid" ], function(SessionManager, VideoService) {
+define([ "api", "session", "vid" ], function(ApiService, SessionManager, VideoService) {
 
   // Instantiation.
+
+  var apiService = new ApiService({
+  });
 
   var sessionManager = new SessionManager({
     pollingPeriod: 8000,
@@ -22,6 +25,7 @@ define([ "session", "vid" ], function(SessionManager, VideoService) {
   // Hookup.
 
   return {
+    apiService: apiService,
     sessionManager: sessionManager,
     videoService: videoService
   }
