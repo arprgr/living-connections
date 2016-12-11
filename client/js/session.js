@@ -1,10 +1,22 @@
 // session.js
 
-define([ "jquery", "cookie", "http", "obs", "actionitem" ], function($, Cookie, HttpMethod, Observable, ActionItem) {
+define([ "jquery", "cookie", "http", "obs", "actionitem" ],
+  function($, Cookie, HttpMethod, Observable, ActionItem) {
 
-  var ACTION_POLL_METHOD = new HttpMethod("/a?_=%salt%");
-  var LOGIN_METHOD = new HttpMethod("/a?email=%email%&_=%salt%");
-  var LOGOUT_METHOD = new HttpMethod("/o/%sid%?_=%salt%");
+  function salt() {
+    return String(Math.floor(0xffffffff * Math.random()));
+  }
+
+  var LOGIN_OR_POLL = new HttpMethod.Builder()
+    .addPathComponent("a")
+    .addQueryParameter("_", "salt")
+    .addQueryParameter("email")
+    .build();
+  var LOGOUT = new HttpMethod.Builder()
+    .addPathComponent("o")
+    .addPathParameter("sid")
+    .addQueryParameter("_", "salt")
+    .build();
 
   var COOKIE = new Cookie("s");
 
@@ -63,10 +75,13 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ], function($, Cookie, 
   function startPolling(self) {
     if (!self.pollInterval) {
       function poll() {
-        ACTION_POLL_METHOD.execute({
-        }, function(results) {
+        new LOGIN_OR_POLL()
+        .setSalt(salt())
+        .execute()
+        .then(function(results) {
           handleAResults(self, results);
-        }, function(error) {
+        })
+        .catch(function(error) {
           handleAError(self, error);
         });
       }
@@ -95,17 +110,19 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ], function($, Cookie, 
   function logInWithEmail(self, email) {
     stopPolling(self);
     self.user = null;
-    var promise = $.Deferred();
-    LOGIN_METHOD.execute({
-      email: email
-    }, function(response) {
-      handleAResults(self, response);
-      promise.resolve(response);
-    }, function(error) {
-      handleAError(self, error);
-      promise.reject(error);
-    });
+    self.waiting = true;
     notifyStateChangeListeners(self);
+    var promise = new LOGIN_OR_POLL()
+      .setEmail(email)
+      .setSalt(salt())
+      .execute();
+    promise
+      .then(function(response) {
+        handleAResults(self, response);
+      })
+      .catch(function(error) {
+        handleAError(self, error);
+      });
     return promise;
   }
 
@@ -113,7 +130,7 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ], function($, Cookie, 
     self.user = null;
     var sid = COOKIE.get();
     if (sid) {
-      LOGOUT_METHOD.execute({ sid: sid });
+      new LOGOUT().setSid(sid).execute();
       COOKIE.clear();
     }
     notifyStateChangeListeners(self);

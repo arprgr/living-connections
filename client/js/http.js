@@ -6,67 +6,10 @@ define([ "jquery" ], function($) {
   var POST = "POST";
   var PUT = "PUT";
 
-  function salt() {
-    return String(Math.floor(0xffffffff * Math.random()));
-  }
+  ////////////// HttpMethod
 
-  function expandTokens(uriPattern, params) {
-    var url = uriPattern;
-    if (url) {
-      url = url.replace(/%salt%/, salt());
-      for (var k in params) {
-        url = url.replace(new RegExp("%" + k + "%"), encodeURIComponent(params[k]));
-      }
-    }
-    return url;
-  }
-
-  function Method(arg0, arg1, arg2) {
-    var self = this;
-    if (arg1 === undefined) {
-      this.method = GET;
-      this.uriPattern = arg0;
-    }
-    else {
-      this.method = arg0;
-      this.uriPattern = arg1;
-      this.dataPattern = arg2;
-    }
-  }
-
-  Method.prototype = {
-    execute: function(params, handleDone, handleError) {
-      var self = this;
-      var req = new XMLHttpRequest();
-      req.addEventListener("load", function() {
-        if (req.status === 200) {
-          if (handleDone) {
-            handleDone(JSON.parse(req.responseText));
-          }
-        }
-        else {
-          if (handleError) {
-            handleError(new Error("status " + req.status));
-          }
-        }
-      });
-      if (handleError) {
-        req.addEventListener("error", function(e) {
-          handleError(e);
-        });
-      }
-      req.open(self.method, expandTokens(self.uriPattern, params || {}));
-      req.send(expandTokens(self.dataPattern, params || {}));
-    }
-  }
-
-  ////////////// HttpDyn
-
-  function HttpDyn(method, baseUrl, path, query) {
-    this.method = method;
-    this.baseUrl = baseUrl;
-    this.path = path;
-    this.query = query;
+  function HttpMethod(state) {
+    $.extend(this, state);
     this.params = {};
   }
 
@@ -126,34 +69,7 @@ define([ "jquery" ], function($) {
     }
   }
 
-  HttpDyn.prototype = {
-    set: function(key, value) {
-      this.params[key] = value;
-    },
-    uri: function() {
-      return buildUri(this);
-    },
-    body: function() {
-      return buildBody(this);
-    }
-  }
-
-  ////////////// HttpMethodBuilder
-
-  function HttpMethod(method, dyn) {
-    this.method = method;
-    this.dyn = dyn;
-  }
-
-  function defineSetter(methodObj, key) {
-    var funcName = "set" + key.charAt(0).toUpperCase() + key.substring(1);
-    methodObj[funcName] = function(value) {
-      this.dyn.set(key, value);
-      return this;
-    }
-  }
-
-  function invoke(self) {
+  function executeHttpMethod(self) {
     var promise = $.Deferred();
     var req = new XMLHttpRequest();
     req.addEventListener("load", function() {
@@ -167,14 +83,25 @@ define([ "jquery" ], function($) {
     req.addEventListener("error", function(e) {
       promise.reject(e);
     });
-    req.open(self.method, self.dyn.uri());
-    req.send(self.dyn.body());
+    req.open(self.method, self.uri());
+    switch (self.method) {
+    case POST:
+    case PUT:
+      req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    }
+    req.send(self.body());
     return promise;
   }
 
   HttpMethod.prototype = {
-    invoke: function() {
-      return invoke(this);
+    uri: function() {
+      return buildUri(this);
+    },
+    body: function() {
+      return buildBody(this);
+    },
+    execute: function() {
+      return executeHttpMethod(this);
     }
   }
 
@@ -185,7 +112,36 @@ define([ "jquery" ], function($) {
     this.baseUrl = "/";
     this.path = [];
     this.query = [];
-    this.keys = [];
+    this.setters = {};
+  }
+
+  function setterFunc(key) {
+    return function(value) {
+      this.params[key] = value;
+      return this;
+    }
+  }
+
+  function addSetter(builder, key) {
+    var funcName = "set" + key.charAt(0).toUpperCase() + key.substring(1);
+    builder.setters[funcName] = setterFunc(key);
+  }
+
+  function buildHttpMethod(builder) {
+    // Snapshot builder state.
+    var builderState = {
+      method: builder.method,
+      baseUrl: builder.baseUrl,
+      path: builder.path.slice(),
+      query: builder.query.slice()
+    }
+    // Generate the constructor.
+    var classFunc = function() {
+      $.extend(this, builderState);
+      this.params = {};
+    }
+    classFunc.prototype = $.extend({}, HttpMethod.prototype, builder.setters);
+    return classFunc;
   }
 
   HttpMethodBuilder.prototype = {
@@ -203,7 +159,7 @@ define([ "jquery" ], function($) {
     },
     addPathParameter: function(key) {
       this.path.push({ key: key });
-      this.keys.push(key);
+      addSetter(this, key);
       return this;
     },
     addQueryPair: function(lhs, value) {
@@ -211,50 +167,19 @@ define([ "jquery" ], function($) {
       return this;
     },
     addQueryParameter: function(lhs, key) {
-      this.query.push({ lhs: lhs, key: key });
-      this.keys.push(key || lhs);
+      this.query.push({ lhs: lhs, key: key || lhs });
+      addSetter(this, key || lhs);
       return this;
     },
     build: function() {
-      // Snapshot builder state.
-      var builder = this;
-      var method = builder.method;
-      var baseUrl = builder.baseUrl;
-      var path = builder.path.slice();
-      var query = builder.query.slice();
-      var keys = builder.keys;
-
-      var result = new HttpMethod(method, new HttpDyn(method, baseUrl, path, query));
-      for (var i = 0; i < keys.length; ++i) {
-        defineSetter(result, keys[i]);
-      }
-      return result;
+      return buildHttpMethod(this);
     }
   }
 
-  // TEMP, for test
-  new HttpMethodBuilder()
-    .setMethod("GET")     // the default
-    .setBaseUrl("/")      // the default
-    .addPathComponent("ping")
-    .addPathParameter("count")
-    .addPathComponent("/a/b")
-    .addPathParameter("id")
-    .addQueryParameter("p")
-    .addQueryParameter("_", "salt")
-    .addQueryPair("const", 12345)
-    .build()
-    .setCount(111)
-    .setId("Mort")
-    .setP(0)
-    .setSalt("xxxxxxxxxxxxxx")
-    .invoke()
-    .then(function(result) {
-      console.log('result', result);
-    })
-    .catch(function(error) {
-      console.log('error', error);
-    });
+  HttpMethod.GET = GET;
+  HttpMethod.POST = POST;
+  HttpMethod.PUT = PUT;
+  HttpMethod.Builder = HttpMethodBuilder;
 
-  return Method;
+  return HttpMethod;
 });
