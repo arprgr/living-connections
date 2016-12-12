@@ -75,10 +75,15 @@ define([ "jquery", "services" ], function($, Services) {
   }
 
   function stopRecording(self) {
-    videoService.stopRecording();
-    var url = videoService.captureVideoBlob();
-    self.videoUrl = url;
-    toLoadedState(self);
+    var stopped;
+    videoService.stopRecording(function(url) {
+      stopped = true;
+      self.videoUrl = url;
+      toLoadedState(self);
+    });
+    if (!stopped) {
+      updateFunctionButtons(self);
+    }
   }
 
   function saveRecording(self) {

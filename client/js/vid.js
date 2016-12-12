@@ -6,20 +6,6 @@ define([ "jquery", "lib/webrtc-adapter", "lib/RecordRTC" ], function($, webrtc, 
     return !!navigator.mediaDevices;
   }
 
-  function hasMediaRecorder() {
-    return typeof MediaRecorder == "function";
-  }
-
-  function chooseMimeType(self) {
-    var mimePriorityList = self.mimePriorityList;
-    for (var i = 0; i < mimePriorityList.length; ++i) {
-      var mimeType = mimePriorityList[i];
-      if (MediaRecorder.isTypeSupported(mimeType)) {
-        return mimeType;
-      }
-    }
-  }
-
   function forEachTrack(stream, func) {
     if (stream) {
       var tracks = stream.getTracks();
@@ -70,51 +56,39 @@ define([ "jquery", "lib/webrtc-adapter", "lib/RecordRTC" ], function($, webrtc, 
 
   function startRecording(self) {
 
-    var chunks = [];
-
-    var mediaRecorder = new MediaRecorder(self.stream, {
-      mimeType: self.mimeType
+    var recordRTC = RecordRTC(self.stream, {
+      type: "video"
     });
-
-    mediaRecorder.ondataavailable = function(event) {
-      if (chunks.length == self.bufferLimit) {
-        stopRecording(self);
-      }
-      else {
-        chunks.push(event.data);
-      }
-    }
 
     mediaRecorder.start(self.timeChunk);
 
+    self.recordRTC = recordRTC;
     self.recording = true;
-    self.chunks = chunks;
-    self.mediaRecorder = mediaRecorder;
   }
 
-  function stopRecording(self) {
-    var mediaRecorder = self.mediaRecorder;
-    if (mediaRecorder && mediaRecorder.state == "recording") {
-      mediaRecorder.ondataavailable = null;
-      mediaRecorder.stop();
-      self.mediaRecorder = null;
-      self.recording = false;
+  function stopRecording(self, callback) {
+    var recordRTC = self.recordRTC;
+    if (recordRTC) {
+      recordRTC.stopRecording(function() {
+        recordRTC.getDataURL(function(url) {
+          callback(url);
+        });
+      });
     }
-  }
-
-  function captureVideoBlob(self) {
-    return window.URL.createObjectURL(new Blob(self.chunks, { type: self.mimeType }));
+    else {
+      callback(null);
+    }
+    self.recordRTC = null;
   }
 
   function VideoService(options) {
     var self = this;
     $.extend(self, options);
-    self.mimeType = hasMediaRecorder() && chooseMimeType(self);
   }
 
   VideoService.prototype = {
     isCapable: function() {
-      return hasMediaDevices() && hasMediaRecorder() && !!this.mimeType;
+      return hasMediaDevices();
     },
     open: function() {
       return open(this);
@@ -128,11 +102,8 @@ define([ "jquery", "lib/webrtc-adapter", "lib/RecordRTC" ], function($, webrtc, 
     startRecording: function() {
       return startRecording(this);
     },
-    stopRecording: function() {
-      return stopRecording(this);
-    },
-    captureVideoBlob: function() {
-      return captureVideoBlob(this);
+    stopRecording: function(callback) {
+      return stopRecording(this, callback);
     }
   }
 
