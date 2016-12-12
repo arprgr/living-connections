@@ -39,7 +39,6 @@ define([ "jquery", "services", "listingui", "activityui" ],
       .append($("<span>")
         .addClass("title")
         .text(title))
-      .append($("<span>").text(" "))
       .append($("<a>")
         .addClass("logout")
         .text("Log out")

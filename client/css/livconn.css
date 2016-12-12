@@ -59,13 +59,18 @@ div {
   color: red;
 }
 #app {
-  padding: 20px;
+  padding: 10px;
 }
 #app .header {
+  height: 32px;
   border-radius: 6px;
   background-color: #f3f1f3;
-  padding: 10px;
-  box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.10);
+  background-image: url(/img/logo-small.png);
+  background-position: 10px 10px;
+  background-size: 41px 32px;
+  background-repeat: no-repeat;
+  padding: 15px 8px 6px 52px;
+  box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
 }
 #app .header .logout {
   float: right;
@@ -73,11 +78,11 @@ div {
 }
 #app .action {
   border-radius: 6px;
-  margin-top: 10px;
+  margin-top: 6px;
   padding: 8px;
   background-color: white;
   color: #004;
-  box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.10);
+  box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
 }
 #app img.bigIcon {
   width: 64px;
