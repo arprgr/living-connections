@@ -13,7 +13,6 @@ div {
   bottom: 0;
   left: 0;
   right: 0;
-  width: 520px;
   height: 100%;
   margin: 0px auto;
 }
@@ -23,7 +22,7 @@ div {
   bottom: 0;
   left: 0;
   right: 0;
-  width: 100%;
+  width: 520px;
   height: 500px;
   overflow: hidden;
   margin: auto;
