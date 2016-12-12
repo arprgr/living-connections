@@ -1,6 +1,6 @@
 // vid.js - VideoService
 
-define([ "jquery", "lib/webrtc-adapter" ], function($) {
+define([ "jquery", "lib/webrtc-adapter", "lib/RecordRTC" ], function($, webrtc, RecordRTC) {
 
   function hasMediaDevices() {
     return !!navigator.mediaDevices;
