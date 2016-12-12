@@ -1,7 +1,14 @@
 // startupui.js
 
-define([ "jquery", "services", "loginui", "waitanim", "anim" ],
-  function($, Services, LoginController, WaitAnimController, Animation) {
+define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
+  function($, Services, LoginController, WaitAnimController, Animation, Cookie) {
+
+  var NO_VID = "Sorry, but your browser is not capable of sending and receiving Living Connections video messages.";
+  var VID_SUPPORT_REF = "Read more about supported browsers.";
+  var VID_SUPPORT_URL = "http://recordrtc.org"
+  var CONTINUE_ANYWAY = "Continue anyway";
+
+  var CONTINUE_ANYWAY_COOKIE = new Cookie("xd");
 
   function selectContainer() {
     return $("#startup");
@@ -74,16 +81,41 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
     }).start();
   }
 
-  function checkBrowser(self) {
-    if (!self.browserChecked) {
-      self.browserChecked = true;
-      if (!Services.videoService.isCapable()) {
-        showInnerInWaitingPosition();
-        selectMessageBox().text("Sorry, your browser is not capable of running the awesome Living Connections experience.");
-        return false;
-      }
+  function toBareState(self) {
+    if (!selectInner().hasClass("loginpos")) {
+      hideLoginForm(self);
     }
-    return true;
+    else {
+      slideLogoDown(self);
+    }
+  }
+
+  function toLoginStateNoCheck(self) {
+    if (selectInner().hasClass("loginpos")) {
+      showLoginForm(self);
+    }
+    else {
+      slideLogoUp(self);
+    }
+  }
+
+  function toLoginState(self) {
+    if (!CONTINUE_ANYWAY_COOKIE.get() && !Services.videoService.isCapable()) {
+      showInnerInWaitingPosition();
+      selectMessageBox()
+        .append($("<div>")
+          .append($("<span>").text(NO_VID + " "))
+          .append($("<a>").text(VID_SUPPORT_REF).attr("target", "_new").attr("href", VID_SUPPORT_URL)))
+        .append($("<div>")
+          .append($("<button>").text(CONTINUE_ANYWAY).click(function() {
+            CONTINUE_ANYWAY_COOKIE.set("1");
+            selectMessageBox().empty();
+            toLoginStateNoCheck(self);
+          })));
+    }
+    else {
+      toLoginStateNoCheck(self);
+    }
   }
 
   function showWaitingIndicator(self) {
@@ -101,6 +133,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
     }
   }
 
+  // TODO: make this into a component.
   function showUnresponsive() {
     selectMessageBox().text("We're not able to connect to Living Connections' server at this time. " +
       "We'll keep trying. In the meantime, please check your internet connection.");
@@ -112,10 +145,6 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
     if (sessionManager.isUnresponsive()) {
       showUnresponsive(self);
     }
-  }
-
-  function toBrowerWarningState() {
-    selectMessageBox().text("Your browser is not capable of running Living Connections.");
   }
 
   function Controller() {
@@ -132,24 +161,10 @@ define([ "jquery", "services", "loginui", "waitanim", "anim" ],
       selectContainer().hide();
     },
     toBareState: function() {
-      var self = this;
-      if (!selectInner().hasClass("loginpos")) {
-        hideLoginForm(self);
-      }
-      else {
-        slideLogoDown(self);
-      }
+      toBareState(this);
     },
     toLoginState: function() {
-      var self = this;
-      if (checkBrowser(self)) { 
-        if (selectInner().hasClass("loginpos")) {
-          showLoginForm(self);
-        }
-        else {
-          slideLogoUp(self);
-        }
-      }
+      toLoginState(this);
     }
   }
 

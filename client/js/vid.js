@@ -109,7 +109,7 @@ define([ "jquery", "lib/webrtc-adapter" ], function($) {
   function VideoService(options) {
     var self = this;
     $.extend(self, options);
-    self.mimeType = chooseMimeType(self);
+    self.mimeType = hasMediaRecorder() && chooseMimeType(self);
   }
 
   VideoService.prototype = {
