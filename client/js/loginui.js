@@ -4,7 +4,7 @@ define([ "jquery", "services" ], function($, Services) {
 
   // Email validation
 
-  var EMAIL_REGEX = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/;
+  var EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,3}$/;
 
   function isValidEmail(str) {
     return str.match(EMAIL_REGEX);
@@ -42,6 +42,7 @@ define([ "jquery", "services" ], function($, Services) {
     var text = self.input.val();
     if (text) {
       if (isValidEmail(text)) {
+        text = text.toLowerCase();
         Services.sessionManager.logInWithEmail(text)
         .then(function(result) {
           if (result.msg) {
