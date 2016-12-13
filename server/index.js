@@ -14,7 +14,15 @@ for (var mkey in CONFIG.server.mounts) {
 // Add POST body parsers.
 var bodyParser = require("body-parser");
 server.use(bodyParser.json({ limit: '1mb' }));
-server.use(bodyParser.urlencoded({ limit: '1mb', extended: true }));
+server.use(bodyParser.urlencoded({
+  limit: '1mb',
+  extended: true
+}));
+server.use(bodyParser.raw({
+  inflate: true,
+  limit: "10mb",
+  type: "video/*"
+}));
 
 // Add cookie parser.
 var cookieParser = require("cookie-parser");
@@ -39,6 +47,7 @@ server.use("/announcements", require("./routers/announcements"));
 server.use("/a", require("./routers/alpha"));
 server.use("/o", require("./routers/omega"));
 server.use("/admin", require("./routers/admin"));
+server.use("/videos", require("./routers/videos"));
 
 var port = process.env.PORT || CONFIG.server.port;
 server.set("port", port);

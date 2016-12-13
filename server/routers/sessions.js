@@ -6,7 +6,7 @@ module.exports = (function() {
   const models = require("../models/index");
 
   // Create
-  router.post("/sessions", function(req, res) {
+  router.post("/", function(req, res) {
     models.Session.create({
       externalId: req.body.external_id,
       UserId: req.body.user_id
@@ -18,7 +18,7 @@ module.exports = (function() {
   });
 
   // Retrieve (by external id)
-  router.get("/session/:external_id", function(req, res) {
+  router.get("/:external_id", function(req, res) {
     models.Session.findByExternalId(req.params.external_id)
     .then(function(sessions) {
       res.json(sessions);
@@ -28,7 +28,7 @@ module.exports = (function() {
   });
 
   // Update
-  router.put("/session/:external_id", function(req, res) {
+  router.put("/:external_id", function(req, res) {
     models.Session.findByExternalId(req.params.external_id)
     .then(function(session) {
       if (session) {
@@ -44,7 +44,7 @@ module.exports = (function() {
   });
 
   // Delete
-  router.delete("/session/:external_id", function(req, res) {
+  router.delete("/:external_id", function(req, res) {
     models.Session.destroyByExternalId(req.params.external_id)
     .then(function() {
       res.json({});
