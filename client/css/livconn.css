@@ -46,16 +46,17 @@ div {
   color: #670;
 }
 #startup .login input {
-  width: 220px;
-  font-size: 14px;
+  width: 240px;
+  font-size: 20px;
 }
 #startup .login input.invalid {
   border: solid 2px red;
 }
 #startup .login button {
-  font-size: 14px;
+  font-size: 20px;
 }
 #startup .login .error {
+  font-size: 18px;
   color: red;
 }
 #app {
