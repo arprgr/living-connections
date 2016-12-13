@@ -25,12 +25,13 @@ define([ "http" ], function(HttpMethod) {
 
     for (var entityName in schema) {
       this[entityName] = (function(entityDesc) {
-        function build(isUpdate) {
-          var builder = new HttpMethod.Builder()
+        function build(builderClass, entityId) {
+          var builder = new builderClass();
+          builder
             .addPathComponent("api/1.0")
             .addPathComponent(entityName);
-          if (isUpdate) {
-            builder.addPathParameter(entityDesc.id);
+          if (entityId) {
+            builder.addPathParameter(entityId);
           }
           for (var i = 0; i < entityDesc.props.length; ++i) {
             builder.addQueryParameter(entityDesc.props[i]);
@@ -38,8 +39,8 @@ define([ "http" ], function(HttpMethod) {
           return builder.build();
         }
         return {
-          post: build(false),
-          put: build(true)
+          post: build(HttpMethod.PostForm),
+          put: build(HttpMethod.PutForm, entityDesc.id)
         }
       })(schema[entityName]);
     }

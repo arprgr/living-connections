@@ -4,6 +4,7 @@ define([ "jquery", "services" ], function($, Services) {
 
   var sessionManager = Services.sessionManager;
   var videoService = Services.videoService;
+  var videoStoreService = Services.videoStoreService;
 
   function selectContainer() {
     return $("#app .activity");
@@ -54,13 +55,6 @@ define([ "jquery", "services" ], function($, Services) {
     theVideo.controls = true;
   }
 
-  function updateFunctionButtons(self) {
-    self.startRecordingButton.setVisible(!self.videoUrl && !videoService.recording);
-    self.stopRecordingButton.setVisible(videoService.recording);
-    self.saveRecordingButton.setVisible(!!self.videoUrl && !videoService.recording);
-    self.discardRecordingButton.setVisible(!!self.videoUrl && !videoService.recording);
-  }
-
   function functionButton(label, clickFunc) {
     return $("<div>")
       .addClass("function")
@@ -71,29 +65,43 @@ define([ "jquery", "services" ], function($, Services) {
 
   function startRecording(self) {
     videoService.startRecording();
-    updateFunctionButtons(self);
+    toNextState(self);
   }
 
   function stopRecording(self) {
     var stopped;
-    videoService.stopRecording(function(url) {
+    videoService.stopRecording(function(blob, url) {
       stopped = true;
+      self.videoBlob = blob;
       self.videoUrl = url;
-      toLoadedState(self);
+      toNextState(self);
     });
     if (!stopped) {
-      updateFunctionButtons(self);
+      toNextState(self);
     }
-  }
-
-  function saveRecording(self) {
-    updateFunctionButtons(self);
   }
 
   function discardRecording(self) {
     self.videoUrl = null;
-    updateFunctionButtons(self);
-    toLoadlessState(self);
+    self.videoBlob = null;
+    toNextState(self);
+  }
+
+  function saveRecording(self) {
+    self.saving = true;
+    toNextState(self);
+
+    videoStoreService.saveVideo(self.videoBlob)
+    .then(function() {
+      self.saving = false;
+      discardRecording(self);
+    })
+    .catch(function(error) {
+      // TODO: error reporting
+      alert(error);
+      self.saving = false;
+      toNextState(self);
+    });
   }
 
   function render(self) {
@@ -125,7 +133,7 @@ define([ "jquery", "services" ], function($, Services) {
         .append(self.stopRecordingButton = functionButton("Stop Recording", function() {
           stopRecording(self);
         }))
-        .append(self.saveRecordingButton = functionButton("Save", function() {
+        .append(self.saveRecordingButton = functionButton(self.formData.saveButtonLabel, function() {
           saveRecording(self);
         }))
         .append(self.discardRecordingButton = functionButton("Discard", function() {
@@ -136,27 +144,31 @@ define([ "jquery", "services" ], function($, Services) {
     selectContainer().empty().append(actionDiv);
   }
 
-  function toLoadlessState(self) {
-    self.instructionsElement.text(self.formData.instructionsLoadless);
-    videoFromCamera();
-    updateFunctionButtons(self);
-  }
+  function toNextState(self) {
+    if (self.videoUrl != null) {
+      self.instructionsElement.text(self.formData.instructionsLoaded);
+      videoFromUrl(self.videoUrl);
+    }
+    else {
+      self.instructionsElement.text(self.formData.instructionsLoadless);
+      videoFromCamera();
+    }
 
-  function toLoadedState(self) {
-    self.instructionsElement.text(self.formData.instructionsLoaded);
-    videoFromUrl(self.videoUrl);
-    updateFunctionButtons(self);
+    self.startRecordingButton.setVisible(!self.videoBlob && !videoService.recording);
+    self.stopRecordingButton.setVisible(videoService.recording);
+    self.saveRecordingButton.setVisible(!!self.videoBlob);
+    self.discardRecordingButton.setVisible(!!self.videoBlob);
   }
 
   function activate(self) {
     render(self);
     if (self.openActionItem.videoUrl) {
       self.videoUrl = self.openActionItem.videoUrl;
-      toLoadedState(self);
+      toNextState(self);
     }
     else {
       videoService.open().then(function(stream) {
-        toLoadlessState(self);
+        toNextState(self);
       });
     }
   }

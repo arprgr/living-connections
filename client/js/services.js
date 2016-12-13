@@ -1,6 +1,7 @@
 // services.js - Services
 
-define([ "api", "session", "vid" ], function(ApiService, SessionManager, VideoService) {
+define([ "api", "session", "vid", "videostore" ],
+  function(ApiService, SessionManager, VideoService, VideoStoreService) {
 
   // Instantiation.
 
@@ -22,11 +23,15 @@ define([ "api", "session", "vid" ], function(ApiService, SessionManager, VideoSe
     bufferLimit: 100
   });
 
+  var videoStoreService = new VideoStoreService({
+  });
+
   // Hookup.
 
   return {
     apiService: apiService,
     sessionManager: sessionManager,
-    videoService: videoService
+    videoService: videoService,
+    videoStoreService: videoStoreService
   }
 });

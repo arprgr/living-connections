@@ -60,8 +60,7 @@ define([ "jquery", "lib/webrtc-adapter", "lib/RecordRTC" ], function($, webrtc, 
       type: "video"
     });
 
-    mediaRecorder.start(self.timeChunk);
-
+    recordRTC.startRecording(self.timeChunk);
     self.recordRTC = recordRTC;
     self.recording = true;
   }
@@ -70,14 +69,16 @@ define([ "jquery", "lib/webrtc-adapter", "lib/RecordRTC" ], function($, webrtc, 
     var recordRTC = self.recordRTC;
     if (recordRTC) {
       recordRTC.stopRecording(function() {
+        close(self);
         recordRTC.getDataURL(function(url) {
-          callback(url);
+          callback(recordRTC.blob, url);
         });
       });
     }
     else {
       callback(null);
     }
+    self.recording = false;
     self.recordRTC = null;
   }
 

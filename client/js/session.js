@@ -7,12 +7,12 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     return String(Math.floor(0xffffffff * Math.random()));
   }
 
-  var LOGIN_OR_POLL = new HttpMethod.Builder()
+  var LOGIN_OR_POLL = new HttpMethod.Get()
     .addPathComponent("a")
     .addQueryParameter("_", "salt")
     .addQueryParameter("email")
     .build();
-  var LOGOUT = new HttpMethod.Builder()
+  var LOGOUT = new HttpMethod.Get()
     .addPathComponent("o")
     .addPathParameter("sid")
     .addQueryParameter("_", "salt")

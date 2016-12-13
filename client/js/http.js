@@ -6,6 +6,9 @@ define([ "jquery" ], function($) {
   var POST = "POST";
   var PUT = "PUT";
 
+  var CONTENT_TYPE_HDR = "Content-type";
+  var FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
+
   ////////////// HttpMethod
 
   function HttpMethod(state) {
@@ -30,7 +33,7 @@ define([ "jquery" ], function($) {
     return queryString;
   }
 
-  function buildUri(self) {
+  function getUrl(self) {
     var uri = self.baseUrl;
     var path = self.path;
     for (var i = 0; i < path.length; ++i) {
@@ -61,10 +64,11 @@ define([ "jquery" ], function($) {
     return uri;
   }
 
-  function buildBody(self) {
-    switch (self.method) {
-    case POST:
-    case PUT:
+  function getBody(self) {
+    if (self.body) {
+      return self.body;
+    }
+    if (self.contentType == FORM_CONTENT_TYPE) {
       return buildQuery(self);
     }
   }
@@ -83,22 +87,24 @@ define([ "jquery" ], function($) {
     req.addEventListener("error", function(e) {
       promise.reject(e);
     });
-    req.open(self.method, self.uri());
-    switch (self.method) {
-    case POST:
-    case PUT:
-      req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.open(self.method, self.getUrl());
+    if (self.contentType) {
+      req.setRequestHeader(CONTENT_TYPE_HDR, self.contentType);
     }
-    req.send(self.body());
+    req.send(self.getBody());
     return promise;
   }
 
   HttpMethod.prototype = {
-    uri: function() {
-      return buildUri(this);
+    getUrl: function() {
+      return getUrl(this);
     },
-    body: function() {
-      return buildBody(this);
+    setBody: function(body) {
+      this.body = body;
+      return this;
+    },
+    getBody: function() {
+      return getBody(this);
     },
     execute: function() {
       return executeHttpMethod(this);
@@ -107,8 +113,8 @@ define([ "jquery" ], function($) {
 
   ////////////// HttpMethodBuilder
 
-  function HttpMethodBuilder() {
-    this.method = GET;
+  function HttpMethodBuilder(method) {
+    this.method = method;
     this.baseUrl = "/";
     this.path = [];
     this.query = [];
@@ -145,10 +151,6 @@ define([ "jquery" ], function($) {
   }
 
   HttpMethodBuilder.prototype = {
-    setMethod: function(method) {
-      this.method = method;
-      return this;
-    },
     setBaseUrl: function(baseUrl) {
       this.baseUrl = baseUrl;
       return this;
@@ -176,10 +178,25 @@ define([ "jquery" ], function($) {
     }
   }
 
-  HttpMethod.GET = GET;
-  HttpMethod.POST = POST;
-  HttpMethod.PUT = PUT;
-  HttpMethod.Builder = HttpMethodBuilder;
+  HttpMethod.Get = function() {
+    HttpMethodBuilder.call(this, GET);
+  };
+  HttpMethod.Get.prototype = HttpMethodBuilder.prototype;
+  HttpMethod.PostForm = function() {
+    HttpMethodBuilder.call(this, POST);
+    this.contentType = FORM_CONTENT_TYPE;
+  };
+  HttpMethod.PostForm.prototype = HttpMethodBuilder.prototype;
+  HttpMethod.PostBinary = function(contentType) {
+    HttpMethodBuilder.call(this, POST);
+    this.contentType = contentType;
+  };
+  HttpMethod.PostBinary.prototype = HttpMethodBuilder.prototype;
+  HttpMethod.PutForm = function() {
+    HttpMethodBuilder.call(this, PUT);
+    this.contentType = FORM_CONTENT_TYPE;
+  };
+  HttpMethod.PutForm.prototype = HttpMethodBuilder.prototype;
 
   return HttpMethod;
 });
