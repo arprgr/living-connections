@@ -6,15 +6,26 @@ module.exports = (function() {
   const models = require("../models/index");
   const videoStoreConnector = require("../connectors/videostore");
 
+  function createVideoModel(externalId, storageSystemId) {
+    return models.Video.create({
+      externalId: externalId,
+      storageSystemId: storageSystemId
+    });
+  }
+
+  function saveVideoAndCreateModel(buffer) {
+    return videoStoreConnector.saveVideo(req.body)
+    .then(function(videoStoreInfo) {
+      return createVideoModel(videoStoreInfo.id, videoStoreInfo.storageSystemId);
+    });
+  }
+
   // Create
   router.post("/", function(req, res) {
-    videoStoreConnector.saveVideo(req.body)
-    .then(function(videoStoreInfo) {
-      return models.Video.create({
-        externalId: videoStoreInfo.id,
-        storageSystemId: videoStoreInfo.storageSystemId
-      });
-    }).then(function(video) {
+    ( req.is("video/*")
+        ? saveVideoAndCreateModel(req.body)
+        : createVideoModel(req.body.externalId, req.body.storageSystemId)
+    ).then(function(video) {
       res.json(video);
     }).catch(function(error) {
       res.json(error);
