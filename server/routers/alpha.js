@@ -1,100 +1,66 @@
-/* alpha.js */
+/* routers/alpha.js */
 
 module.exports = (function() {
   const Promise = require("promise");
-  const models = require("../models/index");
-  const exec = require("../util/exec");
-  const sessionLogic = require("../biz/sessions");
+  const auth = require("../auth");
   const actionLogic = require("../biz/actions");
 
-  function ActionHandler(req, res) {
+  function AlphaHandler(req, res) {
     var self = this;
     self.request = req;
     self.response = res;
   }
 
-  function logInIfRequested(self) {
-    return new Promise(function(resolve, reject) {
-      var email = self.request.query.email;
-      if (email) {
-        console.log("log in", email);
-        resolve(sessionLogic.logInWithEmail(email, self));
-      }
-      else {
-        resolve(self);
-      }
-    });
-  }
-
   function sendSessionCookie(self) {
-    self.response.cookie("s", self.session.externalId, {
+    self.response.cookie("s", self.request.session.externalId, {
       maxAge: 2147483647,
       path: "/",
     });
   }
 
-  function getSessionCookie(self) {
-    return self.request.cookies.s;
+  function logInIfRequested(self) {
+    var email = self.request.query.email;
+    if (email) {
+      self.request.user = null;
+      self.request.session = null;
+      return auth.logInWithEmail(email, self.request)
+      .then(function() {
+        if (self.request.session) {
+          sendSessionCookie(self);
+        }
+      })
+    }
+    else {
+      return Promise.resolve();
+    }
   }
 
-  function resolveSession(self) {
-    return new Promise(function(resolve, reject) {
-      var sessionId;
-      if (self.session) {
-        sendSessionCookie(self);
-        resolve(self);
-      }
-      else if (sessionId = getSessionCookie(self)) {
-        resolve(sessionLogic.restoreSession(sessionId, self));
-      }
-      else {
-        resolve(self);
-      }
+  function runAlphaHandler(self) {
+    return logInIfRequested(self)
+    .then(function() {
+      var user = self.request.user;
+      return user ? actionLogic.compileActions(user, self) : self;
     });
   }
 
-  function retrieveUserInfo(self) {
-    return sessionLogic.lookupUser(self.session, self);
+  AlphaHandler.prototype = {
+    run: function() {
+      return runAlphaHandler(this);
+    }
   }
 
-  function retrieveActionItems(self) {
-    return actionLogic.compileActions(self.user, self);
-  }
-
-  function runActionHandler() {
-    var self = this;
-    return exec.executeSequence(self, [
-      logInIfRequested,
-      resolveSession,
-      retrieveUserInfo,
-      retrieveActionItems
-    ]);
-  }
-
-  function runActionHandlerAndRespond() {
-    var self = this;
-    self.run()
-      .then(function() {
-        self.response.json({
-          userName: self.userName,
-          actionItems: self.actionItems
-        });
-      })
-      .catch(function(msg) {
-        self.response.json({ msg: String(msg) });
-      }
-    );
-  }
-
-  ActionHandler.prototype = {
-    run: runActionHandler,
-    runAndRespond: runActionHandlerAndRespond
-  };
-
+  // The express stuff.
   const express = require("express");
   const router = express.Router();
-  router.get("/", function(req, res) {
-    new ActionHandler(req, res).runAndRespond();
+  router.get("/", function(req, res, next) {
+    new AlphaHandler(req, res).run()
+    .then(function(actionHandler) {
+      res.json({
+        userName: req.user && req.user.name,
+        actionItems: actionHandler.actionItems
+      });
+    })
+    .catch(next);
   });
   return router;
 })();
