@@ -6,25 +6,29 @@ module.exports = (function() {
   const models = require("../models/index");
   const videoStoreConnector = require("../connectors/videostore");
 
-  function createVideoModel(externalId, storageSystemId) {
+  function createVideoModel(creatorId, externalId, storageSystemId) {
     return models.Video.create({
+      creatorId: userId,
       externalId: externalId,
       storageSystemId: storageSystemId
     });
   }
 
-  function saveVideoAndCreateModel(buffer) {
-    return videoStoreConnector.saveVideo(req.body)
+  function saveVideoAndCreateModel(user, buffer) {
+    return videoStoreConnector.saveVideo(buffer)
     .then(function(videoStoreInfo) {
-      return createVideoModel(videoStoreInfo.id, videoStoreInfo.storageSystemId);
+      return createVideoModel(user.id, videoStoreInfo.id, videoStoreInfo.storageSystemId);
     });
   }
 
   // Create
   router.post("/", function(req, res) {
+    if (!req.user) {
+      throw { status: 401 };
+    }
     ( req.is("video/*")
-        ? saveVideoAndCreateModel(req.body)
-        : createVideoModel(req.body.externalId, req.body.storageSystemId)
+        ? saveVideoAndCreateModel(req.user, req.body)
+        : createVideoModel(req.user.id, req.body.externalId, req.body.storageSystemId)
     ).then(function(video) {
       res.json(video);
     }).catch(function(error) {
