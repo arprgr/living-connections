@@ -64,18 +64,18 @@ div {
 }
 #app .header {
   height: 32px;
-  border-radius: 6px;
-  background-color: #f3f1f3;
+  _border-radius: 6px;
+  _background-color: #f3f1f3;
   background-image: url(/img/logo-small.png);
   background-position: 10px 10px;
   background-size: 41px 32px;
   background-repeat: no-repeat;
-  padding: 15px 8px 6px 52px;
-  box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
+  padding: 15px 8px 6px 62px;
+  _box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
 }
 #app .header .logout {
   float: right;
-  color: #cc8;
+  color: #682;
 }
 #app .action {
   border-radius: 6px;
