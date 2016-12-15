@@ -39,22 +39,6 @@ define([ "jquery", "services" ], function($, Services) {
     return $.extend({}, DEFAULT_FORM_DATA, FORM_DATA_BY_TYPE[actionItem.type]);
   }
 
-  function videoFromCamera() {
-    var theVideo = document.getElementById("theVideo");
-    theVideo.src = "";
-    theVideo.controls = false;
-    videoService.open().then(function(stream) {
-      theVideo.srcObject = stream;
-    });
-  }
-
-  function videoFromUrl(url) {
-    var theVideo = document.getElementById("theVideo");
-    theVideo.srcObject = null;
-    theVideo.src = url;
-    theVideo.controls = true;
-  }
-
   function functionButton(label, clickFunc) {
     return $("<div>")
       .addClass("function")
@@ -124,7 +108,7 @@ define([ "jquery", "services" ], function($, Services) {
         .addClass("instructions"))
       .append($("<div>")
         .addClass("vid")
-        .html("<video id='theVideo'></video>"))
+        .html("<video id='theVideo' autoplay></video>"))
       .append($("<div>")
         .addClass("functions")
         .append(self.startRecordingButton = functionButton("Start Recording", function() {
@@ -144,20 +128,34 @@ define([ "jquery", "services" ], function($, Services) {
     selectContainer().empty().append(actionDiv);
   }
 
-  function toNextState(self) {
-    if (self.videoUrl != null) {
-      self.instructionsElement.text(self.formData.instructionsLoaded);
-      videoFromUrl(self.videoUrl);
+  function updateVideoSource(theVideo, src) {
+    theVideo.src = src;
+    theVideo.controls = !!src;
+    theVideo.srcObject = null;
+    theVideo.autoplay = !src;
+    if (!src) {
+      videoService.open().then(function(stream) {
+        theVideo.srcObject = stream;
+      });
     }
-    else {
-      self.instructionsElement.text(self.formData.instructionsLoadless);
-      videoFromCamera();
-    }
+  }
 
-    self.startRecordingButton.setVisible(!self.videoBlob && !videoService.recording);
+  function toNextState(self) {
+    var videoUrl = self.videoUrl;
+    var videoBlob = self.videoBlob;
+    var formData = self.formData;
+
+    // Instruction text.
+    self.instructionsElement.text(videoUrl ? formData.instructionsLoaded : formData.instructionsLoadless);
+
+    // Video.
+    updateVideoSource(document.getElementById("theVideo"), videoUrl);
+
+    // Function buttons
+    self.startRecordingButton.setVisible(!videoBlob && !videoService.recording);
     self.stopRecordingButton.setVisible(videoService.recording);
-    self.saveRecordingButton.setVisible(!!self.videoBlob);
-    self.discardRecordingButton.setVisible(!!self.videoBlob);
+    self.saveRecordingButton.setVisible(!!videoBlob);
+    self.discardRecordingButton.setVisible(!!videoBlob);
   }
 
   function activate(self) {
