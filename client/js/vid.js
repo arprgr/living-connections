@@ -31,7 +31,7 @@ define([ "jquery", "lib/webrtc-adapter", "lib/RecordRTC" ], function($, webrtc, 
     }
     else {
       navigator.mediaDevices.getUserMedia({
-        audio: false,
+        audio: true,
         video: true
       })
       .then(function(stream) {

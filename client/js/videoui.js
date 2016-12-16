@@ -13,29 +13,17 @@ define([ "jquery" ], function($) {
     container
       .hide()
       .addClass(options.containerClass)
-      .html("<video id='" + options.elementId + "' autoplay></video>");
+      .html("<video id='" + options.elementId + "'></video>");
   }
 
   function setSource(self, src) {
     var theVideo = self.getVideoElement();
-    if (src == null) {
-      theVideo.src = "";
-      theVideo.srcObject = null;
-      theVideo.autoplay = false;
-      theVideo.controls = false;
-    }
-    else if (typeof src == "string") {
-      theVideo.src = src;
-      theVideo.srcObject = null;
-      theVideo.autoplay = false;
-      theVideo.controls = true;
-    }
-    else {
-      theVideo.src = "";
-      theVideo.srcObject = src;
-      theVideo.autoplay = true;
-      theVideo.controls = false;
-    }
+    var srcIsUrl = typeof src == "string";
+    theVideo.src = srcIsUrl ? src : "";
+    theVideo.srcObject = srcIsUrl ? null : src;
+    theVideo.autoplay = !!src && !srcIsUrl;
+    theVideo.controls = srcIsUrl;
+    theVideo.muted = !srcIsUrl;
   }
 
   VideoComponent.prototype = {
