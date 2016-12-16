@@ -1,7 +1,7 @@
 // mainui.js
 
 define([ "jquery", "services", "listingui", "activityui" ],
-  function($, Services, ListingController, ActivityController) {
+  function($, Services, ListingController, ActivityComponent) {
 
   function selectContainer() {
     return $("#app");
@@ -9,6 +9,10 @@ define([ "jquery", "services", "listingui", "activityui" ],
 
   function selectHeader() {
     return $("#app .header");
+  }
+
+  function selectActivityContainer() {
+    return $("#app .activity");
   }
 
   // TODO: this seems the wrong place to do this.
@@ -20,7 +24,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
 
   function expandString(self, format) {
     var sessionManager = Services.sessionManager;
-    var openActionItem = self.activityController.openActionItem || {};
+    var openActionItem = self.openActionItem || {};
     var stuff = {
       u: (sessionManager.user && sessionManager.user.name) || "",
       o: (openActionItem.user && openActionItem.user.name) || ""
@@ -30,7 +34,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
 
   function renderHeader(self) {
     var sessionManager = Services.sessionManager;
-    var openActionItem = self.activityController.openActionItem || {};
+    var openActionItem = self.openActionItem || {};
     var title = "";
     if (sessionManager.user) {
       title = expandString(self, openActionItem.titleFormat || "What's going on for %u%...");
@@ -55,19 +59,26 @@ define([ "jquery", "services", "listingui", "activityui" ],
 
   function handleActivityOpen(item) {
     var self = this;
-    self.activityController.open(item);
-    self.listingController.setVisible(0);
-    self.activityController.setVisible(1);
     renderHeader(self);
+    self.listingController.setVisible(0);
+    self.openActionItem = item;
+    new ActivityComponent(selectActivityContainer())
+      .onActivityClose(handleActivityClose.bind(self))
+      .setActionItem(item)
+      .setVisible(1);
+  }
+
+  function closeActivity(self) {
+    selectActivityContainer().hide().empty();
+    renderHeader(self);
+    self.openActionItem = null;
   }
 
   function handleActivityClose() {
     var self = this;
+    closeActivity(self);
     self.listingController.open();
-    self.activityController.close();
     self.listingController.setVisible(1);
-    self.activityController.setVisible(0);
-    renderHeader(self);
   }
 
   function Controller() {
@@ -76,27 +87,24 @@ define([ "jquery", "services", "listingui", "activityui" ],
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     self.listingController = new ListingController(sessionManager)
       .onActionItemOpen(handleActivityOpen.bind(self));
-    self.activityController = new ActivityController(sessionManager)
-      .onActivityClose(handleActivityClose.bind(self));
   }
 
   Controller.prototype = {
     setVisible: function(visible) {
       selectContainer().setVisible(visible);
+      return this;
     },
     open: function() {
       var self = this;
       if (!self.isOpen) {
-        if (!self.activityController.openActionItem) {
-          self.listingController.open();
-        }
+        self.listingController.open();
         self.isOpen = true;
       }
     },
     close: function() {
       var self = this;
       if (self.isOpen) {
-        self.activityController.close();
+        closeActivity(self);
         self.listingController.close();
         self.isOpen = false;
       }

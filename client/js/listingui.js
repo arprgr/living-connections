@@ -59,6 +59,7 @@ define([ "jquery", "services" ], function($, Services) {
   Controller.prototype = {
     setVisible: function(visible) {
       selectContainer().setVisible(visible);
+      return this;
     },
     open: function() {
       var self = this;
