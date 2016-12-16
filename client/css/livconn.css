@@ -95,6 +95,7 @@ div {
 }
 #app .action .title {
   float: right;
+  font-size: 20px;
 }
 #app .action .exit {
   float: right;
