@@ -23,6 +23,10 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
   }
 
   var FORM_DATA_BY_TYPE = {
+    "ann-cre": {
+      instructionsLoadless: "Record a video message to send to all Living Connections users.",
+      instructionsLoaded: "Click save to send, or discard to try again.",
+    },
     "inv-cre": {
       renderAdditionalElements: function(div) {
         div.append($("<div>")
