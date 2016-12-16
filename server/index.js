@@ -29,7 +29,7 @@ var cookieParser = require("cookie-parser");
 server.use(cookieParser());
 
 // Add authentication middleware.
-server.use(require("./auth").restoreSession);
+server.use(require("./auth").resolveSessionAndUser);
 
 // Add error handler middleware.
 server.use(function(err, req, res, next) {

@@ -11,6 +11,10 @@ function findUserForSession(session) {
   return models.User.findById(session.UserId);
 }
 
+function findAdminUsers() {
+  return models.User.findByLevel(0);
+}
+
 function findEmailProfile(emailAddress) {
   return models.EmailProfile.findByEmail(emailAddress);
 }
@@ -30,8 +34,14 @@ function generateSessionId() {
   return randomDigits(8) + "-" + randomDigits(12) + "-" + randomDigits(12);
 }
 
+function isLocalRequest(request) {
+  var clientAddress = request.headers["x-forwarded-for"] || request.connection.remoteAddress;
+console.log(clientAddress);
+  return clientAddress == "127.0.0.1" || clientAddress == "::1";
+}
+
 // Exported middleware function.
-function restoreSession(request, response, next) {
+function resolveSessionAndUser(request, response, next) {
   var sessionId = request.cookies.s;
   if (sessionId) {
     findSession(sessionId)
@@ -40,6 +50,16 @@ function restoreSession(request, response, next) {
       return findUserForSession(session);
     }).then(function(user) {
       request.user = user;
+      next();
+    })
+    .catch(next);
+  }
+  else if (isLocalRequest(request)) {
+    return findAdminUsers()
+    .then(function(users) {
+      if (users.length) {
+        request.user = users[0];
+      }
       next();
     })
     .catch(next);
@@ -85,6 +105,6 @@ reject("Your invitation has been sent. Check your email.");
 ***/
 
 module.exports = {
-  restoreSession: restoreSession,
+  resolveSessionAndUser: resolveSessionAndUser,
   logInWithEmail: logInWithEmail
 }

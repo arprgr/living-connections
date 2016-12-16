@@ -21,7 +21,6 @@ module.exports = (function() {
   function logInIfRequested(self) {
     var email = self.request.query.email;
     if (email) {
-      self.request.user = null;
       self.request.session = null;
       return auth.logInWithEmail(email, self.request)
       .then(function() {
@@ -38,8 +37,9 @@ module.exports = (function() {
   function runAlphaHandler(self) {
     return logInIfRequested(self)
     .then(function() {
+      var session = self.request.session;
       var user = self.request.user;
-      return user ? actionLogic.compileActions(user, self) : self;
+      return (session && user) ? actionLogic.compileActions(user, self) : self;
     });
   }
 
@@ -56,7 +56,7 @@ module.exports = (function() {
     new AlphaHandler(req, res).run()
     .then(function(actionHandler) {
       res.json({
-        userName: req.user && req.user.name,
+        userName: req.session && req.user && req.user.name,
         actionItems: actionHandler.actionItems
       });
     })

@@ -5,40 +5,50 @@ module.exports = (function() {
   const router = express.Router();
   const models = require("../models/index");
 
+  // For admin access only.
+  router.use(function(req, res, next) {
+    if (!req.user || req.user.level !== 0) {
+      next({ status: 401 });
+    }
+    else {
+      next();
+    }
+  });
+
+  function parseDate(str) {
+    return str ? new Date(str) : new Date();
+  }
+
   // Create
-  router.post("/", function(req, res) {
+  router.post("/", function(req, res, next) {
     models.Announcement.create({
-      activationDate: new Date(req.body.activationDate),
-      expiryDate: new Date(req.body.expiryDate),
-      UserId: req.body.userId,
-      AssetId: req.body.assetId
-    }).then(function(user) {
-      res.json(user);
-    }).catch(function(error) {
-      res.json(error);
-    });
+      startDate: parseDate(req.body.startDate),
+      endDate: parseDate(req.body.endDate),
+      creatorId: req.user.id,
+      assetId: req.body.assetId
+    }).then(function(announcement) {
+      res.json(announcement);
+    }).catch(next);
   });
 
   // Retrieve by ID
-  router.get("/:id", function(req, res) {
+  router.get("/:id", function(req, res, next) {
     models.Announcement.findById(req.params.id)
-    then(function(user) {
-      res.json(user);
-    });
+    then(function(announcement) {
+      res.json(announcement);
+    }).catch(next);
   });
 
-  // Retrieve all Announcements
-  router.get("/", function(req, res) {
-    models.Announcement.find()
+  // Retrieve Announcements by date
+  router.get("/", function(req, res, next) {
+    models.Announcement.findByDate(parseDate(req.query.date))
     .then(function(announcements) {
       res.json(announcements);
-    }).catch(function(error) {
-      res.json(error);
-    });
+    }).catch(next);
   });
 
   // Update
-  router.put("/:id", function(req, res) {
+  router.put("/:id", function(req, res, next) {
     models.Announcement.find({
       where: {
         id: req.params.id
@@ -46,16 +56,16 @@ module.exports = (function() {
     }).then(function(user) {
       if (user) {
         user.updateAttributes({
-          activationDate: new Date(req.body.activationDate),
-          expiryDate: new Date(req.body.expiryDate),
-          AssetId: req.body.assetId
+          startDate: parseDate(req.body.startDate),
+          endDate: parseDate(req.body.endDate),
+          assetId: req.body.assetId
         })
         res.json(user);
       }
       else {
         res.json(null);
       }
-    });
+    }).catch(next);
   });
 
   return router;

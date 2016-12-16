@@ -19,6 +19,11 @@ module.exports = function(sequelize, DataTypes) {
         return User.findOne({
           where: { id: id }
         });
+      },
+      findByLevel: function(level) {
+        return User.findAll({
+          where: { level: level }
+        });
       }
     }
   });
