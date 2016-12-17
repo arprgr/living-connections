@@ -37,7 +37,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
     var openActionItem = self.openActionItem || {};
     var title = "";
     if (sessionManager.user) {
-      title = expandString(self, openActionItem.titleFormat || "What's going on for %u%...");
+      title = expandString(self, openActionItem.titleFormat || "");
     }
     selectHeader().empty()
       .append($("<span>")
