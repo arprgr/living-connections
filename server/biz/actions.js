@@ -81,6 +81,19 @@ module.exports = (function() {
         .then(function(connections) {
           compiler.connections = connections;
         })
+      },
+      function() {
+        return models.Announcement.findByDate(new Date(), {
+          include: [{
+            model: models.Asset,
+            as: "asset"
+          }],
+          limit: MAX_CONNECTIONS,
+          order: [ [ "startDate", "DESC" ] ]
+        })
+        .then(function(announcements) {
+          compiler.announcements = announcements;
+        })
       }
     ]);
   }
@@ -91,6 +104,16 @@ module.exports = (function() {
 
   function addItemsForAdmin(compiler) {
     addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_CREATE);
+    var announcements = compiler.announcements;
+    if (announcements) {
+      for (var i = 0; i < announcements.length; ++i) {
+        var ann = announcements[i];
+        addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, {
+          title: "Update announcement of " + ann.startDate,
+          assetUrl: ann.asset.url
+        });
+      }
+    }
   }
 
   function addItemsForNormalUsers(compiler) {

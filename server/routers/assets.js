@@ -21,7 +21,8 @@ module.exports = (function() {
       return models.Asset.create({
         creatorId: req.user.id,
         mime: req.get("Content-type"),
-        key: info.id
+        key: info.id,
+        url: info.url
       })
     }).then(function(model) {
       res.json(model);

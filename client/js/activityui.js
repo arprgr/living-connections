@@ -45,10 +45,6 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
 
   // Create Announcement behavior.
 
-  function CreateAnnouncementInner(container, options) {
-    DefaultInner.call(this, container, options);
-  }
-
   function createAnnouncementRenderForm() {
   }
 
@@ -79,6 +75,37 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     defineSaveButton: createAnnouncementDefineSaveButton
   })
 
+  // Update Announcement behavior.
+
+  function updateAnnouncementRenderForm() {
+  }
+
+  function updateAnnouncementInstructionText(self) {
+    switch (self.state) {
+    case STATE_LIVE:
+      return "Re-record your video message for all Living Connections users.";
+    }
+    return defaultInstructionsText(self);
+  }
+
+  function updateAnnouncementDefineSaveButton(callback) {
+    callback("Update Announcement",
+      function(asset) {
+        updateService.putAnnouncement({
+          assetId: asset.id,
+          startDate: "2016-12-01",
+          endDate: "2017-03-01"
+        });
+      }
+    );
+  }
+
+  var UpdateAnnouncementInner = $.extend({}, DefaultInner, {
+    renderForm: createAnnouncementRenderForm,
+    instructionsText: createAnnouncementInstructionText,
+    defineSaveButton: createAnnouncementDefineSaveButton
+  })
+
   // Video component management.
 
   function updateVideo(self, src) {
@@ -98,6 +125,11 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
       updateState(self, STATE_LIVE);
       updateVideo(self, stream);
     });
+  }
+
+  function toPlaybackVideoState(self, url) {
+    updateState(self, STATE_PLAYBACK);
+    updateVideo(self, url);
   }
 
   function updateInstructions(self) {
@@ -132,8 +164,7 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     videoService.stopRecording(function(blob, url) {
       self.videoBlob = blob;
       videoService.close();
-      updateVideo(self, url);
-      updateState(self, STATE_PLAYBACK);
+      toPlaybackVideoState(self, url);
     });
   }
 
@@ -165,6 +196,8 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     switch (type) {
     case "ann-cre":
       return CreateAnnouncementInner;
+    case "ann-upd":
+      return UpdateAnnouncementInner;
     }
     return DefaultInner;
   }
@@ -246,7 +279,12 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     inner.renderForm(self);
     defineButtons(self);
 
-    toLiveVideoState(self);
+    if (options.assetUrl) {
+      toPlaybackVideoState(self, options.assetUrl);
+    }
+    else {
+      toLiveVideoState(self);
+    }
   }
 
   ActivityComponent.prototype = {

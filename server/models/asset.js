@@ -2,6 +2,7 @@
 module.exports = function(sequelize, DataTypes) {
   var Asset = sequelize.define('Asset', {
     key: DataTypes.STRING,
+    url: DataTypes.STRING,
     mime: DataTypes.STRING
   }, {
     classMethods: {
