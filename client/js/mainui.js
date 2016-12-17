@@ -62,14 +62,16 @@ define([ "jquery", "services", "listingui", "activityui" ],
     renderHeader(self);
     self.listingController.setVisible(0);
     self.openActionItem = item;
-    new ActivityComponent(selectActivityContainer())
+    self.activity = new ActivityComponent(selectActivityContainer(), item)
       .onActivityClose(handleActivityClose.bind(self))
-      .setActionItem(item)
       .setVisible(1);
   }
 
   function closeActivity(self) {
-    selectActivityContainer().hide().empty();
+    if (self.activity) {
+      self.activity.close();
+      self.activity = null;
+    }
     renderHeader(self);
     self.openActionItem = null;
   }

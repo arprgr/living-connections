@@ -4,10 +4,14 @@ define([ "http" ], function(HttpMethod) {
 
   function ApiService(options) {
 
+    this.SaveVideoMethod = new HttpMethod.PostBinary("video/webm")
+      .addPathComponent("/assets")
+      .build();
+
     var schema = {
       announcements: {
         id: "announcementId",
-        props: [ "assetId" ]
+        props: [ "assetId", "startDate", "endDate" ]
       },
       greetings: {
         id: "greetingId",
@@ -28,7 +32,6 @@ define([ "http" ], function(HttpMethod) {
         function build(builderClass, entityId) {
           var builder = new builderClass();
           builder
-            .addPathComponent("api/1.0")
             .addPathComponent(entityName);
           if (entityId) {
             builder.addPathParameter(entityId);
@@ -48,9 +51,17 @@ define([ "http" ], function(HttpMethod) {
 
   ApiService.prototype = {
 
+    saveVideo: function(blob) {
+      return new this.SaveVideoMethod()
+        .setBody(blob)
+        .execute();
+    },
+
     postAnnouncement: function(params) {
       return new this.announcements.post()
         .setAssetId(params.assetId)
+        .setStartDate(params.startDate)
+        .setEndDate(params.endDate)
         .execute();
     },
 

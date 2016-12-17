@@ -139,7 +139,8 @@ define([ "jquery" ], function($) {
       method: builder.method,
       baseUrl: builder.baseUrl,
       path: builder.path.slice(),
-      query: builder.query.slice()
+      query: builder.query.slice(),
+      contentType: builder.contentType
     }
     // Generate the constructor.
     var classFunc = function() {
@@ -182,16 +183,19 @@ define([ "jquery" ], function($) {
     HttpMethodBuilder.call(this, GET);
   };
   HttpMethod.Get.prototype = HttpMethodBuilder.prototype;
+
   HttpMethod.PostForm = function() {
     HttpMethodBuilder.call(this, POST);
     this.contentType = FORM_CONTENT_TYPE;
   };
   HttpMethod.PostForm.prototype = HttpMethodBuilder.prototype;
+
   HttpMethod.PostBinary = function(contentType) {
     HttpMethodBuilder.call(this, POST);
     this.contentType = contentType;
   };
   HttpMethod.PostBinary.prototype = HttpMethodBuilder.prototype;
+
   HttpMethod.PutForm = function() {
     HttpMethodBuilder.call(this, PUT);
     this.contentType = FORM_CONTENT_TYPE;
