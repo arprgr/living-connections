@@ -4,11 +4,13 @@ const models = require("./models/index");
 const random = require("./util/random");
 
 function findSession(externalId) {
-  return models.Session.findByExternalId(externalId);
-}
-
-function findUserForSession(session) {
-  return models.User.findById(session.UserId);
+  return models.Session.findByExternalId(externalId, {
+    include: [{
+      model: models.User,
+      as: "user",
+      required: true
+    }]
+  })
 }
 
 function findAdminUsers() {
@@ -16,13 +18,19 @@ function findAdminUsers() {
 }
 
 function findEmailProfile(emailAddress) {
-  return models.EmailProfile.findByEmail(emailAddress);
+  return models.EmailProfile.findByEmail(emailAddress, {
+    include: [{
+      model: models.User,
+      as: "user",
+      required: true
+    }]
+  })
 }
 
 function createNewSession(externalId, userId) {
   return models.Session.create({
     externalId: externalId,
-    UserId: userId
+    userId: userId
   });
 }
 
@@ -36,33 +44,44 @@ function generateSessionId() {
 
 function isLocalRequest(request) {
   var clientAddress = request.headers["x-forwarded-for"] || request.connection.remoteAddress;
-console.log(clientAddress);
   return clientAddress == "127.0.0.1" || clientAddress == "::1";
+}
+
+// Restore session.
+function resolveSessionById(sessionId, request, next) {
+  // Access session, if there is one.
+  findSession(sessionId)
+  .then(function(session) {
+    if (session) {
+      request.session = session;
+      request.user = session.user;
+    }
+    next();
+  })
+  .catch(next);
+}
+
+// Auto-login as admin.
+// POTENTIAL SECURITY HOLE!
+function autoLoginAdmin(request, next) {
+  findAdminUsers()
+  .then(function(users) {
+    if (users.length) {
+      request.user = users[0];
+    }
+    next();
+  })
+  .catch(next);
 }
 
 // Exported middleware function.
 function resolveSessionAndUser(request, response, next) {
   var sessionId = request.cookies.s;
   if (sessionId) {
-    findSession(sessionId)
-    .then(function(session) {
-      request.session = session;
-      return findUserForSession(session);
-    }).then(function(user) {
-      request.user = user;
-      next();
-    })
-    .catch(next);
+    resolveSessionById(sessionId, request, next);
   }
   else if (isLocalRequest(request)) {
-    return findAdminUsers()
-    .then(function(users) {
-      if (users.length) {
-        request.user = users[0];
-      }
-      next();
-    })
-    .catch(next);
+    autoLoginAdmin(request, next);
   }
   else {
     next();
@@ -75,16 +94,14 @@ function logInWithEmail(emailAddress, request) {
   return findEmailProfile(emailAddress)
   .then(function(emailProfile) {
     if (!emailProfile) {
-      throw new Error("Login failed");
+      throw "Login failed";
     }
-    return createNewSession(generateSessionId(), emailProfile.UserId);
+    request.user = emailProfile.user;
+    return createNewSession(generateSessionId(), emailProfile.user.id);
   })
   .then(function(session) {
     request.session = session;
-    return findUserForSession(session);
-  })
-  .then(function(user) {
-    request.user = user;
+    return session;
   })
 }
 

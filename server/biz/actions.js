@@ -86,7 +86,8 @@ module.exports = (function() {
         return models.Announcement.findByDate(new Date(), {
           include: [{
             model: models.Asset,
-            as: "asset"
+            as: "asset",
+            attributes: [ "url" ]
           }],
           limit: MAX_CONNECTIONS,
           order: [ [ "startDate", "DESC" ] ]
@@ -179,6 +180,9 @@ module.exports = (function() {
   // Exported
   function compileActions(user, target) {
     return new ActionCompiler(user).run().then(function(actionItems) {
+      if (user) {
+        target.userName = user.name;
+      }
       target.actionItems = actionItems;
       return Promise.resolve(target);
     });

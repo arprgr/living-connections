@@ -1,5 +1,7 @@
 'use strict';
 module.exports = function(sequelize, DataTypes) {
+  var extend = require("extend");
+
   var Session = sequelize.define('Session', {
     externalId: {
       type: DataTypes.STRING,
@@ -8,16 +10,16 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        Session.belongsTo(models.User);
+        Session.belongsTo(models.User, { as: "user" });
       },
-      findByExternalId: function(externalId) {
-        return Session.find({
+      findByExternalId: function(externalId, options) {
+        return Session.find(extend({
           where: { externalId: externalId }
-        });
+        }, options));
       },
       findByUserId: function(userId) {
         return Session.findAll({
-          where: { UserId: userId }
+          where: { userId: userId }
         });
       },
       destroyByExternalId: function(externalId) {

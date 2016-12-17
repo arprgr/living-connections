@@ -1,5 +1,7 @@
 'use strict';
 module.exports = function(sequelize, DataTypes) {
+  const extend = require("extend");
+
   var EmailProfile = sequelize.define('EmailProfile', {
     email: {
       type: DataTypes.STRING,
@@ -8,17 +10,17 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        EmailProfile.belongsTo(models.User);
+        EmailProfile.belongsTo(models.User, { "as": "user" });
       },
       findById: function(id) {
         return EmailProfile.find({
           where: { id: id }
         });
       },
-      findByEmail: function(email) {
-        return EmailProfile.findOne({
+      findByEmail: function(email, options) {
+        return EmailProfile.findOne(extend({
           where: { email: email }
-        });
+        }, options));
       }
     }
   });

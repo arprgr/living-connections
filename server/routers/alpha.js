@@ -1,66 +1,56 @@
 /* routers/alpha.js */
 
 module.exports = (function() {
+  const express = require("express");
+  const router = express.Router();
   const Promise = require("promise");
   const auth = require("../auth");
   const actionLogic = require("../biz/actions");
 
-  function AlphaHandler(req, res) {
-    var self = this;
-    self.request = req;
-    self.response = res;
-  }
-
-  function sendSessionCookie(self) {
-    self.response.cookie("s", self.request.session.externalId, {
+  function sendSessionCookie(res, sessionId) {
+    res.cookie("s", sessionId, {
       maxAge: 2147483647,
       path: "/",
     });
   }
 
-  function logInIfRequested(self) {
-    var email = self.request.query.email;
+  function logIn(req, res) {
+    var email = req.query.email;
     if (email) {
-      self.request.session = null;
-      return auth.logInWithEmail(email, self.request)
-      .then(function() {
-        if (self.request.session) {
-          sendSessionCookie(self);
+      req.session = null;
+      return auth.logInWithEmail(email, req)
+      .then(function(session) {
+        if (session) {
+          sendSessionCookie(res, session.externalId);
         }
+        return session;
       })
     }
     else {
-      return Promise.resolve();
+      return Promise.resolve(req.session);
     }
   }
 
-  function runAlphaHandler(self) {
-    return logInIfRequested(self)
+  router.get("/", function(req, res) {
+
+    var result = {};
+
+    logIn(req, res)
     .then(function() {
-      var session = self.request.session;
-      var user = self.request.user;
-      return (session && user) ? actionLogic.compileActions(user, self) : self;
-    });
-  }
-
-  AlphaHandler.prototype = {
-    run: function() {
-      return runAlphaHandler(this);
-    }
-  }
-
-  // The express stuff.
-  const express = require("express");
-  const router = express.Router();
-  router.get("/", function(req, res, next) {
-    new AlphaHandler(req, res).run()
-    .then(function(actionHandler) {
-      res.json({
-        userName: req.session && req.user && req.user.name,
-        actionItems: actionHandler.actionItems
-      });
+      if (req.session && req.user) {
+        return actionLogic.compileActions(req.user, result);
+      }
     })
-    .catch(next);
+    .then(function() {
+      res.json(result);
+    })
+    .catch(function(error) {
+      if (error.stack) {
+        console.error(error.stack);
+      }
+      res.json({ msg: String(error) });
+    })
   });
+
   return router;
 })();

@@ -31,15 +31,6 @@ server.use(cookieParser());
 // Add authentication middleware.
 server.use(require("./auth").resolveSessionAndUser);
 
-// Add error handler middleware.
-server.use(function(err, req, res, next) {
-  console.error(err.stack);
-  if (err.status) {
-    res.status(err.status);
-  }
-  res.json({ msg: String(err) });
-});
-
 // Index page.
 var pug = require("pug");
 server.get("/", function(request, response) {

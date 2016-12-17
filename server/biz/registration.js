@@ -14,14 +14,7 @@ module.exports = (function() {
   function createNewEmailProfile(email, userId) {
     return models.EmailProfile.create({
       email: email,
-      UserId: userId
-    });
-  }
-
-  function createNewConnection(userId, peerId) {
-    return models.Connection.create({
-      UserId: userId,
-      peerId, peerId
+      userId: userId
     });
   }
 
@@ -46,10 +39,6 @@ module.exports = (function() {
       })
       .then(function(emailProfile) {
         target.emailProfile = emailProfile;
-        return createNewConnection(target.user.id, 0);
-      })
-      .then(function(connection) {
-        target.connection = connection;
         resolve(target);
       })
       .catch(reject);

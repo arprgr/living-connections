@@ -8,12 +8,12 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        Connection.belongsTo(models.User);
+        Connection.belongsTo(models.User, { as: "user" });
         Connection.belongsTo(models.User, { as: "peer" });
       },
       findByUserId: function(userId, options) {
         return Connection.findAll(extend({
-          where: { UserId: userId }
+          where: { userId: userId }
         }, options));
       }
     }
