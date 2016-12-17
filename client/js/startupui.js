@@ -41,7 +41,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
   }
 
   function hideLoginForm(self) {
-    showInnerInWaitingPosition();
+    showInnerInWaitingPosition(self);
     self.loginController.hide();
   }
 

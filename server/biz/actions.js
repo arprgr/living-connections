@@ -5,6 +5,7 @@ module.exports = (function() {
   const extend = require("extend");
   const models = require("../models/index");
   const exec = require("../util/exec");
+  const when = require("../util/when");
 
   const MSG_INVITATION = "inv";      // Ask another user to connect.
   const MSG_GREETING = "gre";        // Say hi.  One time, immediate.
@@ -66,6 +67,10 @@ module.exports = (function() {
     self.actionItems = [];
   }
 
+  function announcementTitle(compiler, announcement) {
+    return (compiler.user.id == announcement.creatorId ? "your announcement" : ("announcement from " + announcement.creator.name)) + " of " + when.formatRelativeTime(announcement.startDate);
+  }
+
   function fetchAssociatedData(compiler) {
     return exec.executeGroup(compiler, [
       function() {
@@ -88,6 +93,10 @@ module.exports = (function() {
             model: models.Asset,
             as: "asset",
             attributes: [ "url" ]
+          }, {
+            model: models.User,
+            as: "creator",
+            attributes: [ "name" ]
           }],
           limit: MAX_CONNECTIONS,
           order: [ [ "startDate", "DESC" ] ]
@@ -110,7 +119,7 @@ module.exports = (function() {
       for (var i = 0; i < announcements.length; ++i) {
         var ann = announcements[i];
         addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, {
-          title: "Update announcement of " + ann.startDate,
+          title: "Update " + announcementTitle(compiler, ann),
           assetUrl: ann.asset.url
         });
       }
