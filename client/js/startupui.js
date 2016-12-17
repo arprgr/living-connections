@@ -1,4 +1,4 @@
-// startupui.js
+// startupui.js - StartupComponent
 
 define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
   function($, Services, LoginController, WaitAnimController, Animation, Cookie) {
@@ -10,47 +10,39 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
 
   var CONTINUE_ANYWAY_COOKIE = new Cookie("xd");
 
-  function selectContainer() {
-    return $("#startup");
+  function selectInner(self) {
+    return self.container.find(".inner");
   }
 
-  function selectInner() {
-    return $("#startup .inner");
+  function selectMessageBox(self) {
+    return self.container.find(".message");
   }
-
-  function selectMessageBox() {
-    return $("#startup .message");
-  }
-
-  var originalHeight = selectContainer().height();
 
   var LOGIN_TOP = -338;
   var HEIGHT_REDUX = 290;
   var TRANSITION_PERIOD = 900;
 
-  function showInnerInPosition(part) {
-    selectInner().css("top", part * LOGIN_TOP);
-    selectContainer().height(originalHeight - (part * HEIGHT_REDUX));
+  function showInnerInPosition(self, part) {
+    selectInner(self).css("top", part * LOGIN_TOP);
+    self.container.height(self.originalHeight - (part * HEIGHT_REDUX));
   }
 
-  function showInnerInWaitingPosition() {
-    showInnerInPosition(0);
+  function showInnerInWaitingPosition(self) {
+    showInnerInPosition(self, 0);
   }
 
-  function showInnerInLoginPosition() {
-    showInnerInPosition(1);
+  function showInnerInLoginPosition(self) {
+    showInnerInPosition(self, 1);
   }
 
   function showLoginForm(self) {
-    showInnerInLoginPosition();
+    showInnerInLoginPosition(self);
     self.loginController.show();
-    selectInner().addClass("loginpos");
   }
 
   function hideLoginForm(self) {
     showInnerInWaitingPosition();
     self.loginController.hide();
-    selectInner().removeClass("loginpos");
   }
 
   function slideLogoDown(self) {
@@ -59,7 +51,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
       frameTime: 1,
       iterations: 1,
       renderTween: function(frameIndex) {
-        showInnerInPosition((TRANSITION_PERIOD - frameIndex) / TRANSITION_PERIOD);
+        showInnerInPosition(self, (TRANSITION_PERIOD - frameIndex) / TRANSITION_PERIOD);
       },
       renderFinal: function() {
         hideLoginForm(self);
@@ -73,7 +65,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
       frameTime: 1,
       iterations: 1,
       renderTween: function(frameIndex) {
-        showInnerInPosition(frameIndex / TRANSITION_PERIOD);
+        showInnerInPosition(self, frameIndex / TRANSITION_PERIOD);
       },
       renderFinal: function() {
         showLoginForm(self);
@@ -82,20 +74,23 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
   }
 
   function toBareState(self) {
-    if (!selectInner().hasClass("loginpos")) {
-      hideLoginForm(self);
+    if (self.loginState) {
+      slideLogoDown(self);
+      self.loginState = true;
     }
     else {
-      slideLogoDown(self);
+      // Just to make sure?
+      hideLoginForm(self);
     }
   }
 
   function toLoginStateNoCheck(self) {
-    if (selectInner().hasClass("loginpos")) {
+    if (self.loginState) {
       showLoginForm(self);
     }
     else {
       slideLogoUp(self);
+      self.loginState = true;
     }
   }
 
@@ -122,8 +117,8 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
     if (!self.waitingController) {
       self.waitingController = new WaitAnimController();
     }
-    showInnerInWaitingPosition();
-    selectInner().removeClass("loginpos");
+    showInnerInWaitingPosition(self);
+    selectInner(self).removeClass("loginpos");
     self.waitingController.show().start();
   }
 
@@ -147,18 +142,19 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
     }
   }
 
-  function Controller() {
+  function StartupComponent(container) {
     var self = this;
+    self.container = container;
     self.loginController = new LoginController();
+    self.originalHeight = container.height();
+    self.loginState = false;
     Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
   }
 
-  Controller.prototype = {
-    showUi: function() {
-      selectContainer().show();
-    },
-    hideUi: function() {
-      selectContainer().hide();
+  StartupComponent.prototype = {
+    setVisible: function(visible) {
+      this.container.setVisible(visible);
+      return this;
     },
     toBareState: function() {
       toBareState(this);
@@ -168,5 +164,5 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
     }
   }
 
-  return Controller;
+  return StartupComponent;
 });
