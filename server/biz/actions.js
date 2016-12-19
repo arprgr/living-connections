@@ -127,7 +127,8 @@ module.exports = (function() {
   }
 
   function addItemsForNormalUsers(compiler) {
-    addActionItem(compiler, MSG_INVITATION, ACTION_CREATE);
+    // disable for now...
+    // addActionItem(compiler, MSG_INVITATION, ACTION_CREATE);
   }
 
   function addItemsForAll(compiler) {
