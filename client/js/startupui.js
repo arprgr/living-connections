@@ -18,6 +18,30 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
     return self.container.find(".message");
   }
 
+  function setComponentOpacity(component, opacity) {
+    component.container.css("opacity", opacity);
+  }
+
+  function fadeOut(component, then) {
+    var NFRAMES = 1800;
+
+    function adjustOpacity(frameIndex) {
+      var x = frameIndex / NFRAMES;
+      setComponentOpacity(component, Math.cos(Math.PI/2 * x*x));
+    }
+
+    new Animation({
+      period: NFRAMES,
+      frameTime: 1,
+      iterations: 1,
+      renderTween: adjustOpacity,
+      renderFinal: function() {
+        adjustOpacity(NFRAMES);
+        then();
+      }
+    }).start();
+  }
+
   var LOGIN_TOP = -338;
   var HEIGHT_REDUX = 290;
   var TRANSITION_PERIOD = 900;
@@ -71,17 +95,6 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
         showLoginForm(self);
       }
     }).start();
-  }
-
-  function toBareState(self) {
-    if (self.loginState) {
-      slideLogoDown(self);
-      self.loginState = true;
-    }
-    else {
-      // Just to make sure?
-      hideLoginForm(self);
-    }
   }
 
   function toLoginStateNoCheck(self) {
@@ -145,19 +158,32 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
   function StartupComponent(container) {
     var self = this;
     self.container = container;
-    self.loginController = new LoginController();
+    self.loginController = new LoginController(container.find(".login"));
     self.originalHeight = container.height();
     self.loginState = false;
     Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
   }
 
+  function hide(self, then) {
+    if (self.loginState) {
+      self.container.hide();
+      then();
+    }
+    else {
+      fadeOut(self, then);
+    }
+    return self;
+  }
+
   StartupComponent.prototype = {
-    setVisible: function(visible) {
-      this.container.setVisible(visible);
+    show: function() {
+      this.container.show();
+      setComponentOpacity(this, 1);
       return this;
     },
-    toBareState: function() {
-      toBareState(this);
+    hide: function(then) {
+      hide(this, then);
+      return this;
     },
     toLoginState: function() {
       toLoginState(this);

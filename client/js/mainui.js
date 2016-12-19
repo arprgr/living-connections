@@ -3,25 +3,6 @@
 define([ "jquery", "services", "listingui", "activityui" ],
   function($, Services, ListingController, ActivityComponent) {
 
-  function selectContainer() {
-    return $("#app");
-  }
-
-  function selectHeader() {
-    return $("#app .header");
-  }
-
-  function selectActivityContainer() {
-    return $("#app .activity");
-  }
-
-  // TODO: this seems the wrong place to do this.
-  selectContainer()
-    .append($("<div>").addClass("header"))
-    .append($("<div>").addClass("listing"))
-    .append($("<div>").addClass("activity"))
-    .hide();
-
   function expandString(self, format) {
     var sessionManager = Services.sessionManager;
     var openActionItem = self.openActionItem || {};
@@ -39,7 +20,8 @@ define([ "jquery", "services", "listingui", "activityui" ],
     if (sessionManager.user) {
       title = expandString(self, openActionItem.titleFormat || "");
     }
-    selectHeader().empty()
+    self.container.find(".header")
+      .empty()
       .append($("<span>")
         .addClass("title")
         .text(title))
@@ -62,7 +44,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
     renderHeader(self);
     self.listingController.setVisible(0);
     self.openActionItem = item;
-    self.activity = new ActivityComponent(selectActivityContainer(), item)
+    self.activity = new ActivityComponent(self.container.find(".activity"), item)
       .onActivityClose(handleActivityClose.bind(self))
       .setVisible(1);
   }
@@ -83,8 +65,15 @@ define([ "jquery", "services", "listingui", "activityui" ],
     self.listingController.setVisible(1);
   }
 
-  function Controller() {
+  function Controller(container) {
     var self = this;
+    self.container = container;
+    // TODO: this seems the wrong place to do this.
+    container
+      .append($("<div>").addClass("header"))
+      .append($("<div>").addClass("listing"))
+      .append($("<div>").addClass("activity"))
+      .hide();
     var sessionManager = Services.sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     self.listingController = new ListingController(sessionManager)
@@ -93,7 +82,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
 
   Controller.prototype = {
     setVisible: function(visible) {
-      selectContainer().setVisible(visible);
+      this.container.setVisible(visible);
       return this;
     },
     open: function() {

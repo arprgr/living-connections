@@ -1,45 +1,44 @@
 // appui.js
 
-define([ "jquery", "services", "startupui", "mainui" ], function($, Services, StartupController, MainController) {
-
-  function selectStartupContainer() {
-    return $("#startup");
-  }
-
-  function toLoginState(self) {
-    self.startupController.toLoginState();
-    self.startupController.setVisible(1);
-    self.mainController.setVisible(0);
-    self.mainController.close();
-  }
-
-  function toMainState(self) {
-    self.startupController.toBareState();
-    self.startupController.setVisible(0);
-    self.mainController.open();
-    self.mainController.setVisible(1);
-  }
-
-  function handleSessionManagerStateChange(sessionManager) {
-    var self = this;
-    if (sessionManager.isLoginRequired()) {
-      toLoginState(self);
-    }
-    else if (sessionManager.isActive()) {
-      toMainState(self);
-    }
-  }
+define([ "jquery", "services", "startupui", "mainui" ],
+  function($, Services, StartupController, MainController) {
 
   function Controller() {
     var self = this;
-    self.startupController = new StartupController(selectStartupContainer());
-    self.mainController = new MainController();
-    Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
+    self.startupController = new StartupController($("#startup"));
+    self.mainController = new MainController($("#app"));
+    self.startupState = true;
+  }
+
+  function open(self) {
+    var startupController = self.startupController;
+    var mainController = self.mainController;
+    var sessionManager = Services.sessionManager;
+
+    sessionManager.addStateChangeListener(function(sessionManager) {
+      if (sessionManager.isLoginRequired()) {
+        self.startupState = true;
+        startupController.toLoginState();
+        startupController.show();
+        mainController.setVisible(0);
+        mainController.close();
+      }
+      else if (sessionManager.isActive() && self.startupState) {
+        self.startupState = false;
+        mainController.open();
+        startupController.hide(function() {
+          mainController.setVisible(1);
+        })
+      }
+    });
+
+    Services.sessionManager.init();
+    return self;
   }
 
   Controller.prototype = {
     open: function() {
-      Services.sessionManager.init();
+      return open(this);
     }
   }
 

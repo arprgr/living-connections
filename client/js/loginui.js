@@ -10,20 +10,6 @@ define([ "jquery", "services" ], function($, Services) {
     return str.match(EMAIL_REGEX);
   }
 
-  // 
-
-  function selectContainer() {
-    return $("#startup .login");
-  }
-
-  function uiIsVisible() {
-    return selectContainer().is(":visible");
-  }
-
-  function uiIsRendered() {
-    return selectContainer().children().length;
-  }
-
   // Class Controller private
 
   function showInvalid(self, msg) {
@@ -69,7 +55,7 @@ define([ "jquery", "services" ], function($, Services) {
       return handleKeyDown(self, event);
     });
 
-    selectContainer()
+    self.container
       .append(label)
       .append($("<div>")
         .append(input)
@@ -94,20 +80,21 @@ define([ "jquery", "services" ], function($, Services) {
     return true;
   }
 
-  function Controller() {
+  function Controller(container) {
+    this.container = container;
   }
 
   Controller.prototype = {
     show: function() {
       var self = this;
-      if (!uiIsRendered()) {
+      if (!self.container.children().length) {
         render(self);
       }
-      selectContainer().show();
+      self.container.show();
       self.input.focus().select();
     },
     hide: function() {
-      selectContainer().hide();
+      self.container.hide();
     }
   }
 
