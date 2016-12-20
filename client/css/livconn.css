@@ -60,27 +60,33 @@ div {
   color: red;
 }
 #app {
-  padding: 10px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  overflow: scroll;
 }
 #app .header {
-  height: 32px;
-  _border-radius: 6px;
-  _background-color: #f3f1f3;
   background-image: url(/img/logo-small.png);
-  background-position: 10px 10px;
+  background-position: 8px 10px;
   background-size: 41px 32px;
   background-repeat: no-repeat;
-  padding: 15px 8px 6px 62px;
-  _box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
+  height: 35px;
+  padding: 15px 8px 6px 60px;
 }
-#app .header .logout {
+#app .logout {
   float: right;
   color: #682;
 }
+#app .body .listing {
+  padding: 0 5px;
+}
 #app .action {
   border-radius: 6px;
-  margin-top: 6px;
-  padding: 8px;
+  margin-bottom: 6px;
+  padding: 8px 12px;
   background-color: white;
   color: #004;
   box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);

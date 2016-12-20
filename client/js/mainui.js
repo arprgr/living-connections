@@ -71,8 +71,9 @@ define([ "jquery", "services", "listingui", "activityui" ],
     // TODO: this seems the wrong place to do this.
     container
       .append($("<div>").addClass("header"))
-      .append($("<div>").addClass("listing"))
-      .append($("<div>").addClass("activity"))
+      .append($("<div>").addClass("body")
+        .append($("<div>").addClass("listing"))
+        .append($("<div>").addClass("activity")))
       .hide();
     var sessionManager = Services.sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
