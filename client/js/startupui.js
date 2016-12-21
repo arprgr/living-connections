@@ -109,15 +109,15 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
 
   function toLoginState(self) {
     if (!CONTINUE_ANYWAY_COOKIE.get() && !Services.videoService.isCapable()) {
-      showInnerInWaitingPosition();
-      selectMessageBox()
+      showInnerInWaitingPosition(self);
+      selectMessageBox(self)
         .append($("<div>")
           .append($("<span>").text(NO_VID + " "))
           .append($("<a>").text(VID_SUPPORT_REF).attr("target", "_new").attr("href", VID_SUPPORT_URL)))
         .append($("<div>")
           .append($("<button>").text(CONTINUE_ANYWAY).click(function() {
             CONTINUE_ANYWAY_COOKIE.set("1");
-            selectMessageBox().empty();
+            selectMessageBox(self).empty();
             toLoginStateNoCheck(self);
           })));
     }
@@ -142,8 +142,8 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
   }
 
   // TODO: make this into a component.
-  function showUnresponsive() {
-    selectMessageBox().text("We're not able to connect to Living Connections' server at this time. " +
+  function showUnresponsive(self) {
+    selectMessageBox(self).text("We're not able to connect to Living Connections' server at this time. " +
       "We'll keep trying. In the meantime, please check your internet connection.");
   }
 
@@ -160,7 +160,6 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
     self.container = container;
     self.loginController = new LoginController(container.find(".login"));
     self.originalHeight = container.height();
-    self.loginState = false;
     Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
   }
 
