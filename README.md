@@ -1,5 +1,6 @@
-# hang-fire
-Originally just messing around with Google+ Hangout APIs.  Now, much more.
+# living-connections
+
+Living Connections.  Video messaging for ordinary people.
 
 ## Getting started
 
