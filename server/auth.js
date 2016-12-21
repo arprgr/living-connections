@@ -106,7 +106,7 @@ function logInWithEmail(emailAddress, request) {
 }
 
 /***
-const email = require("../util/email");
+const email = require("../connectors/email");
 email.send({
   to: emailAddress,
   subject: "Living Connections",
