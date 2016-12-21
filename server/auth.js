@@ -105,22 +105,6 @@ function logInWithEmail(emailAddress, request) {
   })
 }
 
-/***
-const email = require("../connectors/email");
-email.send({
-  to: emailAddress,
-  subject: "Living Connections",
-  text: "\n\nTesting, testing.\n\n"
-})
-.then(function(what) {
-  console.log(what);
-})
-.catch(function(what) {
-  console.log(what);
-});
-reject("Your invitation has been sent. Check your email.");
-***/
-
 module.exports = {
   resolveSessionAndUser: resolveSessionAndUser,
   logInWithEmail: logInWithEmail

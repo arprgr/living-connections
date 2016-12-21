@@ -6,7 +6,7 @@ module.exports = (function() {
   const nodemailer = require("nodemailer");
   const mailgun = require("nodemailer-mailgun-transport");
 
-  const emailFrom = "admin@livconn.com";
+  const emailFrom = "admin@livingcx.com";
 
   const auth = {
     auth: {
@@ -16,8 +16,6 @@ module.exports = (function() {
   }
 
   function send(options) {
-
-    console.log(options);
 
     return new Promise(function(resolve, reject) {
 
@@ -31,7 +29,7 @@ module.exports = (function() {
           reject(error);
         }
         else {
-          resolve(info.response);
+          resolve(info);
         }
       });
     });
