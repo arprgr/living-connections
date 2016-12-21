@@ -8,9 +8,9 @@ module.exports = (function() {
   const fs = require("fs");
 
   cloudinary.config({
-    cloud_name: 'simplifyit',
-    api_key: '951594481582174',
-    api_secret: 'Wh-6ElxK0yekJ6RHR_DpNFd1lIY'
+    cloud_name: "living-connections",
+    api_key: "425898524282428",
+    api_secret: "7pPjCUilLoTETVKv9yRfrh-TwIo"
   });
 
   function saveVideo(buffer) {
