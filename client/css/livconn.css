@@ -69,7 +69,7 @@ div {
   overflow: scroll;
 }
 #app .header {
-  background-image: url(/img/logo-small.png);
+  background-image: url(/img/symbol.png);
   background-position: 8px 10px;
   background-size: 41px 32px;
   background-repeat: no-repeat;
