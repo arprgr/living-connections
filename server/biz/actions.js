@@ -15,7 +15,6 @@ module.exports = (function() {
 
   const ACTION_CREATE = "cre";       // Create a message and a wrapper for it.
   const ACTION_UPDATE = "upd";       // Replace the message in a wrapper with a new one.
-  const ACTION_REVIEW = "rev";       // Take another look at a message that you created.
   const ACTION_RECEIVE = "rec";      // Interact with an incoming message.
 
   const MESSAGES = {
@@ -31,7 +30,6 @@ module.exports = (function() {
       return msgType == MSG_PROFILE ? "Create" : "Send"
     } },
     "upd": { priority: 4, verbage: function() { return "Update" } },
-    "rev": { priority: 6, verbage: function() { return "Review" } },
     "rec": { priority: 10, verbage: function() { return "View" } }
   }
 
