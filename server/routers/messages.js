@@ -1,56 +1,58 @@
 /* messages.js */
 
 module.exports = (function() {
-  const express = require("express");
-  const router = express.Router();
-  const models = require("../models/index");
+  const Message = require("../models/index").Message;
+  const router = require("express").Router();
+
+  // All of these functions require at least some valid user.
+  router.use(function(req, res, next) {
+    if (!req.user) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      next();
+    }
+  });
 
   // Create
   router.post("/", function(req, res) {
-    models.Message.create({
+    res.jsonResultOf(Message.create({
       type: req.body.type,
       status: req.body.status,
-      fromUserId: req.body.fromUserId,
+      fromUserId: req.user.id,
       toUserId: req.body.toUserId,
       assetId: req.body.assetId
-    }).then(function(asset) {
-      res.json(asset);
-    }).catch(function(error) {
-      res.json({ error: error });
-    });
+    }));
   });
 
   // Retrieve (by id)
   router.get("/:id", function(req, res) {
-    models.Message.find({
-      where: {
-        id: req.params.id
-      }
-    }).then(function(assets) {
-      res.json(assets);
-    });
+    if (req.user.level > 0) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      res.jsonResultOf(Message.findById(req.params.id));
+    }
   });
 
   // Update
   router.put("/:id", function(req, res) {
-    models.User.find({
-      where: {
-        id: req.params.id
-      }
-    }).then(function(user) {
-      if (user) {
-        user.updateAttributes({
-          type: req.body.type,
-          status: req.body.status,
-          fromUserId: req.body.fromUserId,
-          toUserId: req.body.toUserId,
-          assetId: req.body.assetId
-        })
-        res.json(user);
+    Message.findById(req.params.id)
+    .then(function(message) {
+      if (req.user.level > 0 && req.user.id != message.fromUserId) {
+        res.jsonError({ status: 401 });
       }
       else {
-        res.json(null);
+        res.jsonResultOf(message.updateAttributes({
+          type: req.body.type,
+          status: req.body.status,
+          toUserId: req.body.toUserId,
+          assetId: req.body.assetId
+        }));
       }
+    })
+    .catch(function(err) {
+      res.jsonError({ status: 404 });
     });
   });
 

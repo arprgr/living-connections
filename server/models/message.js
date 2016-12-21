@@ -9,6 +9,13 @@ module.exports = function(sequelize, DataTypes) {
         Message.belongsTo(models.User, { as: "toUser" });
         Message.belongsTo(models.User, { as: "fromUser" });
         Message.belongsTo(models.Asset, { as: "asset" });
+      },
+      findById: function(id) {
+        return Message.find({
+          where: {
+            id: id
+          }
+        })
       }
     }
   });
