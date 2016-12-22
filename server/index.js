@@ -13,9 +13,9 @@ for (var mkey in CONFIG.server.mounts) {
 
 // Add POST body parsers.
 var bodyParser = require("body-parser");
-server.use(bodyParser.json({ limit: '1mb' }));
+server.use(bodyParser.json({ limit: '100kb' }));
 server.use(bodyParser.urlencoded({
-  limit: '1mb',
+  limit: '100kb',
   extended: true
 }));
 server.use(bodyParser.raw({
@@ -24,33 +24,10 @@ server.use(bodyParser.raw({
   type: "video/*"
 }));
 
-// Add cookie parser.
-var cookieParser = require("cookie-parser");
-server.use(cookieParser());
-
-// Error reporting.
-function jsonError(err) {
-  var self = this;
-  console.error(err);
-  self.status(err.status || 500);
-  self.json(err.body || {});
-}
-function jsonResultOf(promise) {
-  var self = this;
-  promise.then(function(model) {
-    self.json(model);
-  }).catch(function(err) {
-    self.jsonError(err);
-  });
-}
-server.use(function(req, res, next) {
-  res.jsonError = jsonError;
-  res.jsonResultOf = jsonResultOf;
-  next();
-});
-
 // Add middleware.
-server.use(require("./auth").resolveSessionAndUser);
+server.use(require("cookie-parser")());
+server.use(require("./auth"));
+server.use(require("./jsonish"));
 
 // Index page.
 var pug = require("pug");
@@ -69,6 +46,7 @@ server.use("/messages", require("./routers/messages"));
 server.use("/emailprofiles", require("./routers/emailprofiles"));
 server.use("/announcements", require("./routers/announcements"));
 server.use("/a", require("./routers/alpha"));
+server.use("/l", require("./routers/login"));
 server.use("/o", require("./routers/omega"));
 server.use("/admin", require("./routers/admin"));
 server.use("/videos", require("./routers/videos"));

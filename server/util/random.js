@@ -4,7 +4,7 @@ const DIGITS =
   "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 function digits(len, radix) {
-  radix = radix || 10;
+  radix = radix || 62;
   var src = DIGITS.substring(0, radix);
   var result = "";
   for (var i = 0; i < len; ++i) {
@@ -13,6 +13,11 @@ function digits(len, radix) {
   return result;
 }
 
+function id() {
+  return digits(32);
+}
+
 module.exports = {
-  digits: digits
+  digits: digits,
+  id: id
 }

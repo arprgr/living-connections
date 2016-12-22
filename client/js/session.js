@@ -7,15 +7,19 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     return String(Math.floor(0xffffffff * Math.random()));
   }
 
-  var LOGIN_OR_POLL = new HttpMethod.Get()
+  var POLL = new HttpMethod.Get()
     .addPathComponent("a")
+    .addQueryParameter("e", "ess")
+    .addQueryParameter("_", "salt")
+    .build();
+  var REQUEST_EMAIL_VERIFICATION = new HttpMethod.Get()
+    .addPathComponent("l")
     .addQueryParameter("_", "salt")
     .addQueryParameter("email")
     .build();
   var LOGOUT = new HttpMethod.Get()
     .addPathComponent("o")
     .addPathParameter("sid")
-    .addQueryParameter("_", "salt")
     .build();
 
   var COOKIE = new Cookie("s");
@@ -71,12 +75,27 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     notifyStateChangeListeners(self);
   }
 
+  function getQueryParameter(name) {
+    var url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
+    var results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return "";
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+  }
+
+  function emailSessionSeed() {
+    return getQueryParameter("e");
+  }
+
   // private - Start the process of pulling the latest session info from the server.
   function startPolling(self) {
     if (!self.pollInterval) {
       function poll() {
-        new LOGIN_OR_POLL()
+        new POLL()
         .setSalt(salt())
+        .setEss(self.pollCount ? undefined : emailSessionSeed())
         .execute()
         .then(function(results) {
           handleAResults(self, results);
@@ -84,6 +103,7 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
         .catch(function(error) {
           handleAError(self, error);
         });
+        self.pollCount += 1;
       }
       poll();
       self.pollInterval = setInterval(poll, self.pollingPeriod);
@@ -107,23 +127,21 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     return self;
   }
 
-  function logInWithEmail(self, email) {
+  function requestEmailVerification(self, email) {
     stopPolling(self);
     self.user = null;
     self.waiting = true;
     notifyStateChangeListeners(self);
-    var promise = new LOGIN_OR_POLL()
+    return new REQUEST_EMAIL_VERIFICATION()
       .setEmail(email)
       .setSalt(salt())
-      .execute();
-    promise
+      .execute()
       .then(function(response) {
         handleAResults(self, response);
       })
       .catch(function(error) {
         handleAError(self, error);
       });
-    return promise;
   }
 
   function logOut(self) {
@@ -140,6 +158,7 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     var self = this;
     $.extend(self, options);
 
+    self.pollCount = 0;
     self.responseCount = 0;
     self.errorCount = 0;
     self.localErrorCount = 0;
@@ -182,8 +201,8 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
       return init(this);
     },
 
-    logInWithEmail: function(email) {
-      return logInWithEmail(this, email);
+    requestEmailVerification: function(email) {
+      return requestEmailVerification(this, email);
     },
 
     logOut: function() {

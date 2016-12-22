@@ -10,93 +10,99 @@ define([ "jquery", "services" ], function($, Services) {
     return str.match(EMAIL_REGEX);
   }
 
-  // Class Controller private
+  // Class LoginComponent
 
-  function showInvalid(self, msg) {
-    self.input
-      .addClass("invalid")
-      .select();
-    self.validationErrorBox.text(msg);
+  function LoginComponent(container) {
+    this.container = container;
+    this._render();
   }
 
-  function removeValidation(self) {
-    self.input.removeClass("invalid");
-    self.validationErrorBox.text("");
+  function selectInput(self) {
+    return self.container.find("input");
+  }
+
+  function selectMessageBox(self) {
+    return self.container.find(".message");
+  }
+
+  function showInvalid(self, msg) {
+    selectInput(self)
+      .addClass("invalid")
+      .select();
+    selectMessageBox(self).text(msg);
+  }
+
+  function showValid(self, msg) {
+    selectInput(self).removeClass("invalid");
+    selectMessageBox(self).text(msg || "");
   }
 
   function submit(self) {
-    var text = self.input.val();
+    var text = selectInput(self).val();
     if (text) {
       if (isValidEmail(text)) {
         text = text.toLowerCase();
-        Services.sessionManager.logInWithEmail(text)
-        .then(function(result) {
-          if (result.msg) {
-            showInvalid(self, result.msg);
-          }
+        Services.sessionManager.requestEmailVerification(text)
+        .then(function() {
+          showValid(self, "Login link sent to your email box.  You may close this window.");
         })
         .catch(function(e) {
           showInvalid(self, "Can't reach the server. Please try again.");
         })
       }
       else {
-        showInvalid(self, "That doesn't look like an email address.");
+        showInvalid(self, "That doesn't look like an email address.  Please retype it and try again.");
       }
     }
   }
 
   function render(self) {
-    var label = $("<div>").text("Log in with your email address:");
-    var input = $("<input>").attr("type", "text");
-    var button = $("<button>").text("Go!");
-    var validationErrorBox = $("<div>").addClass("error");
 
-    input.on("keydown", function(event) {
-      return handleKeyDown(self, event);
-    });
+    function handleKeyDown(event) {
+      showValid(self);
+      if (event.originalEvent.keyCode == 13) {
+        submit(self);
+      }
+      return true;
+    }
 
-    self.container
-      .append(label)
-      .append($("<div>")
-        .append(input)
-        .append(button))
-      .append(validationErrorBox);
-
-    button.click(function() {
-      removeValidation(self);
+    function handleClick() {
+      showValid(self);
       submit(self);
       return true;
-    });
-
-    self.input = input;
-    self.validationErrorBox = validationErrorBox;
-  }
-
-  function handleKeyDown(self, event) {
-    removeValidation(self);
-    if (event.originalEvent.keyCode == 13) {
-      submit(self);
     }
-    return true;
+
+    self.container
+      .hide()
+      .append($("<div>")
+        .text("Log in with your email address:"))
+      .append($("<div>")
+        .append($("<input>")
+          .attr("type", "text")
+          .on("keydown", function(event) {
+            return handleKeyDown(event);
+          }))
+        .append($("<button>")
+          .text("Go!")
+          .click(function() {
+            return handleClick();
+          })))
+      .append($("<div>").addClass("message"));
   }
 
-  function Controller(container) {
-    this.container = container;
-  }
-
-  Controller.prototype = {
+  LoginComponent.prototype = {
     show: function() {
       var self = this;
-      if (!self.container.children().length) {
-        render(self);
-      }
       self.container.show();
-      self.input.focus().select();
+      selectInput(self).focus().select();
     },
     hide: function() {
       self.container.hide();
+    },
+    _render: function() {
+      render(this);
     }
   }
 
-  return Controller;
+  return LoginComponent;
 });

@@ -3,6 +3,7 @@
 module.exports = (function() {
 
   const Promise = require("promise");
+  const extend = require("extend");
   const nodemailer = require("nodemailer");
   const mailgun = require("nodemailer-mailgun-transport");
 
@@ -19,12 +20,11 @@ module.exports = (function() {
 
     return new Promise(function(resolve, reject) {
 
-      nodemailer.createTransport(mailgun(auth)).sendMail({
+      console.log("email", options.to, options.subject);
+
+      nodemailer.createTransport(mailgun(auth)).sendMail(extend({
         from: emailFrom,
-        to: options.to,
-        subject: options.subject,
-        text : options.text
-      }, function(error, info) {
+      }, options), function(error, info) {
         if (error) {
           reject(error);
         }
