@@ -5,6 +5,7 @@
 const CONFIG = require("./conf");
 const models = require("./models/index");
 const random = require("./util/random");
+const Promise = require("promise");
 
 // Look up a session given its external ID, maybe from a cookie.
 function findSession(externalId) {
@@ -71,56 +72,60 @@ function Transaction(req, res, next) {
 }
 
 Transaction.prototype = {
-  hasSessionCookie: function() {
-    return this.req.cookies && this.req.cookies.s;
-  },
   resolveBySessionId: function() {
     var self = this;
-    findSession(self.req.cookies.s)
-    .then(function(session) {
-      self.req.session = session;
-      self.req.user = session.user;
-      self.next();
-    })
-    .catch(self.next);
-  },
-  hasEmailSessionSeed: function() {
-    return this.req.query && this.req.query.e;
+    var sessionId = self.req.cookies && self.req.cookies.s;
+    if (sessionId) {
+      return findSession(sessionId)
+      .then(function(session) {
+        if (session) {
+          self.req.session = session;
+          self.req.user = session.user;
+          return true;
+        }
+        return false;
+      })
+    }
+    else {
+      return Promise.resolve(false);
+    }
   },
   resolveByEmailSessionSeed: function() {
     var self = this;
+    var eseed = self.req.query && self.req.query.e;
     var email;
-    findEmailSessionSeed(self.req.query.e)
-    .then(function(emailSessionSeed) {
-      email = emailSessionSeed.email;
-      return findEmailProfile(email);
-    })
-    .then(function(emailProfile) {
-      if (emailProfile) {
-        return Promise.resolve(emailProfile);
-      }
-      else {
-        return createNewUser("New User", 1)
-        .then(function(user) {
-          return createNewEmailProfile(email, user.id);
-        })
-      }
-    })
-    .then(function(emailProfile) {
-      return createNewSession(emailProfile.userId);
-    })
-    .then(function(session) {
-      sendSessionCookie(self.res, session.externalId);
-      self.req.session = session;
-      self.next();
-    })
-    .catch(self.next);
-  },
-  hasInvitationId: function() {
-    return false;
+    if (eseed) {
+      return findEmailSessionSeed(eseed)
+      .then(function(emailSessionSeed) {
+        email = emailSessionSeed.email;
+        return findEmailProfile(email);
+      })
+      .then(function(emailProfile) {
+        if (emailProfile) {
+          return Promise.resolve(emailProfile);
+        }
+        else {
+          return createNewUser("New User", 1)
+          .then(function(user) {
+            return createNewEmailProfile(email, user.id);
+          })
+        }
+      })
+      .then(function(emailProfile) {
+        return createNewSession(emailProfile.userId);
+      })
+      .then(function(session) {
+        sendSessionCookie(self.res, session.externalId);
+        self.req.session = session;
+        return true;
+      })
+    }
+    else {
+      return Promise.resolve(false);
+    }
   },
   resolveByInvitation: function() {
-    this.next();
+    return Promise.resolve(false);
   },
   hasAdminKey: function() {
     return this.req.headers["x-access-key"] === CONFIG.adminKey;
@@ -134,14 +139,19 @@ Transaction.prototype = {
     }
   },
   becomeSuperUser: function() {
-    // Auto-login as admin.
-    // TODO: lock down this potential security hole.
-    this.req.user = {
-      id: 0,
-      name: "Root",
-      level: 0
+    var self = this;
+    var success = false;
+    if (self.hasAdminKey() || self.fromLocalHost()) {
+      // Auto-login as admin.
+      // TODO: lock down this potential security hole.
+      self.req.user = {
+        id: 0,
+        name: "Root",
+        level: 0
+      }
+      success = true;
     }
-    this.next();
+    return Promise.resolve(success);
   }
 }
 
@@ -151,21 +161,20 @@ Transaction.prototype = {
 //
 module.exports = function(req, res, next) {
 
-  var transaction = new Transaction(req, res, next);
+  var tx = new Transaction(req, res, next);
 
-  if (transaction.hasSessionCookie()) {
-    transaction.resolveBySessionId(req.cookies.s, req, next);
-  }
-  else if (transaction.hasEmailSessionSeed()) {
-    transaction.resolveByEmailSessionSeed();
-  }
-  else if (transaction.hasInvitationId()) {
-    transaction.resolveByInvitation();
-  }
-  else if (transaction.hasAdminKey() || transaction.fromLocalHost(req)) {
-    transaction.becomeSuperUser();
-  }
-  else {
+  tx.resolveBySessionId(req.cookies.s, req, next)
+  .then(function(resolved) {
+    return resolved ? true : tx.resolveByEmailSessionSeed()
+  })
+  .then(function(resolved) {
+    return resolved ? true : tx.resolveByInvitation();
+  })
+  .then(function(resolved) {
+    return resolved ? true : tx.becomeSuperUser();
+  })
+  .then(function() {
     next();
-  }
+  })
+  .catch(next);
 }
