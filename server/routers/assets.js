@@ -37,12 +37,14 @@ module.exports = (function() {
     }).catch(next);
   });
 
+  // Delete all.
+  router.delete("/", function(req, res) {
+    res.jsonResultOf(models.Asset.destroy({ where: {} }));
+  });
+
   // Delete
   router.delete("/:id", function(req, res, next) {
-    models.Asset.destroyById(req.params.id)
-    .then(function() {
-      res.json({});
-    }).catch(next);
+    res.jsonResultOf(models.Asset.destroyById(req.params.id));
   });
 
   return router;

@@ -43,14 +43,14 @@ module.exports = (function() {
     });
   });
 
+  // Delete all.
+  router.delete("/", function(req, res) {
+    res.jsonResultOf(models.Session.destroy({ where: {} }));
+  });
+
   // Delete
   router.delete("/:external_id", function(req, res) {
-    models.Session.destroyByExternalId(req.params.external_id)
-    .then(function() {
-      res.json({});
-    }).catch(function(error) {
-      res.json(error);
-    });
+    res.jsonResultOf(models.Session.destroyByExternalId(req.params.external_id));
   });
 
   return router;

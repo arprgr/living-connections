@@ -68,5 +68,10 @@ module.exports = (function() {
     }).catch(next);
   });
 
+  // Delete all.
+  router.delete("/", function(req, res) {
+    res.jsonResultOf(models.Announcement.destroy({ where: {} }));
+  });
+
   return router;
 })();

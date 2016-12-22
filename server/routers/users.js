@@ -58,7 +58,7 @@ module.exports = (function() {
 
   // Retrieve all current sessions
   router.get("/:user_id/sessions", function(req, res) {
-    models.Session.findByUserId(req.params.user_id)
+    models.User.findByUserId(req.params.user_id)
     .then(function(sessions) {
       res.json(sessions);
     }).catch(function(error) {
@@ -68,13 +68,18 @@ module.exports = (function() {
 
   // Retrieve all assets. TODO: add paging.
   router.get("/:user_id/assets", function(req, res) {
-    models.Asset.findAll({
+    models.User.findAll({
       where: {
         UserId: req.params.user_id
       }
     }).then(function(assets) {
       res.json(assets);
     });
+  });
+
+  // Delete all.
+  router.delete("/", function(req, res) {
+    res.jsonResultOf(models.User.destroy({ where: {} }));
   });
 
   return router;

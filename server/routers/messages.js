@@ -56,6 +56,11 @@ module.exports = (function() {
     });
   });
 
+  // Delete all.
+  router.delete("/", function(req, res) {
+    res.jsonResultOf(Message.destroy({ where: {} }));
+  });
+
   return router;
 })();
 

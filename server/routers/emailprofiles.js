@@ -31,5 +31,10 @@ module.exports = (function() {
     });
   });
 
+  // Delete all.
+  router.delete("/", function(req, res) {
+    res.jsonResultOf(models.EmailProfile.destroy({ where: {} }));
+  });
+
   return router;
 })();
