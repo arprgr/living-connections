@@ -26,7 +26,7 @@ module.exports = (function() {
       if (!name) {
         reject("name missing");
       }
-      var level = typeof options.level == "number" ? options.level : 1;
+      var level = options.level == null ? 1 : options.level;
       var email = options.email;
       if (!email) {
         reject("email missing");
