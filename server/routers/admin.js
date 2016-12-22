@@ -8,39 +8,32 @@ module.exports = (function() {
   const models = require("../models/index");
   const router = express.Router();
 
+  // All of these functions require admin permissions.
+  router.use(function(req, res, next) {
+    if (!req.user || req.user.level > 0) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      next();
+    }
+  });
+
   router.post("/register", function(req, res) {
-    registrationLogic.register(req.body, {})
-    .then(function(target) {
-      res.json(target);
-    })
-    .catch(function(error) {
-      res.json({ error: String(error) });
-    });
+    res.jsonResultOf(registrationLogic.register(req.body, {}));
   });
 
   router.post("/actions/:userId", function(req, res) {
-    models.User.findById(req.params.userId)
-    .then(function(user) {
-      return actionsLogic.compileActions(user, {})
-    })
-    .then(function(target) {
-      res.json(target);
-    })
-    .catch(function(error) {
-      res.json({ error: String(error) });
-    });
+    res.jsonResultOf(
+      models.User.findById(req.params.userId)
+      .then(function(user) {
+        return actionsLogic.compileActions(user, {})
+      }));
   });
 
   router.post("/connect/:userId/:peerId", function(req, res) {
-    models.Connection.findOrCreate({
+    res.jsonResultOf(models.Connection.findOrCreate({
       where: { UserId: req.params.userId, peerId: req.params.peerId }
-    })
-    .then(function(info) {
-      res.json(info);
-    })
-    .catch(function(error) {
-      res.json({ error: String(error) });
-    });
+    }));
   });
 
   return router;

@@ -39,18 +39,22 @@ server.get("/", function(request, response) {
 });
 
 // Routers.
-server.use("/announcements", require("./routers/announcements"));
-server.use("/assets", require("./routers/assets"));
-server.use("/connections", require("./routers/connections"));
-server.use("/emailprofiles", require("./routers/emailprofiles"));
-server.use("/emailsessionseeds", require("./routers/emailsessionseeds"));
-server.use("/messages", require("./routers/messages"));
-server.use("/sessions", require("./routers/sessions"));
-server.use("/users", require("./routers/users"));
 server.use("/a", require("./routers/alpha"));
 server.use("/l", require("./routers/login"));
 server.use("/o", require("./routers/omega"));
 server.use("/admin", require("./routers/admin"));
+for (var type in {
+  "announcements": 1,
+  "assets": 1,
+  "connections": 1,
+  "emailprofiles": 1,
+  "emailsessionseeds": 1,
+  "messages": 1,
+  "sessions": 1,
+  "users": 1
+}) {
+  server.use("/" + type, require("./routers/" + type));
+}
 
 var port = process.env.PORT || CONFIG.server.port;
 server.set("port", port);
