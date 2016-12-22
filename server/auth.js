@@ -89,9 +89,11 @@ Transaction.prototype = {
   },
   resolveByEmailSessionSeed: function() {
     var self = this;
+    var email;
     findEmailSessionSeed(self.req.query.e)
     .then(function(emailSessionSeed) {
-      return findEmailProfile(emailSessionSeed.email);
+      email = emailSessionSeed.email;
+      return findEmailProfile(email);
     })
     .then(function(emailProfile) {
       if (emailProfile) {
@@ -100,7 +102,7 @@ Transaction.prototype = {
       else {
         return createNewUser("New User", 1)
         .then(function(user) {
-          return createNewEmailProfile(emailSessionSeed.email, user.id);
+          return createNewEmailProfile(email, user.id);
         })
       }
     })
