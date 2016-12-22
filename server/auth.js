@@ -2,6 +2,7 @@
 
 // Here is where sessions, users, and email profiles are managed.
 
+const CONFIG = require("./conf");
 const models = require("./models/index");
 const random = require("./util/random");
 
@@ -119,6 +120,9 @@ Transaction.prototype = {
   resolveByInvitation: function() {
     this.next();
   },
+  hasAdminKey: function() {
+    return this.req.headers["x-access-key"] === CONFIG.adminKey;
+  },
   fromLocalHost: function() {
     // Does the request originate from the local host?
     switch (this.req.headers["x-forwarded-for"] || this.req.connection.remoteAddress) {
@@ -156,7 +160,7 @@ module.exports = function(req, res, next) {
   else if (transaction.hasInvitationId()) {
     transaction.resolveByInvitation();
   }
-  else if (transaction.fromLocalHost(req)) {
+  else if (transaction.hasAdminKey() || transaction.fromLocalHost(req)) {
     transaction.becomeSuperUser();
   }
   else {

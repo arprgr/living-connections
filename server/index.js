@@ -59,5 +59,8 @@ for (var type in {
 var port = process.env.PORT || CONFIG.server.port;
 server.set("port", port);
 server.listen(port, function () {
+  const random = require("./util/random");
   console.log("Listening on port", port);
+  CONFIG.adminKey = random.id();
+  console.log(CONFIG.adminKey);
 });
