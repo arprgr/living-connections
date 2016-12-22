@@ -10,7 +10,7 @@ curl -X DELETE -i -H "x-access-key:$ACCESS_KEY" $SERVER/messages
 curl -X DELETE -i -H "x-access-key:$ACCESS_KEY" $SERVER/sessions
 curl -X DELETE -i -H "x-access-key:$ACCESS_KEY" $SERVER/users
 
-curl -X POST -i -H "x-access-key:$ACCESS_KEY" $SERVER/admin/register -d 'name=James&email=ech@ech.net@level=0'
+curl -X POST -i -H "x-access-key:$ACCESS_KEY" $SERVER/admin/register -d 'name=James&email=ech@ech.net&level=0'
 curl -X POST -i -H "x-access-key:$ACCESS_KEY" $SERVER/admin/register -d 'name=Tester1&email=james@ech.net'
 curl -X POST -i -H "x-access-key:$ACCESS_KEY" $SERVER/admin/register -d 'name=Tester2&email=james.echmalian@gmail.com'
 curl -X POST -i -H "x-access-key:$ACCESS_KEY" $SERVER/admin/register -d 'name=Rob&email=rob777@comcast.net&level=0'
