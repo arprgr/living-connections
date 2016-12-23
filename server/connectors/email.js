@@ -9,10 +9,13 @@ module.exports = (function() {
 
   const emailFrom = "admin@livingcx.com";
 
+  const SANDBOX_DOMAIN = "sandboxd9cba0aefb144d048bd0592ac8ea3585.mailgun.org";
+  const REAL_DOMAIN = "mg.livingcx.com";
+
   const auth = {
     auth: {
       api_key: "key-1a42bcc21a15252b0de1fc4ab0540863",
-      domain: "sandboxd9cba0aefb144d048bd0592ac8ea3585.mailgun.org"
+      domain: REAL_DOMAIN
     }
   }
 
