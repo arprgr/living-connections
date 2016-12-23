@@ -11,11 +11,13 @@ module.exports = function(sequelize, DataTypes) {
         Message.belongsTo(models.Asset, { as: "asset" });
       },
       findById: function(id) {
-        return Message.find({
-          where: {
-            id: id
-          }
-        })
+        return Message.find({ where: { id: id } })
+      },
+      destroyById: function(id) {
+        return Message.destroy({ where: { id: id } })
+      },
+      destroyAll: function() {
+        return Message.destroy({ where: {} })
       }
     }
   });

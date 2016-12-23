@@ -31,17 +31,17 @@ function upload(req, res) {
   })
 }
 
-function handleAdminCreate(req, res) {
+function adminCreate(req, res) {
   return createAsset(req.user.id, req.body.mime, req.body.key, req.body.url);
 }
 
 // Create
-router.post("/", function(req, res, next) {
+router.post("/", function(req, res) {
   res.jsonResultOf(req.is("video/*") ? upload(req, res) : adminCreate(req, res));
 });
 
 // Retrieve (by id)
-router.get("/:id", function(req, res, next) {
+router.get("/:id", function(req, res) {
   if (req.user.level > 0) {
     res.jsonError({ status: 401 });
   }
@@ -61,7 +61,7 @@ router.delete("/", function(req, res) {
 });
 
 // Delete one.
-router.delete("/:id", function(req, res, next) {
+router.delete("/:id", function(req, res) {
   if (req.user.level > 0) {
     res.jsonError({ status: 401 });
   }

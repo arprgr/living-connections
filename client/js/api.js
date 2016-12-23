@@ -6,31 +6,26 @@ define([ "http" ], function(HttpMethod) {
 
     var schema = {
       announcements: {
-        id: "announcementId",
         props: [ "assetId", "startDate", "endDate" ]
       },
-      greetings: {
-        id: "greetingId",
+      messages: {
         props: [ "assetId", "toUserId" ]
       },
       invites: {
-        id: "inviteId",
         props: [ "assetId", "toAddress" ]
       },
       reminders: {
-        id: "reminderId",
         props: [ "assetId", "toUserId" ]
       }
     }
 
     for (var entityName in schema) {
       this[entityName] = (function(entityDesc) {
-        function build(builderClass, entityId) {
-          var builder = new builderClass();
-          builder
+        function build(builderClass, isPut) {
+          var builder = new builderClass()
             .addPathComponent(entityName);
-          if (entityId) {
-            builder.addPathParameter(entityId);
+          if (isPut) {
+            builder.addPathParameter("id");
           }
           for (var i = 0; i < entityDesc.props.length; ++i) {
             builder.addQueryParameter(entityDesc.props[i]);
@@ -39,7 +34,7 @@ define([ "http" ], function(HttpMethod) {
         }
         return {
           post: build(HttpMethod.PostForm),
-          put: build(HttpMethod.PutForm, entityDesc.id)
+          put: build(HttpMethod.PutForm, true)
         }
       })(schema[entityName]);
     }
@@ -69,21 +64,21 @@ define([ "http" ], function(HttpMethod) {
 
     updateAnnouncement: function(params) {
       return new this.announcements.put()
-        .setAnnouncementId(params.announcementId)
+        .setId(params.id)
         .setAssetId(params.assetId)
         .execute();
     },
 
     postGreeting: function(params) {
-      return new this.greetings.post()
+      return new this.messages.post()
         .setAssetId(params.assetId)
         .setToUserId(params.toUserId)
         .execute();
     },
 
     updateGreeting: function(params) {
-      return new this.greetings.put()
-        .setGreetingId(params.greetingId)
+      return new this.messages.put()
+        .setId(params.id)
         .setAssetId(params.assetId)
         .setToUserId(params.toUserId)
         .execute();
@@ -98,7 +93,7 @@ define([ "http" ], function(HttpMethod) {
 
     updateInvite: function(params) {
       return new this.invites.put()
-        .setGreetingId(params.inviteId)
+        .setId(params.id)
         .setAssetId(params.assetId)
         .setToAddress(params.toAddress)
         .execute();
