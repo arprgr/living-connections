@@ -11,6 +11,15 @@ module.exports = function(sequelize, DataTypes) {
         Announcement.belongsTo(models.Asset, { as: "asset" });
         Announcement.belongsTo(models.User, { as: "creator" });
       },
+      destroyById: function(id) {
+        return Announcement.destroy({ where: { id: id } });
+      },
+      destroyAll: function() {
+        return Announcement.destroy({ where: {} });
+      },
+      findById: function(id) {
+        return Announcement.findOne({ where: { id: id } });
+      },
       findByDate: function(date, options) {
         return Announcement.findAll(extend({
           where: {
