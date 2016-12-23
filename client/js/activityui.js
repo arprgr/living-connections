@@ -11,156 +11,104 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
   var videoService = Services.videoService;
   var apiService = Services.apiService;
 
+  var SAVE_METHODS = {
+    "ann": {
+      "cre": apiService.postAnnouncement.bind(apiService),
+      "upd": apiService.updateAnnouncement.bind(apiService)
+    },
+    "gre": {
+      //"cre": apiService.postMessage.bind(apiService),
+      //"upd": apiService.updateMessage.bind(apiService)
+    },
+    "inv": {
+      //"cre": apiService.postInvite.bind(apiService),
+      //"upd": apiService.updateInvite.bind(apiService)
+    },
+    "pro": {
+      "cre": apiService.updateUser.bind(apiService),
+      "upd": apiService.updateUser.bind(apiService)
+    }
+  }
+
   // Component states.
 
   var STATE_INIT = 0;          // Initial, nothing going on yet.
-  var STATE_PLAYBACK = 1;      // Playing the video.
-  var STATE_LOADING = 2;       // Waiting for video to load.
-  var STATE_LIVE = 3;          // Camera is on but not recording.
-  var STATE_RECORDING = 4;     // Camera is on and recording.
-  var STATE_SAVING = 5;        // Waiting for info to be saved to back end.
-
-  // Default type-specific component behavior.
-
-  function defaultInstructionsText(self) {
-    switch (self.state) {
-    case STATE_PLAYBACK:
-      return "You may review your recording, save it or discard and re-record it.";
-    case STATE_LIVE:
-      return "Say cheese! And start recording when you're ready.";
-    case STATE_RECORDING:
-      return "Recording...";
-    case STATE_LOADING:
-    case STATE_SAVING:
-      return "Please wait...";
-    }
-    return "";
-  }
-
-  var DefaultInner = {
-    renderForm: function() {},
-    instructionsText: defaultInstructionsText,
-    defineSaveButton: function() {}
-  }
-
-  // Create Announcement behavior.
-
-  function createAnnouncementRenderForm() {
-  }
-
-  function createAnnouncementInstructionText(self) {
-    switch (self.state) {
-    case STATE_LIVE:
-    case STATE_INIT:
-      return "Record a video message to send to all Living Connections users.";
-    }
-    return defaultInstructionsText(self);
-  }
-
-  function createAnnouncementDefineSaveButton(callback) {
-    callback("Save Announcement",
-      function(asset) {
-        apiService.postAnnouncement({
-          assetId: asset.id,
-          startDate: "2016-12-01",
-          endDate: "2017-03-01"
-        });
-      }
-    );
-  }
-
-  var CreateAnnouncementInner = $.extend({}, DefaultInner, {
-    renderForm: createAnnouncementRenderForm,
-    instructionsText: createAnnouncementInstructionText,
-    defineSaveButton: createAnnouncementDefineSaveButton
-  })
-
-  // Update Announcement behavior.
-
-  function updateAnnouncementRenderForm() {
-  }
-
-  function updateAnnouncementInstructionText(self) {
-    switch (self.state) {
-    case STATE_LIVE:
-      return "Re-record your video message for all Living Connections users.";
-    }
-    return defaultInstructionsText(self);
-  }
-
-  function updateAnnouncementDefineSaveButton(callback) {
-    callback("Update Announcement",
-      function(asset) {
-        updateService.putAnnouncement({
-          assetId: asset.id,
-          startDate: "2016-12-01",
-          endDate: "2017-03-01"
-        });
-      }
-    );
-  }
-
-  var UpdateAnnouncementInner = $.extend({}, DefaultInner, {
-    renderForm: createAnnouncementRenderForm,
-    instructionsText: createAnnouncementInstructionText,
-    defineSaveButton: createAnnouncementDefineSaveButton
-  })
-
-  // Create Profile behavior.
-
-  function createProfileRenderForm() {
-  }
-
-  function createProfileDefineSaveButton(callback) {
-    callback("Save Profile Video",
-      function(asset) {
-        apiService.updateUser({
-          assetId: asset.id
-        });
-      }
-    );
-  }
-
-  var CreateProfileInner = $.extend({}, DefaultInner, {
-    renderForm: createProfileRenderForm,
-    defineSaveButton: createProfileDefineSaveButton
-  })
+  var STATE_LIVE = 1;          // Camera is on but not recording.  There is no saved video.
+  var STATE_RECORDING = 2;     // Camera is on and recording.
+  var STATE_PLAYBACK = 3;      // Playing the video just recorded.
+  var STATE_SAVING = 4;        // Waiting for info to be saved to back end.
+  var STATE_LOADING = 5;       // Waiting for a video to load.
+  var STATE_VIEW = 6;          // Playing a previously recorded video - unchangeable.
+  var STATE_REVIEW = 7;        // Playing a previously recorded video - changeable.
+  var STATE_ERROR = 78         // Something went wrong.
 
   // Video component management.
 
   function updateVideo(self, src) {
-    self.videoComponent.setSource(src);
+    return self.videoComponent.setSource(src);
   }
 
   function pauseVideo(self) {
     self.videoComponent.getVideoElement().pause();
   }
 
-  // General behaviors.
+  // Component state management.
 
-  function toLiveVideoState(self) {
-    updateState(self, STATE_LOADING);
-    updateVideo(self, null);
-    videoService.open().then(function(stream) {
-      updateState(self, STATE_LIVE);
-      updateVideo(self, stream);
-    });
+  // Instructions depend on state.
+  function instructionsText(self) {
+    switch (self.state) {
+    case STATE_LIVE:
+      return "Say cheese! And start recording when you're ready.";
+    case STATE_RECORDING:
+      return "Recording...";
+    case STATE_PLAYBACK:
+      return "Review your recording, save it or discard and re-record it.";
+    case STATE_SAVING:
+      return "Saving, please wait...";
+    case STATE_LOADING:
+      return "Loading, please wait...";
+    case STATE_ERROR:
+      return "Uh oh, we're stuck.  Try reloading the page.";
+    }
+    return "";
   }
 
-  function toPlaybackVideoState(self, url) {
-    updateState(self, STATE_PLAYBACK);
-    updateVideo(self, url);
+  // Label for save button depends on state.
+  function saveButtonLabel(self) {
+    var verb = "Send";
+    var what;
+    switch (self.what) {
+    case "ann":
+      what = "Announcement";
+      break;
+    case "pro":
+      verb = "Save";
+      what = "Profile";
+      break;
+    case "gre":
+      what = "Greeting";
+      break;
+    case "inv":
+      what = "Invitation";
+      break;
+    case "rem":
+      verb = "Save";
+      what = "Reminder";
+    }
+    if (self.action == "upd") {
+      verb = "Update";
+    }
+    return verb + " " + what;
   }
 
   function updateInstructions(self) {
-    var instructions = self.inner.instructionsText(self);
-    self.container.find(".instructions").text(instructions);
+    self.container.find(".instructions").text(instructionsText(self));
   }
 
   function updateButtons(self) {
     var buttons = self.buttons;
     for (var i = 0; i < buttons.length; ++i) {
-      buttons[i].updateVisibility(self);
+      buttons[i].update();
     }
   }
 
@@ -172,6 +120,61 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     }
   }
 
+  function toErrorState(self, error) {
+    // console.log(error);
+    self.videoBlob = null;
+    updateVideo(self, null);
+    updateState(self, STATE_ERROR);
+  }
+
+  function isLive(self) {
+    return self.state == STATE_LIVE;
+  }
+
+  function isReview(self) {
+    return self.state == STATE_REVIEW;
+  }
+
+  function isRecording(self) {
+    return self.state == STATE_RECORDING;
+  }
+
+  function isGravid(self) {
+    return !!self.videoBlob;
+  }
+
+  function hasSender(self) {
+    return !!self.who && self.state == STATE_VIEW;
+  }
+
+  // Actions.
+
+  function openCamera(self) {
+    updateState(self, STATE_LOADING);
+    updateVideo(self, null);
+    videoService.open()
+    .then(function(stream) {
+      return updateVideo(self, stream);
+    })
+    .then(function() {
+      updateState(self, STATE_LIVE);
+    })
+    .catch(function() {
+      updateState(self, STATE_ERROR);
+    });
+  }
+
+  function showVideo(self, url) {
+    updateState(self, STATE_LOADING);
+    updateVideo(self, url)
+    .then(function() {
+      updateState(self, firstState(self));
+    })
+    .catch(function(error) {
+      toErrorState(self, error);
+    });
+  }
+
   function startRecording(self) {
     videoService.startRecording();
     updateState(self, STATE_RECORDING);
@@ -180,57 +183,48 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
   function stopRecording(self) {
     pauseVideo(self);
     updateState(self, STATE_LOADING);
-
     videoService.stopRecording(function(blob, url) {
       self.videoBlob = blob;
       videoService.close();
-      toPlaybackVideoState(self, url);
+      updateState(self, STATE_PLAYBACK);
+      updateVideo(self, url);
     });
   }
 
-  function saveRecording(self, updateModelFunc) {
+  function saveRecording(self) {
     pauseVideo(self);
     updateState(self, STATE_SAVING);
-
     apiService.saveVideo(self.videoBlob)
     .then(function(asset) {
-      // TODO: offer follow-up functions
-      discardRecording(self);
-      return updateModelFunc(asset);
+      self.videoBlob = null;
+      self.form.assetId = asset.id;
+      return SAVE_METHODS[self.what][self.action](self.form);
     })
     .catch(function(error) {
-      // TODO: error reporting
-      alert(error);
-      discardRecording(self);
+      toErrorState(self, error);
     });
   }
 
   function discardRecording(self) {
     self.videoBlob = null;
-    toLiveVideoState(self);
+    openCamera(self);
   }
 
-  // General component construction.
-
-  function innerForType(type) {
-    switch (type) {
-    case "ann-cre":
-      return CreateAnnouncementInner;
-    case "ann-upd":
-      return UpdateAnnouncementInner;
-    case "pro-cre":
-      return CreateProfileInner;
-    }
-    return DefaultInner;
+  function reply(self) {
   }
 
-  function renderSkeleton(self) {
+  function seeSenderProfile(self) {
+  }
+
+  // View construction.
+
+  function renderSkeleton(self, options) {
     self.container
       .hide()
       .addClass("action")
       .append($("<img>")
         .addClass("lilIcon")
-        .attr("src", self.options.iconUri))
+        .attr("src", options.iconUri))
       .append($("<a>")
         .addClass("exit")
         .text("Exit")
@@ -243,69 +237,61 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
   }
 
   function defineButton(self, label, clickFunc, visibleFunc) {
+
+    function updateButton() {
+      button.text(typeof label == "function" ? label(self) : label);
+      button.setVisible(visibleFunc(self));
+    }
+
     var button = $("<div>")
       .addClass("function")
-      .text(label)
       .click(function() {
-        return clickFunc(self);
+        clickFunc(self);
       })
       .hide()
       .appendTo(self.container.find(".functions"));
+
+    updateButton();
+
     self.buttons.push({
-      updateVisibility: function() {
-        button.setVisible(visibleFunc(self));
-      }
-    })
+      update: updateButton
+    });
   }
 
   function defineButtons(self) {
-    defineButton(self, "Start Recording", function() {
-      startRecording(self);
-    }, function() {
-      return self.state == STATE_LIVE;
-    }),
-
-    defineButton(self, "Stop Recording", function() {
-      stopRecording(self);
-    }, function() {
-      return self.state == STATE_RECORDING;
-    }),
-
-    self.inner.defineSaveButton(function(label, updateModelFunc) {
-      defineButton(self, label, function() {
-        saveRecording(self, updateModelFunc);
-      }, function() {
-        return !!self.videoBlob;
-      });
-    }),
-
-    defineButton(self, "Discard", function() {
-      discardRecording(self);
-    }, function() {
-      return !!self.videoBlob;
-    })
+    defineButton(self, "Re-record", discardRecording, isReview);
+    defineButton(self, "Start Recording", startRecording, isLive);
+    defineButton(self, "Stop Recording", stopRecording, isRecording);
+    defineButton(self, saveButtonLabel, saveRecording, isGravid);
+    defineButton(self, "Discard", discardRecording, isGravid);
+    defineButton(self, "Reply to " + self.who, reply, hasSender);
+    defineButton(self, "See " + self.who + "'s Profile", seeSenderProfile, hasSender);
   }
 
   function ActivityComponent(container, options) {
     var self = this;
-    var inner = innerForType(options.type);
-
     self.container = container;
-    self.options = options;
-    self.inner = inner;
     self.videoComponent = new VideoComponent($("<div>"), {}).setVisible(true);
     self.state = STATE_INIT;
     self.buttons = [];
+    var parts = options.type.split("-");
+    self.what = parts[0];
+    self.action = parts[1];
+    self.who = options.sender && options.sender.name;
+    self.form = {
+      startDate: "2017-01-01",
+      endDate: "2017-03-01"
+    };
 
-    renderSkeleton(self);
-    inner.renderForm(self);
+    renderSkeleton(self, options);
+    //renderForm(self);
     defineButtons(self);
 
     if (options.assetUrl) {
-      toPlaybackVideoState(self, options.assetUrl);
+      showVideo(self, options.assetUrl);
     }
     else {
-      toLiveVideoState(self);
+      openCamera(self);
     }
   }
 

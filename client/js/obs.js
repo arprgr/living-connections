@@ -34,13 +34,20 @@ define([], function() {
 
   Observable.prototype = {
     addChangeListener: function(listener) {
-      addListener(this.listeners, listener);
+      return addListener(this.listeners, listener);
     },
     removeChangeListener: function(listener) {
       removeListener(this.listeners, listener);
     },
-    notifyChangeListeners: function(listener) {
+    notifyChangeListeners: function() {
       notifyListeners(this.listeners, this.value);
+    },
+    setValue: function(value) {
+      var self = this;
+      if (value != self.value) {
+        self.value = value;
+        self.notifyChangeListeners();
+      }
     }
   }
 

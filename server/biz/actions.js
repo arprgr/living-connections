@@ -20,7 +20,7 @@ const MESSAGES = {
   "inv": { priority: 9, what: "an invitation" },
   "gre": { priority: 7, what: "a greeting" },
   "rem": { priority: 10, what: "a reminder" },
-  "pro": { priority: 5, what: "a message for your profile" },
+  "pro": { priority: 5, what: "your profile message" },
   "ann": { priority: 8, what: "an announcement" }
 }
 
@@ -147,7 +147,14 @@ function addItemsForAll(compiler) {
       });
     }
   }
-  addActionItem(compiler, MSG_PROFILE, ACTION_CREATE);
+  if (!compiler.user.asset) {
+    addActionItem(compiler, MSG_PROFILE, ACTION_CREATE);
+  }
+  else {
+    addActionItem(compiler, MSG_PROFILE, ACTION_UPDATE, {
+      assetUrl: compiler.user.asset.url
+    });
+  }
 }
 
 function createActionItems(compiler) {

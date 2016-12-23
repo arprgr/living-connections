@@ -7,15 +7,21 @@ const models = require("./models/index");
 const random = require("./util/random");
 const Promise = require("promise");
 
+const USER_WITH_THAT = {
+  include: [{
+    model: models.User,
+    as: "user",
+    required: true,
+    include: [{
+      model: models.Asset,
+      as: "asset"
+    }]
+  }]
+}
+
 // Look up a session given its external ID, maybe from a cookie.
 function findSession(externalId) {
-  return models.Session.findByExternalId(externalId, {
-    include: [{
-      model: models.User,
-      as: "user",
-      required: true
-    }]
-  })
+  return models.Session.findByExternalId(externalId, USER_WITH_THAT);
 }
 
 // Look up a session seed, given an email address.
@@ -24,13 +30,7 @@ function findEmailSessionSeed(externalId) {
 }
 
 function findEmailProfile(email) {
-  return models.EmailProfile.findByEmail(email, {
-    include: [{
-      model: models.User,
-      as: "user",
-      required: true
-    }]
-  })
+  return models.EmailProfile.findByEmail(email, USER_WITH_THAT);
 }
 
 // Create a new user.

@@ -1,6 +1,6 @@
 // videoui.js - VideoComponent
 
-define([ "jquery" ], function($) {
+define([ "jquery", "obs" ], function($, Observable) {
 
   var DEFAULT_OPTIONS = {
     containerClass: "vid",
@@ -17,13 +17,39 @@ define([ "jquery" ], function($) {
   }
 
   function setSource(self, src) {
+    var promise = $.Deferred();
     var theVideo = self.getVideoElement();
+
+console.log('setSource');
+
+    if (!self.state) {
+console.log('create observable state of video');
+      self.state = new Observable(0);
+      theVideo.onloadedmetadata = function() {
+console.log('video metadata loaded');
+        self.state.setValue(1);
+      }
+    }
+    self.state.setValue(0);
+
+    if (src != null) {
+      var undoer = self.state.addChangeListener(function() {
+console.log('notification received');
+        promise.resolve(theVideo);
+        undoer.undo();
+      });
+    }
+
     var srcIsUrl = typeof src == "string";
     theVideo.src = srcIsUrl ? src : "";
     theVideo.srcObject = srcIsUrl ? null : src;
     theVideo.autoplay = !!src && !srcIsUrl;
     theVideo.controls = srcIsUrl;
     theVideo.muted = !srcIsUrl;
+    if (src == null) {
+      promise.resolve(theVideo);
+    }
+    return promise;
   }
 
   VideoComponent.prototype = {

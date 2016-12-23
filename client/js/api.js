@@ -2,16 +2,7 @@
 
 define([ "http" ], function(HttpMethod) {
 
-  function ApiService(options) {
-
-    this.SaveVideoMethod = new HttpMethod.PostBinary("video/webm")
-      .addPathComponent("/assets")
-      .build();
-
-    this.UpdateUserMethod = new HttpMethod.PutForm()
-      .addPathComponent("/users/-")
-      .addQueryParameter("assetId")
-      .build();
+  function ApiService() {
 
     var schema = {
       announcements: {
@@ -53,7 +44,13 @@ define([ "http" ], function(HttpMethod) {
   ApiService.prototype = {
 
     saveVideo: function(blob) {
-      return new this.SaveVideoMethod()
+      var self = this;
+      if (!self.SaveVideoMethod) {
+        self.SaveVideoMethod = new HttpMethod.PostBinary("video/webm")
+          .addPathComponent("/assets")
+          .build();
+      }
+      return new self.SaveVideoMethod()
         .setBody(blob)
         .execute();
     },
@@ -104,7 +101,14 @@ define([ "http" ], function(HttpMethod) {
     },
 
     updateUser: function(params) {
-      return new this.UpdateUserMethod()
+      var self = this;
+      if (!self.UpdateUserMethod) {
+        self.UpdateUserMethod = new HttpMethod.PutForm()
+          .addPathComponent("/users/-")
+          .addQueryParameter("assetId")
+          .build();
+      }
+      return new self.UpdateUserMethod()
         .setAssetId(params.assetId)
         .execute();
     }
