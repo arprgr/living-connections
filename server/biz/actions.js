@@ -64,7 +64,17 @@ function ActionCompiler(user) {
 }
 
 function announcementTitle(compiler, announcement) {
-  return (compiler.user.id == announcement.creatorId ? "your announcement" : ("announcement from " + announcement.creator.name)) + " of " + when.formatRelativeTime(announcement.startDate);
+  var title = "announcement";
+  if (compiler.user.id == announcement.creatorId) {
+    title = "your " + title;
+  }
+  else { 
+    if (announcement.creator) {
+      title += "from " + announcement.creator.name;
+    }
+  }
+  title += " of " + when.formatRelativeTime(announcement.startDate);
+  return title;
 }
 
 function fetchAssociatedData(compiler) {
