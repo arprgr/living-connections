@@ -106,6 +106,26 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     defineSaveButton: createAnnouncementDefineSaveButton
   })
 
+  // Create Profile behavior.
+
+  function createProfileRenderForm() {
+  }
+
+  function createProfileDefineSaveButton(callback) {
+    callback("Save Profile Video",
+      function(asset) {
+        apiService.updateUser({
+          assetId: asset.id
+        });
+      }
+    );
+  }
+
+  var CreateProfileInner = $.extend({}, DefaultInner, {
+    renderForm: createProfileRenderForm,
+    defineSaveButton: createProfileDefineSaveButton
+  })
+
   // Video component management.
 
   function updateVideo(self, src) {
@@ -198,6 +218,8 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
       return CreateAnnouncementInner;
     case "ann-upd":
       return UpdateAnnouncementInner;
+    case "pro-cre":
+      return CreateProfileInner;
     }
     return DefaultInner;
   }

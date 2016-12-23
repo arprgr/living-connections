@@ -31,27 +31,33 @@ module.exports = (function() {
 
   // Retrieve by ID
   router.get("/:id", function(req, res) {
-    if (req.user.level > 0 && req.user.id != req.params.id) {
+    var userId = req.params.id;
+    if (userId == "-") {
+      userId = req.user.id;
+    }
+    if (req.user.level > 0 && req.user.id != userId) {
       res.jsonError({ status: 401 });
     }
     else {
-      res.jsonResultOf(models.User.findById(req.params.id));
+      res.jsonResultOf(models.User.findById(userId));
     }
   });
 
   // Update
   router.put("/:id", function(req, res) {
-    if (req.user.level > 0 && req.user.id != req.params.id) {
+    var userId = req.params.id;
+    if (userId == "-") {
+      userId = req.user.id;
+    }
+    if (req.user.level > 0 && req.user.id != userId) {
       res.jsonError({ status: 401 });
     }
     else {
-      models.User.find({
-        where: {
-          id: req.params.id
-        }
-      }).then(function(user) {
+      models.User.findById(userId)
+      .then(function(user) {
         res.jsonResultOf(user.updateAttributes(req.body));
-      }).catch(function(error) {
+      })
+      .catch(function(error) {
         res.jsonError(error);
       });
     }
@@ -59,7 +65,12 @@ module.exports = (function() {
 
   // Retrieve all current sessions
   router.get("/:id/sessions", function(req, res) {
-    res.jsonResultOf(models.Session.findByUserId(req.params.id));
+    if (req.user.level > 0) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      res.jsonResultOf(models.Session.findByUserId(req.params.id));
+    }
   });
 
   // Delete all.

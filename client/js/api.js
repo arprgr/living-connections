@@ -8,6 +8,11 @@ define([ "http" ], function(HttpMethod) {
       .addPathComponent("/assets")
       .build();
 
+    this.UpdateUserMethod = new HttpMethod.PutForm()
+      .addPathComponent("/users/-")
+      .addQueryParameter("assetId")
+      .build();
+
     var schema = {
       announcements: {
         id: "announcementId",
@@ -20,10 +25,6 @@ define([ "http" ], function(HttpMethod) {
       invites: {
         id: "inviteId",
         props: [ "assetId", "toAddress" ]
-      },
-      profiles: {
-        id: "profileId",
-        props: [ "assetId" ]
       }
     }
 
@@ -102,15 +103,8 @@ define([ "http" ], function(HttpMethod) {
         .execute();
     },
 
-    postProfile: function(params) {
-      return new this.profiles.post()
-        .setAssetId(params.assetId)
-        .execute();
-    },
-
-    updateProfile: function(params) {
-      return new this.profiles.put()
-        .setProfileId(params.profileId)
+    updateUser: function(params) {
+      return new this.UpdateUserMethod()
         .setAssetId(params.assetId)
         .execute();
     }
