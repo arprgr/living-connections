@@ -109,10 +109,13 @@ div {
 }
 #app .action .vid {
   clear: both;
-  margin: 5px auto;
+  width: 100%;
+  margin: 6px;
+  text-align: center;
 }
 video {
-  width: 100%;
+  object-fit: contain;
+  object-position: 50% 50%;
 }
 #app .functions {
   padding-top: 3px;
