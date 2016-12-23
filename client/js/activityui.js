@@ -147,12 +147,13 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     return !!self.videoBlob;
   }
 
-  function hasSender(self) {
-    return !!self.who && self.state == STATE_VIEW;
+  function canReply(self) {
+    return self.sender && self.sender.id && self.state == STATE_VIEW;
   }
 
-  function hasSenderProfile(self) {
-    return hasSender(self) && !!self.who.assetUrl;
+  function canSeeProfile(self) {
+    return self.sender && self.sender.asset && self.sender.asset.url && 
+      self.state == STATE_VIEW && self.what != "pro";
   }
 
   // Actions.
@@ -231,9 +232,16 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
   }
 
   function reply(self) {
+    self.what = "gre";
+    self.action = "cre";
+    self.form.toUserId = self.sender.id;
+    openCamera(self);
   }
 
   function seeSenderProfile(self) {
+    self.what = "pro";
+    self.action = "rec";
+    showVideo(self, self.sender.asset.url, STATE_VIEW);
   }
 
   // View construction.
@@ -284,8 +292,8 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     defineButton(self, "Stop Recording", stopRecording, isRecording);
     defineButton(self, saveButtonLabel, doSave, isGravid);
     defineButton(self, "Discard", discardRecording, isGravid);
-    defineButton(self, "Reply to " + self.who, reply, hasSender);
-    defineButton(self, "See " + self.who + "'s Profile", seeSenderProfile, hasSenderProfile);
+    defineButton(self, "Reply to " + self.sender.name, reply, canReply);
+    defineButton(self, "See " + self.sender.name + "'s Profile", seeSenderProfile, canSeeProfile);
   }
 
   function ActivityComponent(container, options) {
@@ -297,7 +305,7 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     var parts = options.type.split("-");
     self.what = parts[0];
     self.action = parts[1];
-    self.who = options.sender && options.sender.name;
+    self.sender = options.sender;
     self.form = {
       startDate: "2016-12-20",
       endDate: "2017-03-01"

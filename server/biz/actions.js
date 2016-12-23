@@ -102,7 +102,12 @@ function fetchAssociatedData(compiler) {
         }, {
           model: models.User,
           as: "creator",
-          attributes: [ "name" ]
+          attributes: [ "id", "name" ],
+          include: [{
+            model: models.Asset,
+            as: "asset",
+            attributes: [ "url" ]
+          }]
         }],
         limit: MAX_CONNECTIONS,
         order: [ [ "startDate", "DESC" ] ]
