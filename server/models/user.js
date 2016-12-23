@@ -1,5 +1,7 @@
 'use strict';
 module.exports = function(sequelize, DataTypes) {
+  const extend = require("extend");
+
   var User = sequelize.define('User', {
     level: {
       type: DataTypes.INTEGER,
@@ -13,17 +15,12 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        User.hasMany(models.Asset);
+        User.belongsTo(models.Asset, { as: "asset" });
       },
-      findById: function(id) {
-        return User.findOne({
+      findById: function(id, options) {
+        return User.findOne(extend({
           where: { id: id }
-        });
-      },
-      findByLevel: function(level) {
-        return User.findAll({
-          where: { level: level }
-        });
+        }, options));
       }
     }
   });

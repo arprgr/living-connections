@@ -5,81 +5,71 @@ module.exports = (function() {
   const router = express.Router();
   const models = require("../models/index");
 
+  // All of these functions require at least a valid user.
+  router.use(function(req, res, next) {
+    if (!req.user) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      next();
+    }
+  });
+
   // Create
   router.post("/", function(req, res) {
-    models.User.create({
-      level: req.body.level,
-      name: req.body.name
-    }).then(function(user) {
-      res.json(user);
-    }).catch(function(error) {
-      res.json(error);
-    });
+    if (req.user.level > 0) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      res.jsonResultOf(models.User.create({
+        level: req.body.level,
+        name: req.body.name,
+        assetId: req.body.assetId
+      }))
+    }
   });
 
   // Retrieve by ID
   router.get("/:id", function(req, res) {
-    models.User.findById(req.params.id)
-    .then(function(user) {
-      res.json(user);
-    });
+    if (req.user.level > 0 && req.user.id != req.params.id) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      res.jsonResultOf(models.User.findById(req.params.id));
+    }
   });
 
   // Update
   router.put("/:id", function(req, res) {
-    models.User.find({
-      where: {
-        id: req.params.id
-      }
-    }).then(function(user) {
-      if (user) {
-        user.updateAttributes({
-          level: req.body.level,
-          name: req.body.name
-        })
-        res.json(user);
-      }
-      else {
-        res.json(null);
-      }
-    });
-  });
-
-  // Retrieve email profile - TODO: merge this into retrieve
-  router.get("/:user_id/emailprofile", function(req, res) {
-    models.EmailProfile.findAll({
-      where: {
-        UserId: req.params.user_id
-      }
-    }).then(function(assets) {
-      res.json(assets);
-    });
+    if (req.user.level > 0 && req.user.id != req.params.id) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      models.User.find({
+        where: {
+          id: req.params.id
+        }
+      }).then(function(user) {
+        res.jsonResultOf(user.updateAttributes(req.body));
+      }).catch(function(error) {
+        res.jsonError(error);
+      });
+    }
   });
 
   // Retrieve all current sessions
-  router.get("/:user_id/sessions", function(req, res) {
-    models.User.findByUserId(req.params.user_id)
-    .then(function(sessions) {
-      res.json(sessions);
-    }).catch(function(error) {
-      res.json(error);
-    });
-  });
-
-  // Retrieve all assets. TODO: add paging.
-  router.get("/:user_id/assets", function(req, res) {
-    models.User.findAll({
-      where: {
-        UserId: req.params.user_id
-      }
-    }).then(function(assets) {
-      res.json(assets);
-    });
+  router.get("/:id/sessions", function(req, res) {
+    res.jsonResultOf(models.Session.findByUserId(req.params.id));
   });
 
   // Delete all.
   router.delete("/", function(req, res) {
-    res.jsonResultOf(models.User.destroy({ where: {} }));
+    if (req.user.level > 0) {
+      res.jsonError({ status: 401 });
+    }
+    else {
+      res.jsonResultOf(models.User.destroy({ where: {} }));
+    }
   });
 
   return router;
