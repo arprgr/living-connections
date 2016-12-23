@@ -64,13 +64,13 @@ function ActionCompiler(user) {
 }
 
 function announcementTitle(compiler, announcement) {
-  var title = "announcement";
+  var title = "Announcement";
   if (compiler.user.id == announcement.creatorId) {
     title = "your " + title;
   }
   else { 
     if (announcement.creator) {
-      title += "from " + announcement.creator.name;
+      title += " from " + announcement.creator.name;
     }
   }
   title += " of " + when.formatRelativeTime(announcement.startDate);
@@ -154,6 +154,19 @@ function addItemsForAll(compiler) {
     addActionItem(compiler, MSG_PROFILE, ACTION_UPDATE, {
       assetUrl: compiler.user.asset.url
     });
+  }
+  var announcements = compiler.announcements;
+  if (announcements) {
+    for (var i = 0; i < announcements.length; ++i) {
+      var ann = announcements[i];
+      if (ann.creatorId != compiler.user.id) {
+        addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, {
+          title: announcementTitle(compiler, ann),
+          assetUrl: ann.asset.url,
+          sender: ann.creator
+        });
+      }
+    }
   }
 }
 

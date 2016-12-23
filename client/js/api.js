@@ -16,6 +16,10 @@ define([ "http" ], function(HttpMethod) {
       invites: {
         id: "inviteId",
         props: [ "assetId", "toAddress" ]
+      },
+      reminders: {
+        id: "reminderId",
+        props: [ "assetId", "toUserId" ]
       }
     }
 

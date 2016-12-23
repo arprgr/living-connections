@@ -1,8 +1,8 @@
 // activityui.js - ActivityComponent
 
-// There are various types of ActivityComponent, each specialized to a different task.
-// Regardless of type, each contain a video element, an area for instructions, an input form,
-// and a set of function buttons.  They are all here (for now).
+// ActivityComponent manages many different modes of operation.
+// Regardless of mode, there is always a video element, an area for instructions, an input form,
+// and a set of function buttons.
 
 define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent) {
 
@@ -17,12 +17,14 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
       "upd": apiService.updateAnnouncement.bind(apiService)
     },
     "gre": {
-      //"cre": apiService.postMessage.bind(apiService),
-      //"upd": apiService.updateMessage.bind(apiService)
+      "cre": apiService.postGreeting.bind(apiService),
+      "upd": apiService.updateGreeting.bind(apiService)
     },
     "inv": {
-      //"cre": apiService.postInvite.bind(apiService),
-      //"upd": apiService.updateInvite.bind(apiService)
+      "cre": apiService.postInvite.bind(apiService),
+      "upd": apiService.updateInvite.bind(apiService)
+    },
+    "rem": {
     },
     "pro": {
       "cre": apiService.updateUser.bind(apiService),
@@ -63,6 +65,8 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
       return "Recording...";
     case STATE_PLAYBACK:
       return "Review your recording, save it or discard and re-record it.";
+    case STATE_REVIEW:
+      return "You may redo this recording.";
     case STATE_SAVING:
       return "Saving, please wait...";
     case STATE_LOADING:
@@ -147,7 +151,15 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     return !!self.who && self.state == STATE_VIEW;
   }
 
+  function hasSenderProfile(self) {
+    return hasSender(self) && !!self.who.assetUrl;
+  }
+
   // Actions.
+
+  function close(self) {
+    self.closeFunc && self.closeFunc();
+  }
 
   function openCamera(self) {
     updateState(self, STATE_LOADING);
@@ -164,11 +176,11 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     });
   }
 
-  function showVideo(self, url) {
+  function showVideo(self, url, nextState) {
     updateState(self, STATE_LOADING);
     updateVideo(self, url)
     .then(function() {
-      updateState(self, firstState(self));
+      updateState(self, nextState);
     })
     .catch(function(error) {
       toErrorState(self, error);
@@ -191,7 +203,7 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     });
   }
 
-  function saveRecording(self) {
+  function doSave(self) {
     pauseVideo(self);
     updateState(self, STATE_SAVING);
     apiService.saveVideo(self.videoBlob)
@@ -199,6 +211,14 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
       self.videoBlob = null;
       self.form.assetId = asset.id;
       return SAVE_METHODS[self.what][self.action](self.form);
+    })
+    .then(function(model) {
+      if (model.asset && model.asset.url) {
+        showVideo(self, model.asset.url, STATE_REVIEW);
+      }
+      else {
+        close(self);
+      }
     })
     .catch(function(error) {
       toErrorState(self, error);
@@ -229,7 +249,7 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
         .addClass("exit")
         .text("Exit")
         .attr("href", "#")
-        .click(function() { self.closeFunc && self.closeFunc(); }))
+        .click(function() { close(self); }))
       .append($("<div>").addClass("form"))
       .append($("<div>").addClass("instructions"))
       .append(self.videoComponent.container)
@@ -262,10 +282,10 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     defineButton(self, "Re-record", discardRecording, isReview);
     defineButton(self, "Start Recording", startRecording, isLive);
     defineButton(self, "Stop Recording", stopRecording, isRecording);
-    defineButton(self, saveButtonLabel, saveRecording, isGravid);
+    defineButton(self, saveButtonLabel, doSave, isGravid);
     defineButton(self, "Discard", discardRecording, isGravid);
     defineButton(self, "Reply to " + self.who, reply, hasSender);
-    defineButton(self, "See " + self.who + "'s Profile", seeSenderProfile, hasSender);
+    defineButton(self, "See " + self.who + "'s Profile", seeSenderProfile, hasSenderProfile);
   }
 
   function ActivityComponent(container, options) {
@@ -279,7 +299,7 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     self.action = parts[1];
     self.who = options.sender && options.sender.name;
     self.form = {
-      startDate: "2017-01-01",
+      startDate: "2016-12-20",
       endDate: "2017-03-01"
     };
 
@@ -288,7 +308,7 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     defineButtons(self);
 
     if (options.assetUrl) {
-      showVideo(self, options.assetUrl);
+      showVideo(self, options.assetUrl, self.action == "upd" ? STATE_REVIEW : STATE_VIEW);
     }
     else {
       openCamera(self);
