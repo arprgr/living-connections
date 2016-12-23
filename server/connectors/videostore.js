@@ -40,22 +40,21 @@ module.exports = (function() {
 
           cloudinary.uploader.upload(path, function(result) {
 
-            // TODO: how to do error handling???
-            if (!result || !result.public_id) {
-              reject(result);
-              return;
+            console.log("saveVideo: result from cloudinary", result); 
+            if (result) {
+              if (!result.public_id) {
+                reject(result);
+              }
+              else {
+                resolve({
+                  key: result.public_id,
+                  url: result.url,
+                  storageSystemId: 1
+                });
+              }
             }
 
-            console.log("saveVideo: from cloudinary", result); 
-
-            resolve({
-              id: result.public_id,
-              url: result.url,
-              storageSystemId: 1
-            });
-
             cleanupCallback();
-
           }, {
             resource_type: "video"
           });

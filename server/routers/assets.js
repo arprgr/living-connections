@@ -1,51 +1,73 @@
 /* assets.js */
 
-module.exports = (function() {
-  const express = require("express");
-  const router = express.Router();
-  const models = require("../models/index");
-  const Promise = require("promise");
-  const videoStoreConnector = require("../connectors/videostore");
+const Asset = require("../models/index").Asset;
+const videoStoreConnector = require("../connectors/videostore");
 
-  // All functions require a valid user.
-  router.use(function(req, res, next) {
-    req.user ? next() : next({ status: 401 });
-  });
+var router = require("express").Router();
 
-  // Create
-  router.post("/", function(req, res, next) {
-    ( req.is("video/*")
-        ? videoStoreConnector.saveVideo(req.body)
-        : Promise.resolve({ id: req.body.key })
-    ).then(function(info) {
-      return models.Asset.create({
-        creatorId: req.user.id,
-        mime: req.get("Content-type"),
-        key: info.id,
-        url: info.url
-      })
-    }).then(function(model) {
-      res.json(model);
-    }).catch(next);
-  });
+// All functions require a valid user.
+router.use(function(req, res, next) {
+  if (req.user) {
+    next();
+  }
+  else {
+    res.jsonError({ status: 401 });
+  }
+});
 
-  // Retrieve (by id)
-  router.get("/:id", function(req, res, next) {
-    models.Asset.findById(req.params.id)
-    .then(function(assets) {
-      res.json(assets);
-    }).catch(next);
-  });
+function createAsset(creatorId, mime, key, url) {
+  return Asset.create({
+    creatorId: creatorId,
+    mime: mime,
+    key: key,
+    url: url
+  })
+}
 
-  // Delete all.
-  router.delete("/", function(req, res) {
-    res.jsonResultOf(models.Asset.destroy({ where: {} }));
-  });
+function upload(req, res) {
+  return videoStoreConnector.saveVideo(req.body)
+  .then(function(info) {
+    return createAsset(req.user.id, req.get("Content-type"), info.key, info.url);
+  })
+}
 
-  // Delete
-  router.delete("/:id", function(req, res, next) {
-    res.jsonResultOf(models.Asset.destroyById(req.params.id));
-  });
+function handleAdminCreate(req, res) {
+  return createAsset(req.user.id, req.body.mime, req.body.key, req.body.url);
+}
 
-  return router;
-})();
+// Create
+router.post("/", function(req, res, next) {
+  res.jsonResultOf(req.is("video/*") ? upload(req, res) : adminCreate(req, res));
+});
+
+// Retrieve (by id)
+router.get("/:id", function(req, res, next) {
+  if (req.user.level > 0) {
+    res.jsonError({ status: 401 });
+  }
+  else {
+    res.jsonResultOf(Asset.findById(req.params.id));
+  }
+});
+
+// Delete all.
+router.delete("/", function(req, res) {
+  if (req.user.level > 0) {
+    res.jsonError({ status: 401 });
+  }
+  else {
+    res.jsonResultOf(Asset.destroy({ where: {} }));
+  }
+});
+
+// Delete one.
+router.delete("/:id", function(req, res, next) {
+  if (req.user.level > 0) {
+    res.jsonError({ status: 401 });
+  }
+  else {
+    res.jsonResultOf(Asset.destroyById(req.params.id));
+  }
+});
+
+module.exports = router;
