@@ -1,10 +1,8 @@
 /* biz/actions.js */
 
-const Promise = require("promise");
 const extend = require("extend");
-const models = require("../models/index");
-const exec = require("../util/exec");
 const when = require("../util/when");
+const Miner = require("./miner");
 
 const MSG_INVITATION = "inv";      // Ask another user to connect.
 const MSG_GREETING = "gre";        // Say hi.  One time, immediate.
@@ -33,8 +31,6 @@ const ACTIONS = {
 }
 
 const MAX_ACTION_ITEMS = 20;
-const MAX_MESSAGES = 5;
-const MAX_CONNECTIONS = 10;
 
 function byPriorityDesc(a, b) {
   return b.priority - a.priority;
@@ -57,10 +53,8 @@ function msgActionItem(msg, action, data) {
 }
 
 function ActionCompiler(user) {
-  var self = this;
-  self.user = user;
-  self.connections = [];
-  self.actionItems = [];
+  this.user = user;
+  this.actionItems = [];
 }
 
 function announcementTitle(compiler, announcement) {
@@ -77,81 +71,47 @@ function announcementTitle(compiler, announcement) {
   return title;
 }
 
-function fetchAssociatedData(compiler) {
-  return exec.executeGroup(compiler, [
-    function() {
-      return models.Connection.findByUserId(compiler.user.id, {
-        include: [{
-          model: models.User,
-          as: "peer",
-          required: true
-        }],
-        limit: MAX_CONNECTIONS,
-        order: [ [ "grade", "DESC" ] ]
-      })
-      .then(function(connections) {
-        compiler.connections = connections;
-      })
-    },
-    function() {
-      return models.Announcement.findByDate(new Date(), {
-        include: [{
-          model: models.Asset,
-          as: "asset",
-          attributes: [ "url" ]
-        }, {
-          model: models.User,
-          as: "creator",
-          attributes: [ "id", "name" ],
-          include: [{
-            model: models.Asset,
-            as: "asset",
-            attributes: [ "url" ]
-          }]
-        }],
-        limit: MAX_CONNECTIONS,
-        order: [ [ "startDate", "DESC" ] ]
-      })
-      .then(function(announcements) {
-        compiler.announcements = announcements;
-      })
-    }
-  ]);
+function messageTitle(compiler, message) {
+  var title = "Greeting";
+  if (message.fromUser) {
+    title += " from " + message.fromUser.name;
+  }
+  return title;
 }
 
 function addActionItem(compiler, msg, action, data) {
   compiler.actionItems.push(msgActionItem(msg, action, data));
 }
 
-function addItemsForAdmin(compiler) {
+function addAdminAnnouncementItems(compiler) {
   addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_CREATE);
+
   var announcements = compiler.announcements;
-  if (announcements) {
-    for (var i = 0; i < announcements.length; ++i) {
-      var ann = announcements[i];
-      addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, {
-        title: "Update " + announcementTitle(compiler, ann),
-        assetUrl: ann.asset.url
-      });
-    }
+  for (var i = 0; i < announcements.length; ++i) {
+    var ann = announcements[i];
+    addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, {
+      title: "Update " + announcementTitle(compiler, ann),
+      assetUrl: ann.asset.url
+    });
   }
 }
 
-function addItemsForNormalUsers(compiler) {
+function addInvitationItems(compiler) {
   // disable for now...
   // addActionItem(compiler, MSG_INVITATION, ACTION_CREATE);
 }
 
-function addItemsForAll(compiler) {
+function addGreetingItems(compiler) {
   var connections = compiler.connections;
-  if (connections) {
-    for (var i = 0; i < connections.length; ++i) {
-      var conn = connections[i];
-      addActionItem(compiler, MSG_GREETING, ACTION_CREATE, {
-        title: "Send a greeting to " + conn.peer.name
-      });
-    }
+  for (var i = 0; i < connections.length; ++i) {
+    var conn = connections[i];
+    addActionItem(compiler, MSG_GREETING, ACTION_CREATE, {
+      title: "Send a greeting to " + conn.peer.name
+    });
   }
+}
+
+function addProfileItems(compiler) {
   if (!compiler.user.asset) {
     addActionItem(compiler, MSG_PROFILE, ACTION_CREATE);
   }
@@ -160,18 +120,31 @@ function addItemsForAll(compiler) {
       assetUrl: compiler.user.asset.url
     });
   }
+}
+
+function addAnnouncementItems(compiler) {
   var announcements = compiler.announcements;
-  if (announcements) {
-    for (var i = 0; i < announcements.length; ++i) {
-      var ann = announcements[i];
-      if (ann.creatorId != compiler.user.id) {
-        addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, {
-          title: announcementTitle(compiler, ann),
-          assetUrl: ann.asset.url,
-          sender: ann.creator
-        });
-      }
+  for (var i = 0; i < announcements.length; ++i) {
+    var ann = announcements[i];
+    if (ann.creatorId != compiler.user.id) {
+      addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, {
+        title: announcementTitle(compiler, ann),
+        assetUrl: ann.asset.url,
+        sender: ann.creator
+      });
     }
+  }
+}
+
+function addMessageItems(compiler) {
+  var messages = compiler.incomingMessages;
+  for (var i = 0; i < messages.length; ++i) {
+    var message = messages[i];
+    addActionItem(compiler, MSG_GREETING, ACTION_RECEIVE, {
+      title: greetingTitle(compiler, message),
+      assetUrl: message.asset.url,
+      sender: message.fromUser
+    });
   }
 }
 
@@ -179,11 +152,14 @@ function createActionItems(compiler) {
   var userLevel = compiler.user.level;
   switch (userLevel) {
   case 0:
-    addItemsForAdmin(compiler);
+    addAdminAnnouncementItems(compiler);
   case 1:
-    addItemsForNormalUsers(compiler);
+    addInvitationItems(compiler);
   default:
-    addItemsForAll(compiler);
+    addGreetingItems(compiler);
+    addProfileItems(compiler);
+    addAnnouncementItems(compiler);
+    addMessageItems(compiler);
   }
 }
 
@@ -193,19 +169,17 @@ function prioritizeActionItems(compiler) {
     return b.priority - a.priority;
   });
   compiler.actionItems = actionItems.slice(0, MAX_ACTION_ITEMS);
-  return Promise.resolve(compiler);
 }
 
 ActionCompiler.prototype.run = function() {
   var compiler = this;
-  return fetchAssociatedData(compiler)
-  .then(function() {
+  return new Miner(compiler.user).run()
+  .then(function(miner) {
+    extend(compiler, miner);
     return createActionItems(compiler);
   })
   .then(function() {
-    return prioritizeActionItems(compiler);
-  })
-  .then(function() {
+    prioritizeActionItems(compiler);
     return {
       userName: compiler.user.name,
       actionItems: compiler.actionItems

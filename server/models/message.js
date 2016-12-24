@@ -1,5 +1,7 @@
 'use strict';
 module.exports = function(sequelize, DataTypes) {
+  const extend = require("extend");
+
   var Message = sequelize.define('Message', {
     type: DataTypes.INTEGER,
     status: DataTypes.INTEGER
@@ -10,16 +12,23 @@ module.exports = function(sequelize, DataTypes) {
         Message.belongsTo(models.User, { as: "fromUser" });
         Message.belongsTo(models.Asset, { as: "asset" });
       },
-      findById: function(id) {
-        return Message.find({ where: { id: id } })
+      findById: function(id, options) {
+        return Message.find(extend({ where: { id: id } }, options));
+      },
+      findByFromUserId: function(fromUserId, options) {
+        return Message.find(extend({ where: { fromUserId: fromUserId } }, options));
+      },
+      findByToUserId: function(toUserId, options) {
+        return Message.find(extend({ where: { toUserId: toUserId } }, options));
       },
       destroyById: function(id) {
-        return Message.destroy({ where: { id: id } })
+        return Message.destroy({ where: { id: id } });
       },
       destroyAll: function() {
-        return Message.destroy({ where: {} })
+        return Message.destroy({ where: {} });
       }
     }
   });
+
   return Message;
 };
