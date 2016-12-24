@@ -16,10 +16,10 @@ const ACTION_RECEIVE = "rec";      // Interact with an incoming message.
 
 const MESSAGES = {
   "inv": { priority: 9, what: "an invitation" },
-  "gre": { priority: 7, what: "a greeting" },
+  "gre": { priority: 8, what: "a greeting" },
   "rem": { priority: 10, what: "a reminder" },
   "pro": { priority: 5, what: "your profile message" },
-  "ann": { priority: 8, what: "an announcement" }
+  "ann": { priority: 7, what: "an announcement" }
 }
 
 const ACTIONS = {
@@ -97,8 +97,7 @@ function addAdminAnnouncementItems(compiler) {
 }
 
 function addInvitationItems(compiler) {
-  // disable for now...
-  // addActionItem(compiler, MSG_INVITATION, ACTION_CREATE);
+  addActionItem(compiler, MSG_INVITATION, ACTION_CREATE);
 }
 
 function addGreetingItems(compiler) {

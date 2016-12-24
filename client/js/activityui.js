@@ -292,8 +292,8 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     defineButton(self, "Stop Recording", stopRecording, isRecording);
     defineButton(self, saveButtonLabel, doSave, isGravid);
     defineButton(self, "Discard", discardRecording, isGravid);
-    defineButton(self, "Reply to " + self.sender.name, reply, canReply);
-    defineButton(self, "See " + self.sender.name + "'s Profile", seeSenderProfile, canSeeProfile);
+    defineButton(self, function() { return "Reply to " + (self.sender && self.sender.name); }, reply, canReply);
+    defineButton(self, function() { return "See " + (self.sender && self.sender.name) + "'s Profile"; }, seeSenderProfile, canSeeProfile);
   }
 
   function ActivityComponent(container, options) {
