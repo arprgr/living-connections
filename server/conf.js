@@ -18,6 +18,7 @@ module.exports = {
     port: 4545,
     mounts: {
       "/": "./client",
+      "/www": "./www",
       "/mocha": "./node_modules/grunt-blanket-mocha/node_modules/mocha",
       "/chai": "./node_modules/chai"
     }
