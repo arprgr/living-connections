@@ -71,7 +71,7 @@ function announcementTitle(compiler, announcement) {
   return title;
 }
 
-function messageTitle(compiler, message) {
+function greetingTitle(compiler, message) {
   var title = "Greeting";
   if (message.fromUser) {
     title += " from " + message.fromUser.name;

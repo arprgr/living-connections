@@ -16,10 +16,10 @@ module.exports = function(sequelize, DataTypes) {
         return Message.find(extend({ where: { id: id } }, options));
       },
       findByFromUserId: function(fromUserId, options) {
-        return Message.find(extend({ where: { fromUserId: fromUserId } }, options));
+        return Message.findAll(extend({ where: { fromUserId: fromUserId } }, options));
       },
       findByToUserId: function(toUserId, options) {
-        return Message.find(extend({ where: { toUserId: toUserId } }, options));
+        return Message.findAll(extend({ where: { toUserId: toUserId } }, options));
       },
       destroyById: function(id) {
         return Message.destroy({ where: { id: id } });
