@@ -57,6 +57,22 @@ function createNewSession(userId) {
   });
 }
 
+function findOrCreateUserByEmail(email) {
+  return findEmailProfile(email)
+  .then(function(emailProfile) {
+    if (emailProfile) {
+      return emailProfile.user;
+    }
+    return createNewUser("New User", 1)
+    .then(function(user) {
+      return createNewEmailProfile(email, user.id)
+      .then(function() {
+        return user;
+      });
+    })
+  })
+}
+
 // Transmit session ID to client.
 function sendSessionCookie(res, sessionId) {
   res.cookie("s", sessionId, {
@@ -93,31 +109,22 @@ Transaction.prototype = {
   resolveByEmailSessionSeed: function() {
     var self = this;
     var eseed = self.req.query && self.req.query.e;
-    var email;
     if (eseed) {
       return findEmailSessionSeed(eseed)
       .then(function(emailSessionSeed) {
-        email = emailSessionSeed.email;
-        return findEmailProfile(email);
-      })
-      .then(function(emailProfile) {
-        if (emailProfile) {
-          return Promise.resolve(emailProfile);
-        }
-        else {
-          return createNewUser("New User", 1)
+        if (emailSessionSeed) {
+          return findOrCreateUserByEmail(emailSessionSeed.email)
           .then(function(user) {
-            return createNewEmailProfile(email, user.id);
+            self.req.user = user;
+            return createNewSession(user.id);
+          })
+          .then(function(session) {
+            sendSessionCookie(self.res, session.externalId);
+            self.req.session = session;
+            return true;
           })
         }
-      })
-      .then(function(emailProfile) {
-        return createNewSession(emailProfile.userId);
-      })
-      .then(function(session) {
-        sendSessionCookie(self.res, session.externalId);
-        self.req.session = session;
-        return true;
+        return false;
       })
     }
     else {
@@ -163,6 +170,7 @@ module.exports = function(req, res, next) {
 
   var tx = new Transaction(req, res, next);
 
+  // TODO: handle the case of following a link while session already exists.
   tx.resolveBySessionId(req.cookies.s, req, next)
   .then(function(resolved) {
     return resolved ? true : tx.resolveByEmailSessionSeed()
