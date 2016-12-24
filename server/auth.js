@@ -63,7 +63,7 @@ function findOrCreateUserByEmail(email) {
     if (emailProfile) {
       return emailProfile.user;
     }
-    return createNewUser("New User", 1)
+    return createNewUser(email, 1)
     .then(function(user) {
       return createNewEmailProfile(email, user.id)
       .then(function() {
