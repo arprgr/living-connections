@@ -39,16 +39,11 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     self.localErrorCount = 0;
     self.waiting = false;
 
-    var userName = results.userName;
-    if (userName) {
-      if (!self.user) {
-        self.user = {};
-      }
-      self.user.name = userName;
-      // TODO: additional user info 
+    if (results.user) {
+      self.user = results.user;
     }
 
-    userName ? startPolling(self) : stopPolling(self);
+    self.user && self.user.name ? startPolling(self) : stopPolling(self);
 
     var actionItems = results.actionItems;
     if (actionItems) {

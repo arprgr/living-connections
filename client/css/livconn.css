@@ -76,8 +76,10 @@ div {
   height: 35px;
   padding: 15px 8px 6px 60px;
 }
-#app .logout {
+.userIdent {
   float: right;
+}
+.logout {
   color: #682;
 }
 #app .body .listing {

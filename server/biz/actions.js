@@ -163,12 +163,12 @@ function createActionItems(compiler) {
   }
 }
 
-function prioritizeActionItems(compiler) {
+function finalizeActionItems(compiler) {
   var actionItems = compiler.actionItems;
   actionItems.sort(function(a, b) {
     return b.priority - a.priority;
   });
-  compiler.actionItems = actionItems.slice(0, MAX_ACTION_ITEMS);
+  return actionItems.slice(0, MAX_ACTION_ITEMS);
 }
 
 ActionCompiler.prototype.run = function() {
@@ -179,10 +179,9 @@ ActionCompiler.prototype.run = function() {
     return createActionItems(compiler);
   })
   .then(function() {
-    prioritizeActionItems(compiler);
     return {
-      userName: compiler.user.name,
-      actionItems: compiler.actionItems
+      user: compiler.user,
+      actionItems: finalizeActionItems(compiler)
     }
   })
 }

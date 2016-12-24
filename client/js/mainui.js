@@ -3,35 +3,27 @@
 define([ "jquery", "services", "listingui", "activityui" ],
   function($, Services, ListingController, ActivityComponent) {
 
-  function expandString(self, format) {
-    var sessionManager = Services.sessionManager;
-    var openActionItem = self.openActionItem || {};
-    var stuff = {
-      u: (sessionManager.user && sessionManager.user.name) || "",
-      o: (openActionItem.user && openActionItem.user.name) || ""
-    }
-    return format.replace(/%u%/g, stuff.u).replace(/%o%/g, stuff.o);
-  }
+  var sessionManager = Services.sessionManager;
 
   function renderHeader(self) {
-    var sessionManager = Services.sessionManager;
     var openActionItem = self.openActionItem || {};
-    var title = "";
-    if (sessionManager.user) {
-      title = expandString(self, openActionItem.titleFormat || "");
-    }
+    var user = sessionManager.user || {}
     self.container.find(".header")
       .empty()
       .append($("<span>")
         .addClass("title")
-        .text(title))
-      .append($("<a>")
-        .addClass("logout")
-        .text("Log out")
-        .attr("href", "#")
-        .click(function() {
-          sessionManager.logOut();
-        }));
+        .text(openActionItem.titleFormat || ""))
+      .append($("<span>")
+        .addClass("userIdent")
+        .append($("<span>").text(user.name || ""))
+        .append($("<span>").text(" "))
+        .append($("<a>")
+          .addClass("logout")
+          .text("Log out")
+          .attr("href", "#")
+          .click(function() {
+            sessionManager.logOut();
+          })))
   }
 
   function handleSessionManagerStateChange(self) {
@@ -75,7 +67,6 @@ define([ "jquery", "services", "listingui", "activityui" ],
         .append($("<div>").addClass("listing"))
         .append($("<div>").addClass("activity")))
       .hide();
-    var sessionManager = Services.sessionManager;
     sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     self.listingController = new ListingController(sessionManager)
       .onActionItemOpen(handleActivityOpen.bind(self));
