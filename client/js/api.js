@@ -12,7 +12,7 @@ define([ "http" ], function(HttpMethod) {
         props: [ "assetId", "toUserId" ]
       },
       invites: {
-        props: [ "assetId", "toAddress" ]
+        props: [ "assetId", "email" ]
       },
       reminders: {
         props: [ "assetId", "toUserId" ]
@@ -87,7 +87,7 @@ define([ "http" ], function(HttpMethod) {
     postInvite: function(params) {
       return new this.invites.post()
         .setAssetId(params.assetId)
-        .setToAddress(params.toAddress)
+        .setEmail(params.email)
         .execute();
     },
 
@@ -95,7 +95,6 @@ define([ "http" ], function(HttpMethod) {
       return new this.invites.put()
         .setId(params.id)
         .setAssetId(params.assetId)
-        .setToAddress(params.toAddress)
         .execute();
     },
 

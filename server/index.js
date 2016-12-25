@@ -49,6 +49,7 @@ for (var type in {
   "connections": 1,
   "emailprofiles": 1,
   "emailsessionseeds": 1,
+  "invites": 1,
   "messages": 1,
   "sessions": 1,
   "users": 1
