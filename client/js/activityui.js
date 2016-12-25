@@ -4,7 +4,8 @@
 // Regardless of mode, there is always a video element, an area for instructions, an input form,
 // and a set of function buttons.
 
-define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent) {
+define([ "jquery", "services", "videoui", "emailinput" ],
+  function($, Services, VideoComponent, EmailInputComponent) {
 
   // Service imports.
 
@@ -206,6 +207,10 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
 
   function doSave(self) {
     pauseVideo(self);
+    if (self.form.validate && !self.form.validate()) {
+      alert("invalid");
+      return;
+    }
     updateState(self, STATE_SAVING);
     apiService.saveVideo(self.videoBlob)
     .then(function(asset) {
@@ -258,10 +263,26 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
         .text("Exit")
         .attr("href", "#")
         .click(function() { close(self); }))
-      .append($("<div>").addClass("form"))
       .append($("<div>").addClass("instructions"))
       .append(self.videoComponent.container)
+      .append($("<div>").addClass("form"))
       .append($("<div>").addClass("functions"))
+  }
+
+  function renderForm(self) {
+    var container = self.container.find(".form")
+      .empty();
+    self.form.validate = undefined;
+    if (self.what == "inv" && self.action == "cre") {
+      var input = new EmailInputComponent($("<span>"));
+      self.form.validate = function() {
+        self.form.email = input.activate();
+        return self.form.email != null;
+      }
+      container
+        .append($("<span>").text("Email address of invitee: "))
+        .append(input.container);
+    }
   }
 
   function defineButton(self, label, clickFunc, visibleFunc) {
@@ -312,7 +333,7 @@ define([ "jquery", "services", "videoui" ], function($, Services, VideoComponent
     };
 
     renderSkeleton(self, options);
-    //renderForm(self);
+    renderForm(self);
     defineButtons(self);
 
     if (options.assetUrl) {

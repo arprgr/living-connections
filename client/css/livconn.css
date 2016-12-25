@@ -123,6 +123,10 @@ video {
   padding-top: 3px;
   text-align: center;
 }
+#app .form {
+  text-align: center;
+  margin: 4px;
+}
 #app .function {
   background-color: white;
   color: #004;

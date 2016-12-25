@@ -30,9 +30,11 @@ define([ "jquery" ], function($) {
   function activate(self) {
     var text = selectInput(self).val();
     if (text) {
+      text = text.toLowerCase();
       if (isValidEmail(text)) {
         showValid(self);
-        self.onSubmitFunc && self.onSubmitFunc(text.toLowerCase());
+        self.onSubmitFunc && self.onSubmitFunc(text);
+        return text;
       }
       else {
         showInvalid(self);
@@ -65,7 +67,7 @@ define([ "jquery" ], function($) {
       self.container.hide();
     },
     activate: function() {
-      activate(this);
+      return activate(this);
     },
     _render: function() {
       render(this);
