@@ -20,13 +20,9 @@ define([ "jquery", "obs" ], function($, Observable) {
     var promise = $.Deferred();
     var theVideo = self.getVideoElement();
 
-console.log('setSource');
-
     if (!self.state) {
-console.log('create observable state of video');
       self.state = new Observable(0);
       theVideo.onloadedmetadata = function() {
-console.log('video metadata loaded');
         self.state.setValue(1);
       }
     }
@@ -34,7 +30,6 @@ console.log('video metadata loaded');
 
     if (src != null) {
       var undoer = self.state.addChangeListener(function() {
-console.log('notification received');
         promise.resolve(theVideo);
         undoer.undo();
       });
