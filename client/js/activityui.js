@@ -125,8 +125,7 @@ define([ "jquery", "services", "videoui", "emailinput" ],
     }
   }
 
-  function toErrorState(self, error) {
-    // console.log(error);
+  function toErrorState(self) {
     self.videoBlob = null;
     updateVideo(self, null);
     updateState(self, STATE_ERROR);
@@ -184,8 +183,8 @@ define([ "jquery", "services", "videoui", "emailinput" ],
     .then(function() {
       updateState(self, nextState);
     })
-    .catch(function(error) {
-      toErrorState(self, error);
+    .catch(function() {
+      toErrorState(self);
     });
   }
 
@@ -226,8 +225,8 @@ define([ "jquery", "services", "videoui", "emailinput" ],
         close(self);
       }
     })
-    .catch(function(error) {
-      toErrorState(self, error);
+    .catch(function() {
+      toErrorState(self);
     });
   }
 
@@ -320,7 +319,7 @@ define([ "jquery", "services", "videoui", "emailinput" ],
   function ActivityComponent(container, options) {
     var self = this;
     self.container = container;
-    self.videoComponent = new VideoComponent($("<div>"), {}).setVisible(true);
+    self.videoComponent = new VideoComponent($("<div>"), {});
     self.state = STATE_INIT;
     self.buttons = [];
     var parts = options.type.split("-");

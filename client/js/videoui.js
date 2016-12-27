@@ -11,8 +11,9 @@ define([ "jquery", "obs" ], function($, Observable) {
     this.container = container;
     this.options = options = $.extend({}, DEFAULT_OPTIONS, options);
     container
-      .hide()
       .addClass(options.containerClass)
+      // jQuery is unable to handle creation of video elements.
+      // TODO: escape the elementId
       .html("<video id='" + options.elementId + "'></video>");
   }
 
@@ -20,17 +21,23 @@ define([ "jquery", "obs" ], function($, Observable) {
     var promise = $.Deferred();
     var theVideo = self.getVideoElement();
 
-    if (!self.state) {
-      self.state = new Observable(0);
-      theVideo.onloadedmetadata = function() {
-        self.state.setValue(1);
-      }
+    self.state = new Observable(0);
+    theVideo.onloadedmetadata = function() {
+      self.state.setValue(1);
     }
-    self.state.setValue(0);
+    theVideo.onerror = function() {
+      // Event object contains no useful information.
+      self.state.setValue(-1);
+    }
 
     if (src != null) {
       var undoer = self.state.addChangeListener(function() {
-        promise.resolve(theVideo);
+        if (self.state.value == 1) {
+          promise.resolve(theVideo);
+        }
+        else {
+          promise.reject();
+        }
         undoer.undo();
       });
     }
@@ -48,8 +55,12 @@ define([ "jquery", "obs" ], function($, Observable) {
   }
 
   VideoComponent.prototype = {
-    setVisible: function(visible) {
-      this.container.setVisible(visible);
+    show: function() {
+      this.container.show();
+      return this;
+    },
+    hide: function() {
+      this.container.hide();
       return this;
     },
     getVideoElement: function() {
