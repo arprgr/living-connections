@@ -36,6 +36,7 @@ function findEmailSessionSeed(externalId) {
   return models.EmailSessionSeed.findByExternalId(externalId);
 }
 
+// Look up an email profile, given a email address.
 function findEmailProfile(email) {
   return models.EmailProfile.findByEmail(email, USER_WITH_THAT);
 }
@@ -67,6 +68,8 @@ function createNewSession(user) {
   });
 }
 
+// If there is no user having the given email address, create both the new Users
+// and the new EmailProfile records.
 function findOrCreateUserByEmail(email) {
   return findEmailProfile(email)
   .then(function(emailProfile) {
@@ -83,19 +86,26 @@ function findOrCreateUserByEmail(email) {
   })
 }
 
-function Transaction(req, res, next) {
+//
+// Class AuthMgr - an implementation class for management of user/session state.
+//
+function AuthMgr(req, res, next) {
+  // Express thingies.
   this.req = req;
   this.res = res;
   this.next = next;
 
+  // Sessions are persisted via cookie.
   var sessionCookie = req.cookies.s && req.cookies.s;
   this.sessionCookie = sessionCookie;
   this.sessionId = sessionCookie;
 
+  // Email session seeds appear in the query string, usually in a link to the index page.
   this.eseed = req.query && req.query.e;
 }
 
-function Transaction_lookupSession(self) {
+// If the request includes session identification, fetch the session and user objects.
+function AuthMgr_lookupSession(self) {
   if (self.sessionId) {
     return findSession(self.sessionId).then(function(session) {
       self.session = session;
@@ -107,7 +117,8 @@ function Transaction_lookupSession(self) {
   }
 }
 
-function Transaction_lookupEmailSessionSeed(self) {
+// If the request refers to an email session seed, fetch the EmailSessionSeed object.
+function AuthMgr_lookupEmailSessionSeed(self) {
   if (self.eseed) {
     return findEmailSessionSeed(self.eseed).then(function(emailSessionSeed) {
       self.emailSessionSeed = emailSessionSeed;
@@ -120,19 +131,31 @@ function Transaction_lookupEmailSessionSeed(self) {
 }
 
 // Transmit session ID to client.
-function Transaction_sendSessionCookie(self) {
-  res = self.res;
-  sessionId = self.session.externalId;
+function sendSessionCookie(res, sessionId) {
   res.cookie("s", sessionId, {
     maxAge: 2147483647,
     path: "/",
   });
 }
 
-function Transaction_snapEmailSessionSeed(self) {
+// Follow up on a new user.
+function AuthMgr_initiateNewUser(self) {
+  sendSessionCookie(self.res, self.session.externalId);
+  // TODO: move this into a biz logic module.
+  var emailSessionSeed = self.emailSessionSeed;
+  if (emailSessionSeed && emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
+    return models.Message.create({
+      fromUserId: emailSessionSeed.fromUserId,
+      assetId: emailSessionSeed.assetId,
+      toUserId: self.session.user.id
+    }).then(function() {
+      return self;
+    });
+  }
+  return self;
 }
 
-function Transaction_resolveSession(self) {
+function AuthMgr_resolveSession(self) {
   // If a user clicks on an invitation/ticket email:
   if (self.emailSessionSeed) {
     // If the user is already logged in...
@@ -147,11 +170,7 @@ function Transaction_resolveSession(self) {
     .then(createNewSession)
     .then(function(session) {
       self.session = session;
-      Transaction_sendSessionCookie(self);
-    })
-    .then(function() {
-      Transaction_snapEmailSessionSeed(self);
-      return self;
+      return AuthMgr_initiateNewUser(self);
     });
   }
   else {
@@ -175,28 +194,22 @@ function isLocalRequest(req) {
 }
 
 // Should we grant this request access to superuser functions?
-function Transaction_isSuperUser(self) {
+function AuthMgr_isSuperUser(self) {
   return hasSecretAccessKey(self.req) || isLocalRequest(self.req);
 }
 
-Transaction.prototype = {
+AuthMgr.prototype = {
   lookupSession: function() {
-    return Transaction_lookupSession(this);
+    return AuthMgr_lookupSession(this);
   },
   lookupEmailSessionSeed: function() {
-    return Transaction_lookupEmailSessionSeed(this);
-  },
-  sendSessionCookie: function() {
-    return Transaction_sendSessionCookie(this);
-  },
-  snapEmailSessionSeed: function() {
-    return Transaction_snapEmailSessionSeed(this);
+    return AuthMgr_lookupEmailSessionSeed(this);
   },
   resolveSession: function() {
-    return Transaction_resolveSession(this);
+    return AuthMgr_resolveSession(this);
   },
   isSuperUser: function() {
-    return Transaction_isSuperUser(this);
+    return AuthMgr_isSuperUser(this);
   }
 }
 
@@ -205,7 +218,7 @@ Transaction.prototype = {
 // Based on request attributes, attach a user and session to the request object.
 //
 module.exports = function(req, res, next) {
-  new Transaction(req, res, next).lookupSession()
+  new AuthMgr(req, res, next).lookupSession()
   .then(function(tx) {
     return tx.lookupEmailSessionSeed();
   })
