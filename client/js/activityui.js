@@ -12,27 +12,6 @@ define([ "jquery", "services", "videoui", "emailinput" ],
   var videoService = Services.videoService;
   var apiService = Services.apiService;
 
-  var SAVE_METHODS = {
-    "ann": {
-      "cre": apiService.postAnnouncement.bind(apiService),
-      "upd": apiService.updateAnnouncement.bind(apiService)
-    },
-    "gre": {
-      "cre": apiService.postGreeting.bind(apiService),
-      "upd": apiService.updateGreeting.bind(apiService)
-    },
-    "inv": {
-      "cre": apiService.postInvite.bind(apiService),
-      "upd": apiService.updateInvite.bind(apiService)
-    },
-    "rem": {
-    },
-    "pro": {
-      "cre": apiService.updateUser.bind(apiService),
-      "upd": apiService.updateUser.bind(apiService)
-    }
-  }
-
   // Component states.
 
   var STATE_INIT = 0;          // Initial, nothing going on yet.
@@ -215,7 +194,7 @@ define([ "jquery", "services", "videoui", "emailinput" ],
     .then(function(asset) {
       self.videoBlob = null;
       self.form.assetId = asset.id;
-      return SAVE_METHODS[self.what][self.action](self.form);
+      return apiService.saveForm(self.what, self.action, self.form);
     })
     .then(function(model) {
       if (model.asset && model.asset.url) {

@@ -2,41 +2,131 @@
 
 define([ "http" ], function(HttpMethod) {
 
+  function makePostAnnouncement() {
+    var PostAnnouncementMethod = new HttpMethod.PostForm()
+      .addPathComponent("announcements")
+      .addQueryParameter("assetId")
+      .addQueryParameter("startDate")
+      .addQueryParameter("endDate")
+      .build();
+
+    return function(form) {
+      return new PostAnnouncementMethod()
+        .setAssetId(form.assetId)
+        .setStartDate(form.startDate)
+        .setEndDate(form.endDate)
+        .execute();
+    }
+  }
+
+  function makeUpdateAnnouncement() {
+    var UpdateAnnouncementMethod = new HttpMethod.PutForm()
+      .addPathComponent("announcements")
+      .addPathParameter("id")
+      .addQueryParameter("assetId")
+      .addQueryParameter("startDate")
+      .addQueryParameter("endDate")
+      .build();
+
+    return function(form) {
+      return new UpdateUserMethod()
+        .setAssetId(form.assetId)
+        .setStartDate(form.startDate)
+        .setEndDate(form.endDate)
+        .execute();
+    }
+  }
+
+  function makePostGreeting() {
+    var PostGreetingMethod = new HttpMethod.PostForm()
+      .addPathComponent("messages")
+      .addQueryParameter("assetId")
+      .addQueryParameter("toUserId")
+      .build();
+
+    return function(form) {
+      return new PostGreetingMethod()
+        .setAssetId(form.assetId)
+        .setToUserId(form.toUserId)
+        .execute();
+    }
+  }
+
+  function makeUpdateGreeting() {
+    var UpdateGreetingMethod = new HttpMethod.PutForm()
+      .addPathComponent("messages")
+      .addPathParameter("id")
+      .addQueryParameter("assetId")
+      .build();
+
+    return function(form) {
+      return new UpdateGreetingMethod()
+        .setAssetId(form.assetId)
+        .execute();
+    }
+  }
+
+  function makePostInvite() {
+    var PostInviteMethod = new HttpMethod.PostForm()
+      .addPathComponent("invites")
+      .addQueryParameter("assetId")
+      .addQueryParameter("email")
+      .build();
+
+    return function(form) {
+      return new PostInviteMethod()
+        .setAssetId(form.assetId)
+        .setEmail(form.email)
+        .execute();
+    }
+  }
+
+  function makeUpdateInvite() {
+    var UpdateInviteMethod = new HttpMethod.PutForm()
+      .addPathComponent("invites")
+      .addPathParameter("id")
+      .addQueryParameter("assetId")
+      .build();
+
+    return function(form) {
+      return new UpdateInviteMethod()
+        .setAssetId(form.assetId)
+        .execute();
+    }
+  }
+
+  function makeUpdateUser() {
+    var UpdateUserMethod = new HttpMethod.PutForm()
+      .addPathComponent("/users/-")
+      .addQueryParameter("assetId")
+      .build();
+
+    return function updateUser(form) {
+      return new UpdateUserMethod()
+        .setAssetId(form.assetId)
+        .execute();
+    }
+  }
+
   function ApiService() {
 
-    var schema = {
-      announcements: {
-        props: [ "assetId", "startDate", "endDate" ]
+    this.saveMethods = {
+      "ann": {
+        "cre": makePostAnnouncement(),
+        "upd": makeUpdateAnnouncement()
       },
-      messages: {
-        props: [ "assetId", "toUserId" ]
+      "gre": {
+        "cre": makePostGreeting(),
+        "upd": makeUpdateGreeting()
       },
-      invites: {
-        props: [ "assetId", "email" ]
+      "inv": {
+        "cre": makePostInvite(),
+        "upd": makeUpdateInvite()
       },
-      reminders: {
-        props: [ "assetId", "toUserId" ]
+      "pro": {
+        "cre": makeUpdateUser(),
+        "upd": makeUpdateUser()
       }
-    }
-
-    for (var entityName in schema) {
-      this[entityName] = (function(entityDesc) {
-        function build(builderClass, isPut) {
-          var builder = new builderClass()
-            .addPathComponent(entityName);
-          if (isPut) {
-            builder.addPathParameter("id");
-          }
-          for (var i = 0; i < entityDesc.props.length; ++i) {
-            builder.addQueryParameter(entityDesc.props[i]);
-          }
-          return builder.build();
-        }
-        return {
-          post: build(HttpMethod.PostForm),
-          put: build(HttpMethod.PutForm, true)
-        }
-      })(schema[entityName]);
     }
   }
 
@@ -54,61 +144,8 @@ define([ "http" ], function(HttpMethod) {
         .execute();
     },
 
-    postAnnouncement: function(params) {
-      return new this.announcements.post()
-        .setAssetId(params.assetId)
-        .setStartDate(params.startDate)
-        .setEndDate(params.endDate)
-        .execute();
-    },
-
-    updateAnnouncement: function(params) {
-      return new this.announcements.put()
-        .setId(params.id)
-        .setAssetId(params.assetId)
-        .execute();
-    },
-
-    postGreeting: function(params) {
-      return new this.messages.post()
-        .setAssetId(params.assetId)
-        .setToUserId(params.toUserId)
-        .execute();
-    },
-
-    updateGreeting: function(params) {
-      return new this.messages.put()
-        .setId(params.id)
-        .setAssetId(params.assetId)
-        .setToUserId(params.toUserId)
-        .execute();
-    },
-
-    postInvite: function(params) {
-      return new this.invites.post()
-        .setAssetId(params.assetId)
-        .setEmail(params.email)
-        .execute();
-    },
-
-    updateInvite: function(params) {
-      return new this.invites.put()
-        .setId(params.id)
-        .setAssetId(params.assetId)
-        .execute();
-    },
-
-    updateUser: function(params) {
-      var self = this;
-      if (!self.UpdateUserMethod) {
-        self.UpdateUserMethod = new HttpMethod.PutForm()
-          .addPathComponent("/users/-")
-          .addQueryParameter("assetId")
-          .build();
-      }
-      return new self.UpdateUserMethod()
-        .setAssetId(params.assetId)
-        .execute();
+    saveForm: function(what, action, form) {
+      return this.saveMethods[what][action](form);
     }
   }
 
