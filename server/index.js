@@ -32,10 +32,16 @@ server.use(require("./jsonish"));
 // Index page.
 var pug = require("pug");
 server.get("/", function(request, response) {
-  // Recompile every time, because why not?
-  var pageFunction = pug.compileFile("templates/page.pug", CONFIG.pug);
-  response.set("Content-Type", "text/html");
-  response.send(pageFunction(CONFIG.pages.livconn));
+  if (request.query && request.query.e) {
+    // Don't keep trying the session seed.
+    response.redirect("/");
+  }
+  else {
+    // Recompile every time, because why not?
+    var pageFunction = pug.compileFile("templates/page.pug", CONFIG.pug);
+    response.set("Content-Type", "text/html");
+    response.send(pageFunction(CONFIG.pages.livconn));
+  }
 });
 
 // Routers.

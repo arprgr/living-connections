@@ -9,7 +9,6 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
 
   var POLL = new HttpMethod.Get()
     .addPathComponent("a")
-    .addQueryParameter("e", "ess")
     .addQueryParameter("_", "salt")
     .build();
   var REQUEST_EMAIL_VERIFICATION = new HttpMethod.Get()
@@ -70,27 +69,12 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     notifyStateChangeListeners(self);
   }
 
-  function getQueryParameter(name) {
-    var url = window.location.href;
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
-    var results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return "";
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
-  }
-
-  function emailSessionSeed() {
-    return getQueryParameter("e");
-  }
-
   // private - Start the process of pulling the latest session info from the server.
   function startPolling(self) {
     if (!self.pollInterval) {
       function poll() {
         new POLL()
         .setSalt(salt())
-        .setEss(self.pollCount ? undefined : emailSessionSeed())
         .execute()
         .then(function(results) {
           handleAResults(self, results);
