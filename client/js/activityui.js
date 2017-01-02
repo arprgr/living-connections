@@ -4,8 +4,8 @@
 // Regardless of mode, there is always a video element, an area for instructions, an input form,
 // and a set of function buttons.
 
-define([ "jquery", "services", "videoui", "emailinput" ],
-  function($, Services, VideoComponent, EmailInputComponent) {
+define([ "jquery", "services", "videoui", "emailinput", "button" ],
+  function($, Services, VideoComponent, EmailInputComponent, Button) {
 
   // Service imports.
 
@@ -25,10 +25,6 @@ define([ "jquery", "services", "videoui", "emailinput" ],
   var STATE_ERROR = 78         // Something went wrong.
 
   // Video component management.
-
-  function updateVideo(self, src) {
-    return self.videoComponent.setSource(src);
-  }
 
   function pauseVideo(self) {
     self.videoComponent.getVideoElement().pause();
@@ -92,7 +88,7 @@ define([ "jquery", "services", "videoui", "emailinput" ],
   function updateButtons(self) {
     var buttons = self.buttons;
     for (var i = 0; i < buttons.length; ++i) {
-      buttons[i].update();
+      buttons[i]();
     }
   }
 
@@ -104,9 +100,13 @@ define([ "jquery", "services", "videoui", "emailinput" ],
     }
   }
 
+  function clearVideo(self) {
+    return self.videoComponent.setSource(null);
+  }
+
   function toErrorState(self) {
     self.videoBlob = null;
-    updateVideo(self, null);
+    clearVideo(self);
     updateState(self, STATE_ERROR);
   }
 
@@ -130,7 +130,7 @@ define([ "jquery", "services", "videoui", "emailinput" ],
     return self.sender && self.sender.id && self.state == STATE_VIEW;
   }
 
-  function canSeeProfile(self) {
+  function canSeeSenderProfile(self) {
     return self.sender && self.sender.asset && self.sender.asset.url && 
       self.state == STATE_VIEW && self.what != "pro";
   }
@@ -141,29 +141,23 @@ define([ "jquery", "services", "videoui", "emailinput" ],
     self.closeFunc && self.closeFunc();
   }
 
-  function openCamera(self) {
+  function showVideo(self, src, nextState) {
     updateState(self, STATE_LOADING);
-    updateVideo(self, null);
-    videoService.open()
-    .then(function(stream) {
-      return updateVideo(self, stream);
-    })
-    .then(function() {
-      updateState(self, STATE_LIVE);
-    })
-    .catch(function() {
-      updateState(self, STATE_ERROR);
-    });
-  }
-
-  function showVideo(self, url, nextState) {
-    updateState(self, STATE_LOADING);
-    updateVideo(self, url)
+    self.videoComponent.setSource(src)
     .then(function() {
       updateState(self, nextState);
     })
     .catch(function() {
       toErrorState(self);
+    });
+  }
+
+  function openCamera(self) {
+    updateState(self, STATE_LOADING);
+    clearVideo(self);
+    videoService.open()
+    .then(function(stream) {
+      showVideo(self, stream, STATE_LIVE);
     });
   }
 
@@ -178,8 +172,7 @@ define([ "jquery", "services", "videoui", "emailinput" ],
     videoService.stopRecording(function(blob, url) {
       self.videoBlob = blob;
       videoService.close();
-      updateState(self, STATE_PLAYBACK);
-      updateVideo(self, url);
+      showVideo(self, url, STATE_PLAYBACK);
     });
   }
 
@@ -265,24 +258,20 @@ define([ "jquery", "services", "videoui", "emailinput" ],
 
   function defineButton(self, label, clickFunc, visibleFunc) {
 
-    function updateButton() {
-      button.text(typeof label == "function" ? label(self) : label);
-      button.setVisible(visibleFunc(self));
-    }
+    var button = new Button(self.container.find(".functions"));
 
-    var button = $("<div>")
-      .addClass("function")
-      .click(function() {
-        clickFunc(self);
-      })
-      .hide()
-      .appendTo(self.container.find(".functions"));
+    button.onClick(function() {
+      clickFunc(self);
+    });
+
+    function updateButton() {
+      button.visible = visibleFunc(self);
+      button.label = (typeof label == "function") ? label(self) : label;
+    }
 
     updateButton();
 
-    self.buttons.push({
-      update: updateButton
-    });
+    self.buttons.push(updateButton);
   }
 
   function defineButtons(self) {
@@ -292,7 +281,7 @@ define([ "jquery", "services", "videoui", "emailinput" ],
     defineButton(self, saveButtonLabel, doSave, isGravid);
     defineButton(self, "Discard", discardRecording, isGravid);
     defineButton(self, function() { return "Reply to " + (self.sender && self.sender.name); }, reply, canReply);
-    defineButton(self, function() { return "See " + (self.sender && self.sender.name) + "'s Profile"; }, seeSenderProfile, canSeeProfile);
+    defineButton(self, function() { return "See " + (self.sender && self.sender.name) + "'s Profile"; }, seeSenderProfile, canSeeSenderProfile);
   }
 
   function ActivityComponent(container, options) {

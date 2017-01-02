@@ -1,6 +1,6 @@
 body {
 	font-family: Tahoma, Arial;
-  background-color: #bebcbf;
+  background-color: #c6c8d0;
 }
 div {
   margin: 0;
@@ -127,17 +127,18 @@ video {
   text-align: center;
   margin: 4px;
 }
-#app .function {
+button.standard {
   background-color: white;
   color: #004;
-  border: solid 1px #004;
-  border-radius: 4px;
+  border: solid 2px #004;
+  border-radius: 8px;
+  font-size: 18px;
   font-weight: bold;
   padding: 4px;
   display: inline;
   cursor: pointer;
   margin-left: 4px;
 }
-#app .function:hover {
+button.standard:hover {
   background-color: #cc8;
 }
