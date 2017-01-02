@@ -32,6 +32,7 @@ server.use(require("./jsonish"));
 // Index page.
 var pug = require("pug");
 server.get("/", function(request, response) {
+console.log('request.query', request.query);
   if (request.query && request.query.e) {
     // Don't keep trying the session seed.
     response.redirect("/");
@@ -54,7 +55,6 @@ for (var type in {
   "assets": 1,
   "connections": 1,
   "emailprofiles": 1,
-  "emailsessionseeds": 1,
   "invites": 1,
   "messages": 1,
   "sessions": 1,

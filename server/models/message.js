@@ -2,31 +2,118 @@
 module.exports = function(sequelize, DataTypes) {
   const extend = require("extend");
 
-  var Message = sequelize.define('Message', {
-    type: DataTypes.INTEGER,
-    status: DataTypes.INTEGER
-  }, {
-    classMethods: {
-      associate: function(models) {
-        Message.belongsTo(models.User, { as: "toUser" });
-        Message.belongsTo(models.User, { as: "fromUser" });
-        Message.belongsTo(models.Asset, { as: "asset" });
+  var Message;
+  var models;
+
+  function schema() {
+    return {
+      type: DataTypes.INTEGER,
+      status: DataTypes.INTEGER
+    }
+  }
+
+  function includeAsset() {
+    return {
+      model: models.Asset,
+      as: "asset",
+      attributes: [ "url" ]
+    }
+  }
+
+  function includeUser(associationName) {
+    return {
+      model: models.User,
+      as: associationName,
+      attributes: [ "id", "name" ],
+      include: [ includeAsset() ]
+    }
+  }
+
+  function includes() {
+  }
+
+  function associate(_models) {
+    models = _models;
+    Message.belongsTo(models.User, { as: "toUser" });
+    Message.belongsTo(models.User, { as: "fromUser" });
+    Message.belongsTo(models.Asset, { as: "asset" });
+  }
+
+  function builder() {
+    var values = {};
+    var associations = {};
+    return {
+      seed: function(seed) {
+        values.fromUserId = seed.fromUserId;
+        values.assetId = seed.assetId;
+        if ("toUserId" in seed) {
+          values.toUserId = seed.toUserId;
+        }
+        return this;
       },
-      findById: function(id, options) {
-        return Message.find(extend({ where: { id: id } }, options));
+      toUser: function(toUser) {
+        values.toUserId = toUser.id;
+        associations.toUser = toUser;
+        return this;
       },
-      findByFromUserId: function(fromUserId, options) {
-        return Message.findAll(extend({ where: { fromUserId: fromUserId } }, options));
-      },
-      findByToUserId: function(toUserId, options) {
-        return Message.findAll(extend({ where: { toUserId: toUserId } }, options));
-      },
-      destroyById: function(id) {
-        return Message.destroy({ where: { id: id } });
-      },
-      destroyAll: function() {
-        return Message.destroy({ where: {} });
+      build: function() {
+        return Message.create(values)
+        .then(function(model) {
+          extend(model, associations);
+          return model;
+        });
       }
+    }
+  }
+
+  function findById(id) {
+    return Message.find({ where: { id: id } });
+  }
+
+  function findAllWhere(where, includes) {
+    return Message.findAll({
+      where: where,
+      include: includes,
+      order: [ [ "createdAt", "DESC" ] ]
+    });
+  }
+
+  function findByFromUserId(fromUserId) {
+    return findAllWhere({ fromUserId: fromUserId }, [
+      includeAsset(), 
+      includeUser("toUser")
+    ]);
+  }
+
+  function findByToUserId(toUserId) {
+    return findAllWhere({ toUserId: toUserId }, [
+      includeAsset(), 
+      includeUser("fromUser")
+    ]);
+  }
+
+  function destroyWhere(where) {
+    return Message.destroy({ where: where });
+  }
+  
+  function destroyAll() {
+    return destroyWhere({});
+  }
+
+  function destroyById(id) {
+    return destroyWhere({ id: id });
+  }
+
+  Message = sequelize.define('Message', schema(), {
+    classMethods: {
+      associate: associate,
+      builder: builder,
+      findById: findById,
+      findByFromUserId: findByFromUserId,
+      findByToUserId: findByToUserId,
+      findByFromUserId: findByFromUserId,
+      destroyById: destroyById,
+      destroyAll: destroyAll
     }
   });
 

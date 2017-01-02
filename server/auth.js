@@ -4,68 +4,36 @@
 
 const CONFIG = require("./conf");
 const models = require("./models/index");
-const random = require("./util/random");
 const Promise = require("promise");
-
-const USER_WITH_THAT = {
-  include: [{
-    model: models.User,
-    as: "user",
-    required: true,
-    include: [{
-      model: models.Asset,
-      as: "asset"
-    }]
-  }]
-}
-
-const SUPERUSER = {
-  id: 0,
-  name: "Root",
-  level: 0
-}
 
 // Look up a session given its external ID, maybe from a cookie.
 function findSession(externalId) {
-  return models.Session.findByExternalId(externalId, USER_WITH_THAT);
+  return models.Session.findByExternalId(externalId);
 }
 
 // Look up a session seed, given an email address.
 function findEmailSessionSeed(externalId) {
-  // TODO: If the session seed is no longer valid, ignore it.
-  return models.EmailSessionSeed.findByExternalId(externalId);
+  return models.EmailSessionSeed.findCurrentByExternalId(externalId);
 }
 
 // Look up an email profile, given a email address.
 function findEmailProfile(email) {
-  return models.EmailProfile.findByEmail(email, USER_WITH_THAT);
+  return models.EmailProfile.findByEmail(email);
 }
 
 // Create a new user.
 function createNewUser(name, level) {
-  return models.User.create({
-    name: name,
-    level: level
-  });
+  return models.User.builder().name(name).level(level).build();
 }
 
 // Create a new email profile.
-function createNewEmailProfile(email, userId) {
-  return models.EmailProfile.create({
-    email: email,
-    userId: userId
-  });
+function createNewEmailProfile(user, email) {
+  return models.EmailProfile.builder().email(email).user(user).build();
 }
 
 // Create a session.
-function createNewSession(user) {
-  return models.Session.create({
-    externalId: random.id(),
-    userId: user.id
-  }).then(function(session) {
-    session.user = user;   // decorate the session with the user, just as findSession does.
-    return session;
-  });
+function createSessionForUser(user) {
+  return models.Session.builder().user(user).build();
 }
 
 // If there is no user having the given email address, create both the new Users
@@ -78,7 +46,7 @@ function findOrCreateUserByEmail(email) {
     }
     return createNewUser(email, 1)
     .then(function(user) {
-      return createNewEmailProfile(email, user.id)
+      return createNewEmailProfile(user, email)
       .then(function() {
         return user;
       });
@@ -98,7 +66,6 @@ function AuthMgr(req, res, next) {
   // Sessions are persisted via cookie.
   var sessionCookie = req.cookies.s && req.cookies.s;
   this.sessionCookie = sessionCookie;
-  this.sessionId = sessionCookie;
 
   // Email session seeds appear in the query string, usually in a link to the index page.
   this.eseed = req.query && req.query.e;
@@ -106,8 +73,8 @@ function AuthMgr(req, res, next) {
 
 // If the request includes session identification, fetch the session and user objects.
 function AuthMgr_lookupSession(self) {
-  if (self.sessionId) {
-    return findSession(self.sessionId).then(function(session) {
+  if (self.sessionCookie) {
+    return findSession(self.sessionCookie).then(function(session) {
       self.session = session;
       return self;
     });
@@ -138,42 +105,46 @@ function sendSessionCookie(res, sessionId) {
   });
 }
 
-// Follow up on a new user.
-function AuthMgr_initiateNewUser(self) {
-  sendSessionCookie(self.res, self.session.externalId);
+// If the user is logged in, log out.
+function AuthMgr_logOut(self) {
+  if (self.session) {
+    models.Session.destroyByExternalId(self.session.id);
+    self.session = null;
+  }
+}
+
+// Follow up with newly created session.
+function AuthMgr_initiateSession(self, session) {
+  self.session = session;
+
+  sendSessionCookie(self.res, session.externalId);
+
+  // If user was invited, send the invitation message.
   // TODO: move this into a biz logic module.
   var emailSessionSeed = self.emailSessionSeed;
-  if (emailSessionSeed && emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
-    return models.Message.create({
-      fromUserId: emailSessionSeed.fromUserId,
-      assetId: emailSessionSeed.assetId,
-      toUserId: self.session.user.id
+  if (emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
+    // Fire and forget.
+    models.Message.builder().seed(emailSessionSeed).toUser(self.user).build();
+  }
+}
+
+function AuthMgr_resolveSeed(self) {
+  // If a user has clicked on an invitation/ticket email:
+  if (self.emailSessionSeed) {
+    AuthMgr_logOut(self);
+    // Find the user with the given email address, or create one.
+    return findOrCreateUserByEmail(self.emailSessionSeed.email)
+    // Log in.
+    .then(createSessionForUser)
+    // Carry out any necessary side effects.
+    .then(function(session) {
+      AuthMgr_initiateSession(self, session);
     }).then(function() {
       return self;
     });
   }
-  return self;
-}
-
-function AuthMgr_resolveSession(self) {
-  // If a user clicks on an invitation/ticket email:
-  if (self.emailSessionSeed) {
-    // If the user is already logged in...
-    if (self.session) {
-      // Log out.
-      models.Session.destroyByExternalId(self.sessionId);
-      self.session = null;
-    }
-    // Find the user with the given email address, or create one.
-    return findOrCreateUserByEmail(self.emailSessionSeed.email)
-    // Log in.
-    .then(createNewSession)
-    .then(function(session) {
-      self.session = session;
-      return AuthMgr_initiateNewUser(self);
-    });
-  }
   else {
+    // Nothing to do.
     return Promise.resolve(self);
   }
 }
@@ -205,8 +176,8 @@ AuthMgr.prototype = {
   lookupEmailSessionSeed: function() {
     return AuthMgr_lookupEmailSessionSeed(this);
   },
-  resolveSession: function() {
-    return AuthMgr_resolveSession(this);
+  resolveSeed: function() {
+    return AuthMgr_resolveSeed(this);
   },
   isSuperUser: function() {
     return AuthMgr_isSuperUser(this);
@@ -223,7 +194,7 @@ module.exports = function(req, res, next) {
     return tx.lookupEmailSessionSeed();
   })
   .then(function(tx) {
-    return tx.resolveSession();
+    return tx.resolveSeed();
   })
   .then(function(tx) {
     if (tx.session) {
@@ -232,7 +203,7 @@ module.exports = function(req, res, next) {
     }
     else if (tx.isSuperUser()) {
       // TODO: lock down this potential security hole.
-      req.user = SUPERUSER;
+      req.user = models.User.superuser();
     }
     next();
   })

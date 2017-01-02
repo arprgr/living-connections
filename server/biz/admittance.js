@@ -34,14 +34,20 @@ function getEmailBody(self, templateName) {
 }
 
 function process(self, templateName) {
+  var builder = EmailSessionSeed.builder()
+    .externalId(self.externalId)
+    .email(self.email)
+    .expiresAt(dateFromNow(self.goodForDays));
 
-  return EmailSessionSeed.create({
-    externalId: self.externalId,
-    email: self.email,
-    fromUserId: self.fromUser != null ? self.fromUser.id : undefined,
-    assetId: self.assetId != null ? self.assetId : undefined,
-    expiresAt: dateFromNow(self.goodForDays)
-  })
+  if (self.fromUser != null) {
+    builder.fromUser(self.fromUser);
+  }
+
+  if (self.assetId != null) {
+    builder.assetId(self.assetId);
+  }
+
+  return builder.build()
   .then(function(emailSessionSeed) {
     return email.send({
       to: self.email,

@@ -1,22 +1,41 @@
 'use strict';
 
 module.exports = function(sequelize, DataTypes) {
-  var extend = require("extend");
+  var Connection;
+  var models;
 
-  var Connection = sequelize.define('Connection', {
-    grade: DataTypes.REAL
-  }, {
-    classMethods: {
-      associate: function(models) {
-        Connection.belongsTo(models.User, { as: "user" });
-        Connection.belongsTo(models.User, { as: "peer" });
-      },
-      findByUserId: function(userId, options) {
-        return Connection.findAll(extend({
-          where: { userId: userId }
-        }, options));
-      }
+  const LIMIT = 10;
+
+  function schema() {
+    return {
+      grade: DataTypes.REAL
     }
-  });
+  }
+
+  function associate(_models) {
+    models = _models;
+    Connection.belongsTo(models.User, { as: "user" });
+    Connection.belongsTo(models.User, { as: "peer" });
+  }
+
+  function findByUserId(userId) {
+    return Connection.findAll({
+      where: { userId: userId },
+      include: [{
+        model: models.User,
+        as: "peer",
+        required: true
+      }],
+      order: [ [ "grade", "DESC" ] ]
+    })
+  }
+
+  Connection = sequelize.define("Connection", schema(), {
+    classMethods: {
+      associate: associate,
+      findByUserId: findByUserId
+    }
+  })
+
   return Connection;
 };

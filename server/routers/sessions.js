@@ -5,18 +5,6 @@ module.exports = (function() {
   const router = express.Router();
   const models = require("../models/index");
 
-  // Create
-  router.post("/", function(req, res) {
-    models.Session.create({
-      externalId: req.body.external_id,
-      UserId: req.body.user_id
-    }).then(function(asset) {
-      res.json(asset);
-    }).catch(function(error) {
-      res.json(error);
-    });
-  });
-
   // Retrieve (by external id)
   router.get("/:external_id", function(req, res) {
     models.Session.findByExternalId(req.params.external_id)
@@ -41,11 +29,6 @@ module.exports = (function() {
     }).catch(function(error) {
       res.json(error);
     });
-  });
-
-  // Delete all.
-  router.delete("/", function(req, res) {
-    res.jsonResultOf(models.Session.destroy({ where: {} }));
   });
 
   // Delete

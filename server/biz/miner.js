@@ -8,23 +8,6 @@ const exec = require("../util/exec");
 
 const MAX_OF_ANY_ONE_TYPE = 10;
 
-function includeAsset() {
-  return {
-    model: models.Asset,
-    as: "asset",
-    attributes: [ "url" ]
-  }
-}
-
-function includeUser(associationName) {
-  return {
-    model: models.User,
-    as: associationName,
-    attributes: [ "id", "name" ],
-    include: [ includeAsset() ]
-  }
-}
-
 function Miner(user) {
   var self = this;
   self.user = user;
@@ -37,57 +20,28 @@ function Miner(user) {
 }
 
 function getIncomingMessages(miner) {
-  return models.Message.findByToUserId(miner.user.id, {
-    include: [
-      includeAsset(), 
-      includeUser("fromUser")
-    ],
-    limit: MAX_OF_ANY_ONE_TYPE,
-    order: [ [ "createdAt", "DESC" ] ]
-  })
+  return models.Message.findByToUserId(miner.user.id)
   .then(function(incomingMessages) {
     miner.incomingMessages = incomingMessages || [];
   })
 }
 
 function getOutgoingMessages(miner) {
-  return models.Message.findByFromUserId(miner.user.id, {
-    include: [
-      includeAsset(), 
-      includeUser("toUser")
-    ],
-    limit: MAX_OF_ANY_ONE_TYPE,
-    order: [ [ "createdAt", "DESC" ] ]
-  })
+  return models.Message.findByFromUserId(miner.user.id)
   .then(function(outgoingMessages) {
     miner.outgoingMessages = outgoingMessages || [];
   })
 }
 
 function getAnnouncements(miner) {
-  return models.Announcement.findByDate(new Date(), {
-    include: [
-      includeAsset(),
-      includeUser("creator")
-    ],
-    limit: MAX_OF_ANY_ONE_TYPE,
-    order: [ [ "startDate", "DESC" ] ]
-  })
+  return models.Announcement.findCurrent()
   .then(function(announcements) {
     miner.announcements = announcements || [];
   })
 }
 
 function getConnections(miner) {
-  return models.Connection.findByUserId(miner.user.id, {
-    include: [{
-      model: models.User,
-      as: "peer",
-      required: true
-    }],
-    limit: MAX_OF_ANY_ONE_TYPE,
-    order: [ [ "grade", "DESC" ] ]
-  })
+  return models.Connection.findByUserId(miner.user.id)
   .then(function(connections) {
     miner.connections = connections || [];
   })

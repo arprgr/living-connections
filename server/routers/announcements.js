@@ -59,7 +59,7 @@ router.delete("/:id", function(req, res) {
 
 // Delete all.
 router.delete("/", function(req, res) {
-  res.jsonResultOf(Announcement.destroy({ where: {} }));
+  res.jsonResultOf(Announcement.destroyAll());
 });
 
 module.exports = router;
