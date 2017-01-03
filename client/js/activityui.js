@@ -27,7 +27,7 @@ define([ "jquery", "services", "videoui", "emailinput", "button" ],
   // Video component management.
 
   function pauseVideo(self) {
-    self.videoComponent.getVideoElement().pause();
+    self.videoComponent.videoElement.pause();
   }
 
   // Component state management.
@@ -101,7 +101,7 @@ define([ "jquery", "services", "videoui", "emailinput", "button" ],
   }
 
   function clearVideo(self) {
-    return self.videoComponent.setSource(null);
+    return self.videoComponent.load(null);
   }
 
   function toErrorState(self) {
@@ -143,7 +143,7 @@ define([ "jquery", "services", "videoui", "emailinput", "button" ],
 
   function showVideo(self, src, nextState) {
     updateState(self, STATE_LOADING);
-    self.videoComponent.setSource(src)
+    self.videoComponent.load(src)
     .then(function() {
       updateState(self, nextState);
     })
@@ -287,7 +287,7 @@ define([ "jquery", "services", "videoui", "emailinput", "button" ],
   function ActivityComponent(container, options) {
     var self = this;
     self.container = container;
-    self.videoComponent = new VideoComponent($("<div>"), {});
+    self.videoComponent = new VideoComponent($("<div>").addClass("vid"));
     self.state = STATE_INIT;
     self.buttons = [];
     var parts = options.type.split("-");
