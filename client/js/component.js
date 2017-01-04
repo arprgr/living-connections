@@ -10,7 +10,17 @@ define([ "jquery" ], function($) {
 
   var defineProperty = Object.defineProperty;
 
-  var proto = Component.prototype = {};
+  var proto = Component.prototype = {
+    setVisible: function(visible) {
+      var self = this;
+      visible = !!visible;
+      if (self._visible != visible) {
+        self._visible = visible;
+        visible ? self.container.show() : self.container.hide();
+      }
+      return self;
+    }
+  };
 
   proto.DEFAULT_OPTIONS = {};
 
@@ -31,12 +41,7 @@ define([ "jquery" ], function($) {
       return this._visible;
     },
     set: function(visible) {
-      var self = this;
-      visible = !!visible;
-      if (self._visible != visible) {
-        self._visible = visible;
-        visible ? self.container.show() : self.container.hide();
-      }
+      this.setVisible(visible);
     }
   });
 
@@ -63,6 +68,10 @@ define([ "jquery" ], function($) {
       },
       defineProperty: function(name, definition) {
         defineProperty(proto, name, definition);
+        proto["set" + name.charAt(0).toUpperCase() + name.substring(1)] = function(value) {
+          this[name] = value;
+          return this;
+        }
       }
     });
 

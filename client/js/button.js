@@ -1,93 +1,54 @@
 // button.js - standard button component
 
-define([ "jquery" ], function($) {
+define([ "jquery", "component" ], function($, Component) {
 
-  var BUILTIN_CLASS = "standard";
   var ENABLED_CLASS = "enabled";
 
-  function Button(container) {
-    var self = this;
-    var element = $("<button>")
-      .addClass(BUILTIN_CLASS)
-      .addClass(ENABLED_CLASS)
-      .click(function() {
-        self._click();
-      });
-    self.element = element;
-    self._enabled = true;
-    self._visible = true;
-    if (container) {
-      container.append(element);
-    }
-  }
+  return Component.defineClass(function(c) { 
 
-  function Button_setVisible(self, visible) {
-    visible = !!visible;
-    if (self._visible != visible) {
-      self._visible = visible;
-      visible ? self.element.show() : self.element.hide();
-    }
-  }
+    c.defineInitializer(function() {
+      var self = this;
+      self._enabled = true;
+      self._container
+        .addClass(ENABLED_CLASS)
+        .click(function() {
+          self._click();
+        });
+    });
 
-  function Button_setEnabled(self, enabled) {
-    enabled = !!enabled;
-    if (self._enabled != enabled) {
-      self._enabled = enabled;
-      enabled ? self.element.addClass(ENABLED_CLASS) : self.element.removeClass(ENABLED_CLASS);
-    }
-  }
-
-  function Button_onClick(self, func) {
-    self.clickFunc = func;
-    return self;
-  }
-
-  function Button_click(self) {
-    if (self.enabled && self.clickFunc) {
-      self.clickFunc();
-    }
-  }
-
-  Button.prototype = (function(buttonProto, defineProperty) {
-
-    defineProperty(buttonProto, "label", {
+    c.defineProperty("label", {
       get: function() {
-        return this.element.text();
+        return this.container.text();
       },
       set: function(label) {
-        this.element.text(label);
+        this.container.text(label);
       }
     });
 
-    defineProperty(buttonProto, "visible", {
-      get: function() {
-        return this._visible;
-      },
-      set: function(visible) {
-        Button_setVisible(this, visible);
-      }
-    });
-
-    defineProperty(buttonProto, "enabled", {
+    c.defineProperty("enabled", {
       get: function() {
         return this._enabled;
       },
       set: function(enabled) {
-        Button_setEnabled(this, enabled);
+        var self = this;
+        enabled = !!enabled;
+        if (self._enabled != enabled) {
+          self._enabled = enabled;
+          self.container.attr("disabled", !enabled);
+        }
       }
     });
 
-    return buttonProto;
-  })({
+    c.defineFunction("onClick", function(func) {
+      this.clickFunc = func;
+      return this;
+    });
 
-    onClick: function(func) {
-      return Button_onClick(this, func);
-    },
-    _click: function(func) {
-      return Button_click(this);
-    }
-
-  }, Object.defineProperty);
-
-  return Button;
+    c.defineFunction("_click", function() {
+      var self = this;
+      if (self.enabled && self.clickFunc) {
+        self.clickFunc();
+      }
+    });
+  });
 });
