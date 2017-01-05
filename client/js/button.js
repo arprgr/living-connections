@@ -2,18 +2,14 @@
 
 define([ "jquery", "component" ], function($, Component) {
 
-  var ENABLED_CLASS = "enabled";
-
   return Component.defineClass(function(c) { 
 
     c.defineInitializer(function() {
       var self = this;
       self._enabled = true;
-      self._container
-        .addClass(ENABLED_CLASS)
-        .click(function() {
-          self._click();
-        });
+      self._container.click(function() {
+        self._click();
+      });
     });
 
     c.defineProperty("label", {

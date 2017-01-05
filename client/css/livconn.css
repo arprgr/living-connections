@@ -85,7 +85,7 @@ input.invalid {
 #app .body .listing {
   padding: 0 5px;
 }
-#app .action {
+#app .activity {
   border-radius: 6px;
   margin-bottom: 6px;
   padding: 8px 12px;
@@ -101,15 +101,15 @@ input.invalid {
   width: 32px;
   height: 32px;
 }
-#app .action .title {
+#app .activity .title {
   float: right;
   font-size: 20px;
 }
-#app .action .exit {
+#app .activity .exit {
   float: right;
   font-weight: bold;
 }
-#app .action .vid {
+#app .activity .vid {
   clear: both;
   width: 100%;
   margin: 6px;
@@ -136,9 +136,13 @@ button.standard {
   font-weight: bold;
   padding: 4px;
   display: inline;
-  cursor: pointer;
   margin-left: 4px;
 }
-button.standard:hover {
+button.standard:disabled {
+  background-color: #ccc;
+  color: #aaa;
+  border: solid 2px #aaa;
+}
+button.standard:enabled:hover {
   background-color: #cc8;
 }

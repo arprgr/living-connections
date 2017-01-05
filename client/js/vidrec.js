@@ -27,7 +27,7 @@ define([ "jquery", "component", "services", "obs", "videoui", "button" ],
   }
 
   function toErrorState(self) {
-    self.asset = null;
+    self.asset.setValue(null);
     self.videoBlob = null;
     self.videoComponent.clear();
     self.state.setValue(STATE_ERROR);
@@ -112,6 +112,7 @@ define([ "jquery", "component", "services", "obs", "videoui", "button" ],
 
       self.videoComponent = videoComponent;
       self.state = state;
+      self.asset = new Observable();
     });
 
     c.defineFunction("openCamera", function() {
@@ -126,7 +127,7 @@ define([ "jquery", "component", "services", "obs", "videoui", "button" ],
 
     c.defineFunction("openAsset", function(asset) {
       var self = this;
-      self.asset = asset;
+      self.asset.setValue(asset);
       showVideo(self, asset.url, STATE_REVIEW);
       return self;
     });

@@ -8,6 +8,7 @@ define([ "http" ], function(HttpMethod) {
       .addQueryParameter("assetId")
       .addQueryParameter("startDate")
       .addQueryParameter("endDate")
+      .addQueryParameter("type")
       .build();
 
     return function(form) {
@@ -15,6 +16,7 @@ define([ "http" ], function(HttpMethod) {
         .setAssetId(form.assetId)
         .setStartDate(form.startDate)
         .setEndDate(form.endDate)
+        .setType(form.type)
         .execute();
     }
   }
@@ -26,13 +28,15 @@ define([ "http" ], function(HttpMethod) {
       .addQueryParameter("assetId")
       .addQueryParameter("startDate")
       .addQueryParameter("endDate")
+      .addQueryParameter("type")
       .build();
 
     return function(form) {
-      return new UpdateUserMethod()
+      return new UpdateAnnouncementMethod()
         .setAssetId(form.assetId)
         .setStartDate(form.startDate)
         .setEndDate(form.endDate)
+        .setType(form.type)
         .execute();
     }
   }
