@@ -1,5 +1,6 @@
 /* index.js */
 
+const pug = require("pug");
 const CONFIG = require("./conf");
 
 // Create server.
@@ -29,21 +30,31 @@ server.use(require("cookie-parser")());
 server.use(require("./auth"));
 server.use(require("./jsonish"));
 
+// One page template serves all.
+function servePage(pageConfig, response) {
+  // Recompile every time, because why not?
+  var pageFunction = pug.compileFile("templates/page.pug", CONFIG.pug);
+  response.set("Content-Type", "text/html");
+  response.send(pageFunction(pageConfig));
+}
+
 // Index page.
-var pug = require("pug");
 server.get("/", function(request, response) {
-console.log('request.query', request.query);
   if (request.query && request.query.e) {
     // Don't keep trying the session seed.
     response.redirect("/");
   }
   else {
-    // Recompile every time, because why not?
-    var pageFunction = pug.compileFile("templates/page.pug", CONFIG.pug);
-    response.set("Content-Type", "text/html");
-    response.send(pageFunction(CONFIG.pages.livconn));
+    servePage(CONFIG.pages.livconn, response);
   }
 });
+
+// For testing
+if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
+  server.get("/test", function(request, response) {
+    servePage(CONFIG.pages.test, response);
+  });
+}
 
 // Routers.
 server.use("/a", require("./routers/alpha"));

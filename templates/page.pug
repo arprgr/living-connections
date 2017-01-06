@@ -14,7 +14,7 @@ html
           "*": { "jquery": "jquery-private" }, 
           "jquery-private": { "jquery": "jquery" } 
         },
-        deps: [ "appui" ], 
+        deps: [ "#{mainModule}" ], 
         callback: function(App) { new App().open(); } 
       }
     script(src="/js/lib/require.js")

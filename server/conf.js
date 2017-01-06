@@ -10,7 +10,12 @@ module.exports = {
     "livconn": {
       title: "Living Connections",
       stylesheet: "css/livconn.css",
-      mainModule: "livconn"
+      mainModule: "appui"
+    },
+    "test": {
+      title: "Test",
+      stylesheet: "css/livconn.css",
+      mainModule: "testui"
     }
   },
   defaultPage: "livconn",
