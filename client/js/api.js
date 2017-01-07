@@ -90,11 +90,13 @@ define([ "http" ], function(HttpMethod) {
       .addPathComponent("invites")
       .addPathParameter("id")
       .addQueryParameter("assetId")
+      .addQueryParameter("email")
       .build();
 
     return function(form) {
       return new UpdateInviteMethod()
         .setAssetId(form.assetId)
+        .setEmail(form.email)
         .execute();
     }
   }

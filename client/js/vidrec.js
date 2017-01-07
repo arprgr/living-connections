@@ -96,6 +96,9 @@ define([ "jquery", "component", "services", "obs", "videoui", "button", "slidefo
       var discardButton = standardButton("Discard and re-record", function() {
         self.openCamera();
       });
+      var cancelButton = standardButton("Cancel", function() {
+        self.cancel();
+      });
       var state = new Observable(STATE_INIT);
 
       state.addChangeListener(function(value) {
@@ -103,6 +106,7 @@ define([ "jquery", "component", "services", "obs", "videoui", "button", "slidefo
         stopButton.visible = value == STATE_RECORDING;
         acceptButton.visible = !!self.videoBlob;
         discardButton.visible = !!self.videoBlob;
+        cancelButton.visible = value != STATE_RECORDING;
       });
 
       self.container
@@ -113,6 +117,7 @@ define([ "jquery", "component", "services", "obs", "videoui", "button", "slidefo
           .append(stopButton.container)
           .append(acceptButton.container)
           .append(discardButton.container)
+          .append(cancelButton.container)
         );
 
       self.videoComponent = videoComponent;
@@ -146,10 +151,8 @@ define([ "jquery", "component", "services", "obs", "videoui", "button", "slidefo
     });
 
     c.defineFunction("close", function() {
-      var self = this;
       videoService.close();
-      self.container.hide().empty();
-      return self;
+      return this;
     });
   });
 });

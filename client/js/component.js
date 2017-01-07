@@ -3,7 +3,7 @@
 define([ "jquery" ], function($) {
 
   function Component(container, options) {
-    this._container = container;
+    this._container = container || $(Object.getPrototypeOf(this).DEFAULT_CONTAINER);
     this._visible = true;
     this._options = $.extend({}, Object.getPrototypeOf(this).DEFAULT_OPTIONS, options);
   }
@@ -22,6 +22,7 @@ define([ "jquery" ], function($) {
     }
   };
 
+  proto.DEFAULT_CONTAINER = "<div>";
   proto.DEFAULT_OPTIONS = {};
 
   defineProperty(proto, "container", {
@@ -59,6 +60,9 @@ define([ "jquery" ], function($) {
     definer({
       defineInitializer: function(_initializer) {
         initializer = _initializer;
+      },
+      defineDefaultContainer: function(defaultContainer) {
+        proto.DEFAULT_CONTAINER = defaultContainer;
       },
       defineDefaultOptions: function(defaultOptions) {
         proto.DEFAULT_OPTIONS = defaultOptions;

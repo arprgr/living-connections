@@ -4,6 +4,8 @@ define([ "jquery", "component" ], function($, Component) {
 
   return Component.defineClass(function(c) { 
 
+    c.defineDefaultContainer("<button>");
+
     c.defineInitializer(function() {
       var self = this;
       self._enabled = true;

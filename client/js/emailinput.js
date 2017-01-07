@@ -1,93 +1,90 @@
 // emailinput.js - EmailInputComponent
 
-define([ "jquery" ], function($) {
+define([ "jquery", "component", "obs" ], function($, Component, Observable) {
 
-  var EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,3}$/;
+  var EMAIL_REGEX = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/;
 
   function isValidEmail(str) {
     return str.match(EMAIL_REGEX);
   }
 
-  function EmailInputComponent(container) {
-    this.container = container;
-    this._render();
-  }
+  var INVALID_CLASS = "invalid";
 
-  function selectInput(self) {
-    return self.container.find("input");
-  }
+  return Component.defineClass(function(c) {
 
-  function showInvalid(self) {
-    selectInput(self).addClass("invalid").select();
-    self.onInvalidFunc && self.onInvalidFunc();
-  }
+    c.defineInitializer(function() {
+      var self = this;
+      self.container.append($("<input>")
+        .attr("type", "text")
+        .on("blur", function() {
+          self.validateAndStyle();
+        })
+        .on("keydown", function(event) {
+          if (event.originalEvent.keyCode == 13) {
+            self.submit();
+          }
+          return true;
+        })
+        .on("change paste keyup", function() {
+          self.clearStyles();
+          self.validate();
+        }));
+      self.valid = new Observable(false);
+    });
 
-  function showValid(self) {
-    selectInput(self).removeClass("invalid");
-    self.onValidFunc && self.onValidFunc();
-  }
+    c.defineProperty("input", {
+      get: function() {
+        return this.container.find("input");
+      }
+    });
 
-  function activate(self) {
-    var text = selectInput(self).val();
-    if (text) {
-      text = text.toLowerCase();
-      if (isValidEmail(text)) {
-        showValid(self);
-        self.onSubmitFunc && self.onSubmitFunc(text);
-        return text;
+    c.defineProperty("value", {
+      get: function() {
+        return this.input.val().toLowerCase();
+      },
+      set: function(value) {
+        var self = this;
+        self.input.val(value);
+        self.validate();
+      }
+    });
+
+    c.defineFunction("validate", function(style) {
+      var self = this;
+      var isValid = isValidEmail(self.value);
+      self.valid.setValue(isValid);
+      return isValid;
+    });
+
+    c.defineFunction("validateAndStyle", function(style) {
+      var self = this;
+      if (self.validate() || self.value == "") {
+        self.clearStyles();
       }
       else {
-        showInvalid(self);
+        self.input.addClass(INVALID_CLASS);
       }
-    }
-    else {
-      showValid(self);
-    }
-  }
+    });
 
-  function render(self) {
-    self.container.append($("<input>")
-      .attr("type", "text")
-      .on("keydown", function(event) {
-        showValid(self);
-        if (event.originalEvent.keyCode == 13) {
-          activate(self);
-        }
-        return true;
-      }));
-  }
-
-  EmailInputComponent.prototype = {
-    show: function() {
+    c.defineFunction("submit", function() {
       var self = this;
-      self.container.show();
-      selectInput(self).focus().select();
-    },
-    hide: function() {
-      self.container.hide();
-    },
-    activate: function() {
-      return activate(this);
-    },
-    _render: function() {
-      render(this);
-    },
-    onValid: function(func) {
-      this.onValidFunc = func;
-      return this;
-    },
-    onInvalid: function(func) {
-      this.onInvalidFunc = func;
-      return this;
-    },
-    onSubmit: function(func) {
-      this.onSubmitFunc = func;
-      return this;
-    },
-    focus: function() {
-      selectInput(this).focus().select();
-    }
-  }
+      var isValid = self.validate(true);
+      if (isValid) {
+        self.onSubmit && self.onSubmit(self.value);
+      }
+      else {
+        self.input.focus().select();
+      }
+    });
+
+    c.defineFunction("focus", function() {
+      this.input.focus();
+    });
+
+    c.defineFunction("clearStyles", function() {
+      this.input.removeClass(INVALID_CLASS);
+    });
+  });
 
   return EmailInputComponent;
 });

@@ -65,6 +65,10 @@ define([ "jquery", "component" ], function($, Component) {
         doOpen(self);
       }
     });
+
+    c.defineFunction("cancel", function() {
+      this.onCancel && this.onCancel();
+    });
   });
 
   SlideForm.Form = Component.defineClass(function(c) {
