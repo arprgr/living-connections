@@ -1,7 +1,7 @@
 // vidrec.js - VideoRecorder component
 
-define([ "jquery", "component", "services", "obs", "videoui", "button" ],
-  function($, Component, Services, Observable, VideoComponent, Button) {
+define([ "jquery", "component", "services", "obs", "videoui", "button", "slideform" ],
+  function($, Component, Services, Observable, VideoComponent, Button, SlideForm) {
 
   // Service imports.
 
@@ -27,7 +27,6 @@ define([ "jquery", "component", "services", "obs", "videoui", "button" ],
   }
 
   function toErrorState(self) {
-    self.asset.setValue(null);
     self.videoBlob = null;
     self.videoComponent.clear();
     self.state.setValue(STATE_ERROR);
@@ -64,17 +63,23 @@ define([ "jquery", "component", "services", "obs", "videoui", "button" ],
   function doSave(self) {
     self.videoComponent.pause();
     self.state.setValue(STATE_SAVING);
-    apiService.saveVideo(self.videoBlob)
+    var videoBlob = self.videoBlob;
+    self.videoBlob = null;
+    return apiService.saveVideo(videoBlob)
       .then(function(asset) {
         self.openAsset(asset);
+        if (self.context) {
+          self.context.data.asset = asset;
+          self.context.data.assetId = asset.id;
+          self.context.advance();
+        }
       })
       .catch(function() {
         toErrorState(self);
       });
-    self.videoBlob = null;
   }
 
-  return Component.defineClass(function(c) {
+  return Component.defineClass(SlideForm.Form, function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -112,7 +117,16 @@ define([ "jquery", "component", "services", "obs", "videoui", "button" ],
 
       self.videoComponent = videoComponent;
       self.state = state;
-      self.asset = new Observable();
+    });
+
+    c.defineFunction("open", function() {
+      var self = this;
+      if (self.context && self.context.data.asset) {
+        self.openAsset(self.context.data.asset);
+      }
+      else {
+        self.openCamera();
+      }
     });
 
     c.defineFunction("openCamera", function() {
@@ -127,7 +141,6 @@ define([ "jquery", "component", "services", "obs", "videoui", "button" ],
 
     c.defineFunction("openAsset", function(asset) {
       var self = this;
-      self.asset.setValue(asset);
       showVideo(self, asset.url, STATE_REVIEW);
       return self;
     });
