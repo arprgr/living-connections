@@ -22,6 +22,10 @@ module.exports = function(sequelize, DataTypes) {
       externalId: random.id()
     };
     return {
+      externalId: function(externalId) {
+        values.externalId = externalId;
+        return this;
+      },
       email: function(email) {
         values.email = email;
         return this;
