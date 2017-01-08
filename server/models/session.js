@@ -40,6 +40,7 @@ module.exports = function(sequelize, DataTypes) {
       user: function(user) {
         values.userId = user.id;
         associations.user = user;
+        return this;
       },
       build: function() {
         return Session.create(values)
@@ -77,6 +78,7 @@ module.exports = function(sequelize, DataTypes) {
   Session = sequelize.define("Session", schema(), {
     classMethods: {
       associate: associate,
+      builder: builder,
       findByExternalId: findByExternalId,
       destroyAll: destroyAll,
       destroyByExternalId: destroyByExternalId
