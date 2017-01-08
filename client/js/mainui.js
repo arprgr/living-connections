@@ -1,44 +1,28 @@
-// mainui.js
+// mainui.js - MainComponent
 
-define([ "jquery", "services", "listingui", "activityui" ],
-  function($, Services, ListingController, ActivityComponent) {
+// Manages transitions between listing and activity views.
+
+define([ "jquery", "services", "component", "listingui", "activityui" ],
+  function($, Services, Component, ListingController, ActivityComponent) {
 
   var sessionManager = Services.sessionManager;
 
-  function renderHeader(self) {
+  function executeBindings(self) {
     var openActionItem = self.openActionItem || {};
     var user = sessionManager.user || {}
-    self.container.find(".header")
-      .empty()
-      .append($("<span>")
-        .addClass("title")
-        .text(openActionItem.titleFormat || ""))
-      .append($("<span>")
-        .addClass("userIdent")
-        .append($("<span>").text(user.name || ""))
-        .append($("<span>").text(" "))
-        .append($("<a>")
-          .addClass("logout")
-          .text("Log out")
-          .attr("href", "#")
-          .click(function() {
-            sessionManager.logOut();
-          })))
-  }
-
-  function handleSessionManagerStateChange(self) {
-    var self = this;
-    renderHeader(self);
+    var header = self.container.find(".header");
+    header.find(".title").text(openActionItem.titleFormat || "");
+    header.find(".userName").text(user.name || "");
   }
 
   function handleActivityOpen(item) {
     var self = this;
-    renderHeader(self);
+    executeBindings(self);
     self.listingController.setVisible(0);
     self.openActionItem = item;
-    self.activity = new ActivityComponent(self.container.find(".activity"), item)
+    self.activity = new ActivityComponent(self.container.find(".activity"))
       .onActivityClose(handleActivityClose.bind(self))
-      .setVisible(1);
+      .open(item)
   }
 
   function closeActivity(self) {
@@ -46,7 +30,7 @@ define([ "jquery", "services", "listingui", "activityui" ],
       self.activity.close();
       self.activity = null;
     }
-    renderHeader(self);
+    executeBindings(self);
     self.openActionItem = null;
   }
 
@@ -57,42 +41,55 @@ define([ "jquery", "services", "listingui", "activityui" ],
     self.listingController.setVisible(1);
   }
 
-  function Controller(container) {
-    var self = this;
-    self.container = container;
-    // TODO: this seems the wrong place to do this.
-    container
-      .append($("<div>").addClass("header"))
-      .append($("<div>").addClass("body")
-        .append($("<div>").addClass("listing"))
-        .append($("<div>").addClass("activity")))
-      .hide();
-    sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    self.listingController = new ListingController(sessionManager)
-      .onActionItemOpen(handleActivityOpen.bind(self));
-  }
+  return Component.defineClass(function(c) {
 
-  Controller.prototype = {
-    setVisible: function(visible) {
-      this.container.setVisible(visible);
-      return this;
-    },
-    open: function() {
+    c.defineInitializer(function() {
+      var self = this;
+
+      self.container
+        .append($("<div>")
+          .addClass("header")
+          .append($("<span>")
+            .addClass("title"))
+          .append($("<span>")
+            .addClass("userIdent")
+            .append($("<span>").addClass("userName"))
+            .append($("<span>").text(" "))
+            .append($("<a>")
+              .addClass("logout")
+              .text("Log out")
+              .attr("href", "#")
+              .click(function() {
+                sessionManager.logOut();
+              }))))
+        .append($("<div>").addClass("body")
+          .append($("<div>").addClass("listing"))
+          .append($("<div>").addClass("activity"))
+        );
+
+      sessionManager.addStateChangeListener(function() {
+        executeBindings(self);
+      });
+
+      self.listingController = new ListingController()
+        .onActionItemOpen(handleActivityOpen.bind(self));
+    });
+
+    c.defineFunction("open", function() {
       var self = this;
       if (!self.isOpen) {
         self.listingController.open();
         self.isOpen = true;
       }
-    },
-    close: function() {
+    });
+
+    c.defineFunction("close", function() {
       var self = this;
       if (self.isOpen) {
         closeActivity(self);
         self.listingController.close();
         self.isOpen = false;
       }
-    }
-  }
-
-  return Controller;
+    });
+  });
 });

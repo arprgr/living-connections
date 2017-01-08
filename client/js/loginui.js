@@ -1,18 +1,9 @@
 // loginui.js
 
-define([ "jquery", "emailinput", "services" ], function($, EmailInputComponent, Services) {
-
-  function LoginComponent(container) {
-    this.container = container;
-    this._render();
-  }
-
-  function selectMessageBox(self) {
-    return self.container.find(".message");
-  }
+define([ "jquery", "component", "emailinput", "services" ], function($, Component, EmailInput, Services) {
 
   function showMessage(self, msg) {
-    selectMessageBox(self).text(msg || "");
+    this.container.find(".message").text(msg || "");
   }
 
   function submit(self, text) {
@@ -25,49 +16,47 @@ define([ "jquery", "emailinput", "services" ], function($, EmailInputComponent, 
     })
   }
 
-  function render(self) {
+  return Component.defineClass(function(c) {
 
-    var input = new EmailInputComponent($("<span>"))
-      .onValid(function() {
-        showMessage(self);
-      })
-      .onInvalid(function() {
-        showMessage(self, "That doesn't look like an email address.  Please retype it and try again.");
-      })
-      .onSubmit(function(text) {
-        submit(self, text);
-      })
-
-    self.container
-      .hide()
-      .append($("<div>")
-        .text("Log in with your email address:"))
-      .append($("<div>")
-        .append(input.container)
-        .append($("<button>")
-          .text("Go!")
-          .click(function() {
-            input.activate();
-            return true;
-          })))
-      .append($("<div>").addClass("message"));
-  }
-
-  LoginComponent.prototype = {
-    show: function() {
+    c.defineInitializer(function() {
       var self = this;
-      self.container.show();
-      if (self.emailInput) {
-        self.emailInput.focus();
+
+      var emailInput = new EmailInput($("<span>"))
+      emailInput.onSubmit = function(text) {
+        submit(self, text);
       }
-    },
-    hide: function() {
-      self.container.hide();
-    },
-    _render: function() {
-      render(this);
-    }
-  }
+      emailInput.valid.addChangeListener(function(valid) {
+        if (valid) {
+          showMessage(self);
+        }
+      });
+
+      self.container
+        .append($("<div>")
+          .text("Log in with your email address:"))
+        .append($("<div>")
+          .append(emailInput.container)
+          .append($("<button>")
+            .text("Go!")
+            .click(function() {
+              input.submit();
+              if (!input.valid.value) {
+                showMessage(self, "That doesn't look like an email address.  Please retype it and try again.");
+              }
+              return true;
+            })))
+        .append($("<div>").addClass("message"));
+
+      self.emailInput = emailInput;
+    });
+
+    c.defineFunction("open", function() {
+      var self = this;
+      setTimeout(function() {
+        self.emailInput.focus();
+      }, 100);
+    });
+  });
 
   return LoginComponent;
 });

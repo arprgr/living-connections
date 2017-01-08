@@ -50,8 +50,9 @@ define([ "jquery", "services" ], function($, Services) {
     }
   }
 
-  function Controller() {
+  function Controller(container) {
     var self = this;
+    self.container = container;
     Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
     Services.sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
   }

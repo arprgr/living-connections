@@ -1,7 +1,7 @@
 // startupui.js - StartupComponent
 
 define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
-  function($, Services, LoginController, WaitAnimController, Animation, Cookie) {
+  function($, Services, LoginComponent, WaitAnimController, Animation, Cookie) {
 
   var NO_VID = "Sorry, but your browser is not capable of sending and receiving Living Connections video messages.";
   var VID_SUPPORT_REF = "Read more about supported browsers.";
@@ -61,12 +61,13 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
 
   function showLoginForm(self) {
     showInnerInLoginPosition(self);
-    self.loginController.show();
+    self.login.visible = true;
+    self.login.open();
   }
 
   function hideLoginForm(self) {
     showInnerInWaitingPosition(self);
-    self.loginController.hide();
+    self.login.visible = false;
   }
 
   function slideLogoDown(self) {
@@ -158,7 +159,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
   function StartupComponent(container) {
     var self = this;
     self.container = container;
-    self.loginController = new LoginController(container.find(".login"));
+    self.login = new LoginComponent(container.find(".login"));
     self.originalHeight = container.height();
     Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
   }
