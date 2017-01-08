@@ -1,86 +1,52 @@
 // listingui.js
 
-define([ "jquery", "services" ], function($, Services) {
-
-  function selectContainer() {
-    return $("#app .listing");
-  }
-
-  function iconUri(item) {
-    return "/img/" + item.type + ".png";
-  }
-
-  function handleItemClick(self, item) {
-    self.isOpen && self.actionItemOpenFunc && self.actionItemOpenFunc(item);
-  }
-
-  function renderActionItem(self, item) {
-    return $("<div>")
-      .addClass("action")
-      .append($("<img>")
-        .addClass("bigIcon")
-        .attr("src", iconUri(item)))
-      .append($("<div>")
-        .addClass("title")
-        .text(item.title))
-      .click(function() {
-        handleItemClick(self, item);
-      });
-  }
+define([ "jquery", "component", "services" ], function($, Component, Services) {
 
   function render(self) {
-    var $body = selectContainer().empty();
+    var container = self.container.empty()      // TODO: render incrememtally.
     var actionItems = self.actionItems;
     if (actionItems) {
       for (var i = 0; i < actionItems.length; ++i) {
-        $body.append(renderActionItem(self, actionItems[i]));
+        var actionItem = actionItems[i];
+        container.append($("<div>")
+          .addClass("item")
+          .append($("<img>")
+            .addClass("bigIcon")
+            .attr("src", actionItem.iconUri))
+          .append($("<div>")
+            .addClass("title")
+            .text(actionItem.title))
+          .click(function() {
+            self.isOpen && self.onActionItemOpen && self.onActionItemOpen(actionItem);
+          })
+        );
       }
     }
   }
 
-  function handleSessionManagerStateChange(self) {
-    var self = this;
-  }
+  return Component.defineClass(function(c) {
 
-  function handleSessionManagerActionChange(actionItems) {
-    var self = this;
-    self.actionItems = actionItems;
-    if (self.isOpen) {
-      render(self);
-    }
-  }
+    c.defineInitializer(function() {
+      var self = this;
+      Services.sessionManager.addActionListener(function(actionItems) {
+        self.actionItems = actionItems;
+        if (self.isOpen) {
+          render(self);
+        }
+      });
+    });
 
-  function Controller(container) {
-    var self = this;
-    self.container = container;
-    Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-    Services.sessionManager.addActionListener(handleSessionManagerActionChange.bind(self));
-  }
-
-  Controller.prototype = {
-    setVisible: function(visible) {
-      selectContainer().setVisible(visible);
+    c.defineFunction("open", function() {
+      if (!this.isOpen) {
+        render(this);
+        this.isOpen = true;
+      }
       return this;
-    },
-    open: function() {
-      var self = this;
-      if (!self.isOpen) {
-        render(self);
-        self.isOpen = true;
-      }
-      return self;
-    },
-    close: function() {
-      var self = this;
-      self.isOpen = false;
-      return self;
-    },
-    onActionItemOpen: function(func) {
-      var self = this;
-      self.actionItemOpenFunc = func;
-      return self;
-    }
-  }
+    });
 
-  return Controller;
+    c.defineFunction("close", function() {
+      this.isOpen = false;
+      return this;
+    });
+  });
 });

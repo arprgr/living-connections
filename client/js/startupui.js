@@ -159,7 +159,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
   function StartupComponent(container) {
     var self = this;
     self.container = container;
-    self.login = new LoginComponent(container.find(".login"));
+    self.login = new LoginComponent(container.find(".login")).setVisible(false);
     self.originalHeight = container.height();
     Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
   }

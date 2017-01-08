@@ -85,13 +85,17 @@ input.invalid {
 #app .body .listing {
   padding: 0 5px;
 }
-#app .activity {
+#app .listing .item {
   border-radius: 6px;
   margin-bottom: 6px;
   padding: 8px 12px;
   background-color: white;
   color: #004;
   box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
+}
+#app .listing .item .title {
+  float: right;
+  font-size: 20px;
 }
 #app img.bigIcon {
   width: 64px;
@@ -100,10 +104,6 @@ input.invalid {
 #app img.lilIcon {
   width: 32px;
   height: 32px;
-}
-#app .activity .title {
-  float: right;
-  font-size: 20px;
 }
 #app .activity .exit {
   float: right;

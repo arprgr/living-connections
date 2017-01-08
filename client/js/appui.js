@@ -6,7 +6,7 @@ define([ "jquery", "services", "startupui", "mainui" ],
   function Controller() {
     var self = this;
     self.startupController = new StartupController($("#startup"));
-    self.mainController = new MainController($("#app"));
+    self.mainController = new MainController($("#app")).setVisible(false);
     self.startupState = true;
   }
 

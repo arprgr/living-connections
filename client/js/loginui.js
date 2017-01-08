@@ -3,7 +3,7 @@
 define([ "jquery", "component", "emailinput", "services" ], function($, Component, EmailInput, Services) {
 
   function showMessage(self, msg) {
-    this.container.find(".message").text(msg || "");
+    self.container.find(".message").text(msg || "");
   }
 
   function submit(self, text) {
