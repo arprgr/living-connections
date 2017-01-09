@@ -21,6 +21,11 @@ function findEmailProfile(email) {
   return models.EmailProfile.findByEmail(email);
 }
 
+// Find user by ID
+function findUser(userId) {
+  return models.User.findById(userId);
+}
+
 // Create a new user.
 function createNewUser(name, level) {
   return models.User.builder().name(name).level(level).build();
@@ -79,22 +84,24 @@ function AuthMgr_lookupSession(self) {
       return self;
     });
   }
-  else {
-    return Promise.resolve(self);
-  }
+  return Promise.resolve(self);
 }
 
 // If the request refers to an email session seed, fetch the EmailSessionSeed object.
 function AuthMgr_lookupEmailSessionSeed(self) {
   if (self.eseed) {
+    if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
+      if (self.eseed.match(/u\d+/)) {
+        self.emailSessionSeed = { userId: self.eseed.substring(1) }
+        return self;
+      }
+    }
     return findEmailSessionSeed(self.eseed).then(function(emailSessionSeed) {
       self.emailSessionSeed = emailSessionSeed;
       return self;
     });
   }
-  else {
-    return Promise.resolve(self);
-  }
+  return Promise.resolve(self);
 }
 
 // Transmit session ID to client.
@@ -130,10 +137,13 @@ function AuthMgr_initiateSession(self, session) {
 
 function AuthMgr_resolveSeed(self) {
   // If a user has clicked on an invitation/ticket email:
-  if (self.emailSessionSeed) {
+  var sessionSeed = self.emailSessionSeed;
+  if (sessionSeed) {
     AuthMgr_logOut(self);
-    // Find the user with the given email address, or create one.
-    return findOrCreateUserByEmail(self.emailSessionSeed.email)
+    return (
+      // Find the user by ID or by the given email address, or create one.
+      ("userId" in sessionSeed) ? findUser(sessionSeed.userId) : findOrCreateUserByEmail(sessionSeed.email)
+    )
     // Log in.
     .then(createSessionForUser)
     // Carry out any necessary side effects.
@@ -143,10 +153,8 @@ function AuthMgr_resolveSeed(self) {
       return self;
     });
   }
-  else {
-    // Nothing to do.
-    return Promise.resolve(self);
-  }
+  // Nothing to do.
+  return Promise.resolve(self);
 }
 
 // Got secret access key?
