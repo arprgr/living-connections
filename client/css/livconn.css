@@ -105,6 +105,12 @@ input.invalid {
   width: 32px;
   height: 32px;
 }
+#app .activity {
+  border-radius: 6px;
+  padding: 8px 12px;
+  background-color: white;
+  color: #004;
+}
 #app .activity .exit {
   float: right;
   font-weight: bold;

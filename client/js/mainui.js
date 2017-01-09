@@ -7,11 +7,9 @@ define([ "jquery", "services", "component", "listingui", "activityui" ],
 
   var sessionManager = Services.sessionManager;
 
-  function updateHeader(self, openActionItem) {
-    openActionItem = openActionItem || {};
+  function updateHeader(self) {
     var user = sessionManager.user || {}
     var header = self.container.find(".header");
-    header.find(".title").text(openActionItem.titleFormat || "");
     header.find(".userName").text(user.name || "");
   }
 
@@ -53,7 +51,6 @@ define([ "jquery", "services", "component", "listingui", "activityui" ],
         listing.close();
         activity.open(actionItem);
         activity.visible = true;
-        updateHeader(self, actionItem);
       }
 
       activity.onActivityClose = function() {
@@ -61,7 +58,6 @@ define([ "jquery", "services", "component", "listingui", "activityui" ],
         activity.close();
         listing.open();
         listing.visible = true;
-        updateHeader(self);
       };
 
       self.listing = listing;

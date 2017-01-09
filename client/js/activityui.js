@@ -1,6 +1,6 @@
 // activityui.js - ActivityComponent
 
-define([ "jquery", "component" ], function($, Component) {
+define([ "jquery", "component", "inveditor" ], function($, Component, InvitationEditor) {
 
   return Component.defineClass(function(c) {
 
@@ -8,36 +8,42 @@ define([ "jquery", "component" ], function($, Component) {
       var self = this;
       self.container 
         .append($("<img>").addClass("lilIcon"))
-        .append($("<a>")
-          .addClass("exit")
-          .text("Exit")
-          .attr("href", "#")
-          .click(function() {
-            self.onActivityClose && self.onActivityClose();
-          }))
+        .append($("<span>").addClass("title"))
         .append($("<div>").addClass("form"))
     });
 
-    function updateHeader(self) {
-      self.container.find(".lilIcon").attr("src", self.actionItem.iconUri);
+    function updateHeader(self, actionItem) {
+      self.container.find(".lilIcon").attr("src", actionItem && actionItem.iconUri || "");
+      self.container.find(".title").text(actionItem && actionItem.title || "");
     }
 
     c.defineFunction("open", function(actionItem) {
       var self = this;
       var parts = actionItem.type.split("-");
-      self.what = parts[0];
-      self.action = parts[1];
-      self.sender = actionItem.sender;
-      updateHeader(self);
+      var what = parts[0];
+      var action = parts[1];
+      updateHeader(self, actionItem);
+      var FormClass;
+      switch (what) {
+      case "inv":
+        FormClass = InvitationEditor;
+      }
+      var form = new FormClass();
+      self.container.find(".form").empty().append(form.container);
+      form.open(actionItem);
+      form.onCancel = function() {
+        self.onActivityClose && self.onActivityClose();
+      }
       return self;
     });
 
-    c.defineFunction("close", function(actionItem) {
+    c.defineFunction("close", function() {
       var self = this;
-      var parts = actionItem.type.split("-");
-      self.what = parts[0];
-      self.action = parts[1];
-      self.sender = actionItem.sender;
+      if (self.form) {
+        self.form.close();
+        self.form.container.remove();
+        self.form = null;
+      }
       updateHeader(self);
       return self;
     });

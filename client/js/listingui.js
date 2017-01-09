@@ -2,24 +2,26 @@
 
 define([ "jquery", "component", "services" ], function($, Component, Services) {
 
+  function renderItem(self, actionItem) {
+    return $("<div>")
+      .addClass("item")
+      .append($("<img>")
+        .addClass("bigIcon")
+        .attr("src", actionItem.iconUri))
+      .append($("<div>")
+        .addClass("title")
+        .text(actionItem.title))
+      .click(function() {
+        self.isOpen && self.onActionItemOpen && self.onActionItemOpen(actionItem);
+      })
+  }
+
   function render(self) {
     var container = self.container.empty()      // TODO: render incrememtally.
     var actionItems = self.actionItems;
     if (actionItems) {
       for (var i = 0; i < actionItems.length; ++i) {
-        var actionItem = actionItems[i];
-        container.append($("<div>")
-          .addClass("item")
-          .append($("<img>")
-            .addClass("bigIcon")
-            .attr("src", actionItem.iconUri))
-          .append($("<div>")
-            .addClass("title")
-            .text(actionItem.title))
-          .click(function() {
-            self.isOpen && self.onActionItemOpen && self.onActionItemOpen(actionItem);
-          })
-        );
+        container.append(renderItem(self, actionItems[i]));
       }
     }
   }
