@@ -17,10 +17,12 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
       var self = this;
 
       var emailInput = new EmailInput($("<div>"));
-      emailInput.onSubmit = function(email) {
-        self.context.data.email = email;
-        self.context.advance();
-      }
+      emailInput.addPlugin({
+        submit: function(email) {
+          self.data.email = email;
+          self.advance();
+        }
+      })
 
       var forwardButton = standardButton("Keep Going");
       forwardButton.onClick(function() {
@@ -38,13 +40,10 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
 
       self.container
         .append($("<div>")
-          .text("You wish to invite a friend to Living Connections. Thank you!"))
-        .append($("<div>")
-          .text("Sorry, but in this version of the site you must know your friend's email address."))
-        .append($("<div>")
-          .text("(Future versions will allow other means of identification.)"))
-        .append($("<div>")
           .text("What is your friend's email address?"))
+        .append($("<div>")
+          .text("Sorry, in this version of the site you must know your friend's email address. " + 
+            "(Future versions will allow other means of identification.)"))
         .append($("<div>")
           .append(emailInput.container))
         .append($("<div>")
@@ -56,6 +55,7 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
 
     c.defineFunction("open", function(data) {
       var self = this;
+      self.data = data;
       self.emailInput.value = data.email;
       setTimeout(function() {
         self.emailInput.focus();
@@ -70,12 +70,19 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
 
       var doneButton = standardButton("Done")
       doneButton.onClick(function() {
-        self.save();
+        var data = self.data;
+        apiService.saveForm("inv", data.id ? "upd" : "cre", data)
+        .then(function() {
+          self.exit();
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
       });
 
       var cancelButton = standardButton("Cancel");
       cancelButton.onClick(function() {
-        self.cancel();
+        self.exit();
       });
 
       self.container
@@ -85,17 +92,12 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
           .append(doneButton.container)
           .append(cancelButton.container))
     });
-
-    c.defineFunction("save", function() {
-      var data = this.context.data;
-      return apiService.saveForm("inv", data.id ? "upd" : "cre", data);
-    });
   });
 
   return SlideForm.defineClass(function(c) {
 
-    c.defineInitializer(function() {
-      this.options.slides = [{
+    c.defineDefaultOptions({
+      slides: [{
         componentClass: InvitationEmailForm
       },{
         componentClass: VideoRecorder

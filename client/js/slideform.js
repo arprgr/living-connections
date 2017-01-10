@@ -66,7 +66,7 @@ define([ "jquery", "component" ], function($, Component) {
       }
     });
 
-    c.defineFunction("cancel", function() {
+    c.defineFunction("exit", function() {
       this.invokePlugin("exit");
     });
   });
@@ -75,8 +75,11 @@ define([ "jquery", "component" ], function($, Component) {
 
     c.defineFunction("open", function(data) { this.data = data; return this; });
     c.defineFunction("close", function() {});
-    c.defineFunction("cancel", function() {
-      this.invokePlugin("cancel");
+    c.defineFunction("exit", function() {
+      this.invokePlugin("exit");
+    });
+    c.defineFunction("advance", function() {
+      this.invokePlugin("advance");
     });
   });
 

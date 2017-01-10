@@ -105,11 +105,13 @@ define([ "http" ], function(HttpMethod) {
     var UpdateUserMethod = new HttpMethod.PutForm()
       .addPathComponent("/users/-")
       .addQueryParameter("assetId")
+      .addQueryParameter("name")
       .build();
 
     return function updateUser(form) {
       return new UpdateUserMethod()
         .setAssetId(form.assetId)
+        .setName(form.name)
         .execute();
     }
   }

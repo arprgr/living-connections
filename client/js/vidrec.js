@@ -1,7 +1,7 @@
 // vidrec.js - VideoRecorder component
 
-define([ "jquery", "component", "services", "obs", "videoui", "button", "slideform" ],
-  function($, Component, Services, Observable, VideoComponent, Button, SlideForm) {
+define([ "jquery", "services", "obs", "videoui", "button", "slideform" ],
+  function($, Services, Observable, VideoComponent, Button, SlideForm) {
 
   // Service imports.
 
@@ -60,7 +60,7 @@ define([ "jquery", "component", "services", "obs", "videoui", "button", "slidefo
     return self;
   }
 
-  function doSave(self) {
+  function acceptRecording(self) {
     self.videoComponent.pause();
     self.state.setValue(STATE_SAVING);
     var videoBlob = self.videoBlob;
@@ -68,18 +68,16 @@ define([ "jquery", "component", "services", "obs", "videoui", "button", "slidefo
     return apiService.saveVideo(videoBlob)
       .then(function(asset) {
         self.openAsset(asset);
-        if (self.context) {
-          self.context.data.asset = asset;
-          self.context.data.assetId = asset.id;
-          self.context.advance();
-        }
+        self.data.asset = asset;
+        self.data.assetId = asset.id;
+        self.invokePlugin("advance");
       })
       .catch(function() {
         toErrorState(self);
       });
   }
 
-  return Component.defineClass(SlideForm.Form, function(c) {
+  return SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -91,13 +89,13 @@ define([ "jquery", "component", "services", "obs", "videoui", "button", "slidefo
         stopRecording(self);
       });
       var acceptButton = standardButton("Looks good!", function() {
-        doSave(self);
+        acceptRecording(self);
       });
       var discardButton = standardButton("Discard and re-record", function() {
         self.openCamera();
       });
       var cancelButton = standardButton("Cancel", function() {
-        self.cancel();
+        self.exit();
       });
       var state = new Observable(STATE_INIT);
 
@@ -124,10 +122,11 @@ define([ "jquery", "component", "services", "obs", "videoui", "button", "slidefo
       self.state = state;
     });
 
-    c.defineFunction("open", function() {
+    c.defineFunction("open", function(data) {
       var self = this;
-      if (self.context && self.context.data.asset) {
-        self.openAsset(self.context.data.asset);
+      self.data = data;
+      if (data.asset) {
+        self.openAsset(data.asset);
       }
       else {
         self.openCamera();

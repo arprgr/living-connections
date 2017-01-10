@@ -1,7 +1,7 @@
 // anneditor.js - Announcement Editor component
 
-define([ "jquery", "component", "services", "vidrec", "button", "slideform" ],
-  function($, Component, Services, VideoRecorder, Button, SlideForm) {
+define([ "jquery", "services", "vidrec", "button", "slideform" ],
+  function($, Services, VideoRecorder, Button, SlideForm) {
 
   // Service imports.
 
@@ -11,21 +11,20 @@ define([ "jquery", "component", "services", "vidrec", "button", "slideform" ],
     return new Button($("<button>").addClass("standard")).setLabel(label);
   }
 
-
-  var AnnouncementTypeForm = Component.defineClass(SlideForm.Form, function(c) {
+  var AnnouncementTypeForm = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
 
       var forwardButton = standardButton("Keep Going")
       forwardButton.onClick(function() {
-        self.context.data.type = self.value;
-        self.context.advance();
+        self.data.type = self.value;
+        self.advance();
       });
 
       var cancelButton = standardButton("Cancel");
       cancelButton.onClick(function() {
-        self.cancel();
+        self.exit();
       });
 
       self.container
@@ -62,26 +61,27 @@ define([ "jquery", "component", "services", "vidrec", "button", "slideform" ],
       }
     });
 
-    c.defineFunction("open", function() {
-      this.value = this.context.data.type;
+    c.defineFunction("open", function(data) {
+      this.data = data;
+      this.value = data.type;
     });
   });
 
-  var AnnouncementPeriodForm = Component.defineClass(SlideForm.Form, function(c) {
+  var AnnouncementPeriodForm = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
 
       var forwardButton = standardButton("Keep Going")
       forwardButton.onClick(function() {
-        self.context.data.startDate = "2016-12-31";
-        self.context.data.endDate = "2017-03-31";
-        self.context.advance();
+        self.data.startDate = "2016-12-31";
+        self.data.endDate = "2017-03-31";
+        self.advance();
       });
 
       var cancelButton = standardButton("Cancel");
       cancelButton.onClick(function() {
-        self.cancel();
+        self.exit();
       });
 
       self.container
@@ -95,7 +95,7 @@ define([ "jquery", "component", "services", "vidrec", "button", "slideform" ],
     });
   });
 
-  var AnnouncementSubmitForm = Component.defineClass(SlideForm.Form, function(c) {
+  var AnnouncementSubmitForm = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -107,7 +107,7 @@ define([ "jquery", "component", "services", "vidrec", "button", "slideform" ],
 
       var cancelButton = standardButton("Cancel");
       cancelButton.onClick(function() {
-        self.cancel();
+        self.exit();
       });
 
       self.container
@@ -120,12 +120,12 @@ define([ "jquery", "component", "services", "vidrec", "button", "slideform" ],
     });
 
     c.defineFunction("save", function() {
-      var data = self.context.data;
+      var data = self.data;
       return apiService.saveForm("ann", data.id ? "upd" : "cre", data);
     });
   });
 
-  return Component.defineClass(SlideForm, function(c) {
+  return SlideForm.defineClass(function(c) {
 
     c.defineInitializer(function() {
       this.options.slides = [{

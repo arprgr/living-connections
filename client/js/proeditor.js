@@ -20,7 +20,7 @@ define([ "jquery", "services", "textinput", "vidrec", "button", "slideform" ],
       nameInput.addPlugin({
         submit: function(name) {
           self.data.name = name;
-          self.invokePlugin("advance");
+          self.advance();
         }
       });
 
@@ -67,13 +67,19 @@ define([ "jquery", "services", "textinput", "vidrec", "button", "slideform" ],
 
       var doneButton = standardButton("Done")
       doneButton.onClick(function() {
-        var data = self.data;
-        return apiService.saveForm("pro", data.id ? "upd" : "cre", data);
+        doneButton.enabled = false;
+        apiService.saveForm("pro", "upd", self.data)
+        .then(function() {
+          self.exit();
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
       });
 
       var cancelButton = standardButton("Cancel");
       cancelButton.onClick(function() {
-        self.invokePlugin("exit");
+        self.exit();
       });
 
       self.container
