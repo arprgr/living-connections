@@ -1,7 +1,7 @@
 // startupui.js - StartupComponent
 
-define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
-  function($, Services, LoginComponent, WaitAnimController, Animation, Cookie) {
+define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cookie" ],
+  function($, Component, Services, LoginComponent, WaitAnimController, Animation, Cookie) {
 
   var NO_VID = "Sorry, but your browser is not capable of sending and receiving Living Connections video messages.";
   var VID_SUPPORT_REF = "Read more about supported browsers.";
@@ -16,30 +16,6 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
 
   function selectMessageBox(self) {
     return self.container.find(".message");
-  }
-
-  function setComponentOpacity(component, opacity) {
-    component.container.css("opacity", opacity);
-  }
-
-  function fadeOut(component, then) {
-    var NFRAMES = 1800;
-
-    function adjustOpacity(frameIndex) {
-      var x = frameIndex / NFRAMES;
-      setComponentOpacity(component, Math.cos(Math.PI/2 * x*x));
-    }
-
-    new Animation({
-      period: NFRAMES,
-      frameTime: 1,
-      iterations: 1,
-      renderTween: adjustOpacity,
-      renderFinal: function() {
-        adjustOpacity(NFRAMES);
-        then();
-      }
-    }).start();
   }
 
   var LOGIN_TOP = -338;
@@ -125,6 +101,7 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
     else {
       toLoginStateNoCheck(self);
     }
+    return self;
   }
 
   function showWaitingIndicator(self) {
@@ -148,47 +125,23 @@ define([ "jquery", "services", "loginui", "waitanim", "anim", "cookie" ],
       "We'll keep trying. In the meantime, please check your internet connection.");
   }
 
-  function handleSessionManagerStateChange(sessionManager) {
-    var self = this;
-    sessionManager.waiting ? showWaitingIndicator(self) : removeWaitingIndicator(self);
-    if (sessionManager.isUnresponsive()) {
-      showUnresponsive(self);
-    }
-  }
+  return Component.defineClass(function(c) {
 
-  function StartupComponent(container) {
-    var self = this;
-    self.container = container;
-    self.login = new LoginComponent(container.find(".login")).setVisible(false);
-    self.originalHeight = container.height();
-    Services.sessionManager.addStateChangeListener(handleSessionManagerStateChange.bind(self));
-  }
+    c.defineInitializer(function() {
+      var self = this;
+      var container = self.container;
+      self.login = new LoginComponent(container.find(".login")).setVisible(false);
+      self.originalHeight = container.height();
+      Services.sessionManager.addStateChangeListener(function(sessionManager) {
+        sessionManager.waiting ? showWaitingIndicator(self) : removeWaitingIndicator(self);
+        if (sessionManager.isUnresponsive()) {
+          showUnresponsive(self);
+        }
+      });
+    });
 
-  function hide(self, then) {
-    if (self.loginState) {
-      self.container.hide();
-      then();
-    }
-    else {
-      fadeOut(self, then);
-    }
-    return self;
-  }
-
-  StartupComponent.prototype = {
-    show: function() {
-      this.container.show();
-      setComponentOpacity(this, 1);
-      return this;
-    },
-    hide: function(then) {
-      hide(this, then);
-      return this;
-    },
-    toLoginState: function() {
-      toLoginState(this);
-    }
-  }
-
-  return StartupComponent;
+    c.defineFunction("toLoginState", function() {
+      return toLoginState(this);
+    });
+  });
 });

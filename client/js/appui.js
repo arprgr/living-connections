@@ -1,46 +1,34 @@
 // appui.js
 
-define([ "jquery", "services", "startupui", "mainui" ],
-  function($, Services, StartupController, MainController) {
+define([ "jquery", "services", "startupui", "mainui", "crossfade" ],
+  function($, Services, StartupComponent, MainComponent, CrossFade) {
 
-  function Controller() {
-    var self = this;
-    self.startupController = new StartupController($("#startup"));
-    self.mainController = new MainController($("#app")).setVisible(false);
-    self.startupState = true;
-  }
+  return function() {
 
-  function open(self) {
-    var startupController = self.startupController;
-    var mainController = self.mainController;
-    var sessionManager = Services.sessionManager;
+    var startupComponent = new StartupComponent($("#startup"));
+    var mainComponent = new MainComponent($("#app")).setVisible(false);
+    var mainShowing = false;
 
-    sessionManager.addStateChangeListener(function(sessionManager) {
+    function handleSessionStateChange(sessionManager) {
       if (sessionManager.isLoginRequired()) {
-        self.startupState = true;
-        startupController.toLoginState();
-        startupController.show();
-        mainController.setVisible(0);
-        mainController.close();
+        startupComponent.toLoginState();
+        if (mainShowing) {
+          mainComponent.close();
+          new CrossFade(mainComponent, startupComponent).run();
+          mainShowing = false;
+        }
       }
-      else if (sessionManager.isActive() && self.startupState) {
-        self.startupState = false;
-        mainController.open();
-        startupController.hide(function() {
-          mainController.setVisible(1);
-        })
+      else if (sessionManager.isActive() && !mainShowing) {
+        mainComponent.open();
+        new CrossFade(startupComponent, mainComponent).run();
+        mainShowing = true;
       }
-    });
+    }
 
-    Services.sessionManager.init();
-    return self;
-  }
-
-  Controller.prototype = {
-    open: function() {
-      return open(this);
+    this.open = function() {
+      var sessionManager = Services.sessionManager;
+      sessionManager.addStateChangeListener(handleSessionStateChange);
+      sessionManager.init();
     }
   }
-
-  return Controller;
 });
