@@ -73,7 +73,7 @@ define([ "jquery", "component" ], function($, Component) {
 
   SlideForm.Form = Component.defineClass(function(c) {
 
-    c.defineFunction("open", function(data) {});
+    c.defineFunction("open", function(data) { this.data = data; return this; });
     c.defineFunction("close", function() {});
     c.defineFunction("cancel", function() {
       this.invokePlugin("cancel");

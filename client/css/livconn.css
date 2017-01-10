@@ -106,7 +106,6 @@ input.invalid {
   height: 32px;
 }
 #app .activity {
-  border-radius: 6px;
   padding: 8px 12px;
   background-color: white;
   color: #004;
@@ -132,6 +131,14 @@ video {
 #app .form {
   text-align: center;
   margin: 4px;
+  position: relative;
+  background-color: white;
+}
+#app .form > div {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: white;
 }
 button.standard {
   background-color: white;

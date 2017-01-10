@@ -49,8 +49,11 @@ define([ "jquery", "component", "services", "videoui", "button" ],
       return self;
     });
 
+    c.defineFunction("close", function() {
+    });
+
     c.defineFunction("openActionItem", function(actionItem) {
-      this.dispatchEvent("openActionItem", actionItem);
+      this.invokePlugin("openActionItem", actionItem);
     });
 
     c.defineFunction("exit", function() {

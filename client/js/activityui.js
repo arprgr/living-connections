@@ -1,14 +1,33 @@
 // activityui.js - ActivityComponent
 
-define([ "jquery", "component", "annviewer", "inveditor" ], function($, Component, AnnouncementViewer, InvitationEditor) {
+define([ "jquery", "component", "annviewer", "inveditor", "proeditor", "crossfade" ],
+  function($, Component, AnnouncementViewer, InvitationEditor, ProfileEditor, CrossFade) {
+
+  function ComponentClassFor(actionItem) {
+    var parts = actionItem.type.split("-");
+    var what = parts[0];
+    var action = parts[1];
+    switch (what) {
+    case "ann":
+      return action == "rec" ? AnnouncementViewer : AnnouncementEditor;
+    case "gre":
+      return action == "rec" ? GreetingViewer : GreetingEditor;
+    case "inv":
+      return action == "rec" ? InvitationViewer : InvitationEditor;
+    case "pro":
+      return action == "rec" ? ProfileViewer : ProfileEditor;
+    }
+  }
 
   return Component.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
       self.container 
-        .append($("<img>").addClass("lilIcon"))
-        .append($("<span>").addClass("title"))
+        .append($("<div>")
+          .append($("<img>").addClass("lilIcon"))
+          .append($("<span>").addClass("title"))
+        )
         .append($("<div>").addClass("form"))
     });
 
@@ -19,35 +38,32 @@ define([ "jquery", "component", "annviewer", "inveditor" ], function($, Componen
 
     c.defineFunction("open", function(actionItem) {
       var self = this;
-      self.close();
-      var parts = actionItem.type.split("-");
-      var what = parts[0];
-      var action = parts[1];
       updateHeader(self, actionItem);
-      var form;
-      switch (what) {
-      case "ann":
-        form = new (action == "rec" ? AnnouncementViewer : AnnouncementEditor)().open(actionItem);
-        break;
-      case "gre":
-        form = new (action == "rec" ? GreetingViewer : GreetingEditor)().open(actionItem);
-        break;
-      case "inv":
-        form = new (action == "rec" ? InvitationViewer : InvitationEditor)().open(actionItem);
-        break;
-      case "pro":
-        form = new (action == "rec" ? ProfileViewer : ProfileEditor)().open(actionItem);
-        break;
+
+      var form = new (ComponentClassFor(actionItem))()
+        .addPlugin({
+          exit: function() {
+            self.invokePlugin("close");
+          },
+          openActionItem: function(actionItem) {
+            self.open(actionItem);
+          }
+        })
+        .open(actionItem);
+      form.container.appendTo(self.container.find(".form"));
+
+      if (self.form) {
+        new CrossFade(self.form, form).run()
+        .then(function() {
+          self.form.close();
+          self.form.container.remove();
+          self.form = form;
+        });
       }
-      self.container.find(".form").empty().append(form.container);
-      form.addPlugin({
-        exit: function() {
-          self.onActivityClose && self.onActivityClose();
-        },
-        openActionItem: function(actionItem) {
-          self.open(actionItem);
-        }
-      });
+      else {
+        self.form = form;
+      }
+
       return self;
     });
 

@@ -53,12 +53,14 @@ define([ "jquery", "services", "component", "listingui", "activityui" ],
         activity.visible = true;
       }
 
-      activity.onActivityClose = function() {
-        activity.visible = false;
-        activity.close();
-        listing.open();
-        listing.visible = true;
-      };
+      activity.addPlugin({
+        close: function() {
+          activity.visible = false;
+          activity.close();
+          listing.open();
+          listing.visible = true;
+        }
+      });
 
       self.listing = listing;
       self.activity = activity;
