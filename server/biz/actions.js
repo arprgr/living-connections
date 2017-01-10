@@ -91,7 +91,7 @@ function addAdminAnnouncementItems(compiler) {
     var ann = announcements[i];
     addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, {
       title: "Update " + announcementTitle(compiler, ann),
-      assetUrl: ann.asset.url
+      announcement: ann
     });
   }
 }
@@ -128,8 +128,7 @@ function addAnnouncementItems(compiler) {
     if (ann.creatorId != compiler.user.id) {
       addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, {
         title: announcementTitle(compiler, ann),
-        assetUrl: ann.asset.url,
-        sender: ann.creator
+        announcement: ann
       });
     }
   }

@@ -1,6 +1,6 @@
 // activityui.js - ActivityComponent
 
-define([ "jquery", "component", "inveditor" ], function($, Component, InvitationEditor) {
+define([ "jquery", "component", "annviewer", "inveditor" ], function($, Component, AnnouncementViewer, InvitationEditor) {
 
   return Component.defineClass(function(c) {
 

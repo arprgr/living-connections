@@ -6,20 +6,16 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
 
   return Component.defineClass(function(c) {
 
-    c.defineDefaultOptions({
-      elementId: "theVideo"
-    });
-
     c.defineInitializer(function() {
       var self = this;
       self.state = new Observable(0);
       // jQuery is unable to handle creation of video elements.
-      // TODO: escape the elementId
-      self.container.html("<video id='" + self.options.elementId + "'></video>");
+      self.container.html("<video></video>");
     });
 
-    c.defineFunction("load", function(src) {
+    c.defineFunction("load", function(src, options) {
       var self = this;
+      options = options || {};
       var promise = $.Deferred();
       var theVideo = self.videoElement;
 
@@ -47,7 +43,7 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
       var srcIsUrl = typeof src == "string";
       theVideo.src = srcIsUrl ? src : "";
       theVideo.srcObject = srcIsUrl ? null : src;
-      theVideo.autoplay = !!src && !srcIsUrl;
+      theVideo.autoplay = options.autoplay || (!!src && !srcIsUrl);
       theVideo.controls = srcIsUrl;
       theVideo.muted = !srcIsUrl;
       if (src == null) {
@@ -67,7 +63,7 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
 
     c.defineProperty("videoElement", {
       get: function() {
-        return document.getElementById(this.options.elementId);
+        return this.container[0].children[0];
       }
     });
   });
