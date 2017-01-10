@@ -19,20 +19,32 @@ define([ "jquery", "component", "inveditor" ], function($, Component, Invitation
 
     c.defineFunction("open", function(actionItem) {
       var self = this;
+      self.close();
       var parts = actionItem.type.split("-");
       var what = parts[0];
       var action = parts[1];
       updateHeader(self, actionItem);
-      var FormClass;
+      var form;
       switch (what) {
+      case "ann":
+        form = new (action == "rec" ? AnnouncementViewer : AnnouncementEditor)().open(actionItem);
+        break;
+      case "gre":
+        form = new (action == "rec" ? GreetingViewer : GreetingEditor)().open(actionItem);
+        break;
       case "inv":
-        FormClass = InvitationEditor;
+        form = new (action == "rec" ? InvitationViewer : InvitationEditor)().open(actionItem);
+        break;
+      case "pro":
+        form = new (action == "rec" ? ProfileViewer : ProfileEditor)().open(actionItem);
+        break;
       }
-      var form = new FormClass();
       self.container.find(".form").empty().append(form.container);
-      form.open(actionItem);
       form.onCancel = function() {
         self.onActivityClose && self.onActivityClose();
+      }
+      form.openActionItem = function(actionItem) {
+        self.open(actionItem);
       }
       return self;
     });
