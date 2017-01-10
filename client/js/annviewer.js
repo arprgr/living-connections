@@ -1,11 +1,12 @@
 // annviewer.js - Announcement Viewer component
 
-define([ "jquery", "component", "services", "videoui", "button" ],
-  function($, Component, Services, VideoPlayer, Button) {
+define([ "jquery", "component", "services", "videoui", "button", "actionitem" ],
+  function($, Component, Services, VideoPlayer, Button, ActionItem) {
 
   // Service imports.
 
   var apiService = Services.apiService;
+  var sessionManager = Services.sessionManager;
 
   return Component.defineClass(function(c) {
 
@@ -32,9 +33,9 @@ define([ "jquery", "component", "services", "videoui", "button" ],
       var announcement = actionItem.announcement;
       self.videoPlayer.load(announcement.asset.url, { autoplay: true });
       self.container.find("button").remove();
-      if (announcement.creator) {
+      if (announcement.creator && announcement.creator.id != sessionManager.user.id) {
         addButton("Reply to " + announcement.creator.name, function() {
-          self.openActionItem({ type: "gre-cre", user: announcement.creator });
+          self.openActionItem({ type: "gre-cre", user: announcement.creator, isReply: 1 });
         });
       }
       if (announcement.creator && announcement.creator.asset) {
@@ -53,7 +54,7 @@ define([ "jquery", "component", "services", "videoui", "button" ],
     });
 
     c.defineFunction("openActionItem", function(actionItem) {
-      this.invokePlugin("openActionItem", actionItem);
+      this.invokePlugin("openActionItem", new ActionItem(actionItem));
     });
 
     c.defineFunction("exit", function() {

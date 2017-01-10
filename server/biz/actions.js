@@ -47,36 +47,13 @@ function priorityOfMsgAction(msg, action) {
 function msgActionItem(msg, action, data) {
   return extend({
     type: msgActionType(msg, action),
-    priority: priorityOfMsgAction(msg, action),
-    title: ACTIONS[action].verbage(msg) + " " + MESSAGES[msg].what
+    priority: priorityOfMsgAction(msg, action)
   }, data);
 }
 
 function ActionCompiler(user) {
   this.user = user;
   this.actionItems = [];
-}
-
-function announcementTitle(compiler, announcement) {
-  var title = "Announcement";
-  if (compiler.user.id == announcement.creatorId) {
-    title = "your " + title;
-  }
-  else { 
-    if (announcement.creator) {
-      title += " from " + announcement.creator.name;
-    }
-  }
-  title += " of " + when.formatRelativeTime(announcement.startDate);
-  return title;
-}
-
-function greetingTitle(compiler, message) {
-  var title = "Greeting";
-  if (message.fromUser) {
-    title += " from " + message.fromUser.name;
-  }
-  return title;
 }
 
 function addActionItem(compiler, msg, action, data) {
@@ -90,7 +67,6 @@ function addAdminAnnouncementItems(compiler) {
   for (var i = 0; i < announcements.length; ++i) {
     var ann = announcements[i];
     addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, {
-      title: "Update " + announcementTitle(compiler, ann),
       announcement: ann
     });
   }
@@ -104,9 +80,7 @@ function addGreetingItems(compiler) {
   var connections = compiler.connections;
   for (var i = 0; i < connections.length; ++i) {
     var conn = connections[i];
-    addActionItem(compiler, MSG_GREETING, ACTION_CREATE, {
-      title: "Send a greeting to " + conn.peer.name
-    });
+    addActionItem(compiler, MSG_GREETING, ACTION_CREATE);
   }
 }
 
@@ -127,7 +101,6 @@ function addAnnouncementItems(compiler) {
     var ann = announcements[i];
     if (ann.creatorId != compiler.user.id) {
       addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, {
-        title: announcementTitle(compiler, ann),
         announcement: ann
       });
     }
@@ -139,7 +112,6 @@ function addMessageItems(compiler) {
   for (var i = 0; i < messages.length; ++i) {
     var message = messages[i];
     addActionItem(compiler, MSG_GREETING, ACTION_RECEIVE, {
-      title: greetingTitle(compiler, message),
       assetUrl: message.asset.url,
       sender: message.fromUser
     });
