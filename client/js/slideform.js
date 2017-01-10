@@ -23,7 +23,7 @@ define([ "jquery", "component" ], function($, Component) {
           self.container.append(container);
 
           self.slides.push(new (slideDesc.componentClass)(container, slideDesc.options)
-            .setContext(self)
+            .addPlugin(self)
             .setVisible(false));
         }
       }
@@ -31,7 +31,7 @@ define([ "jquery", "component" ], function($, Component) {
 
     function doOpen(self) {
       var slide = self.slides[self.slideIndex];
-      slide.open();
+      slide.open(self.data);
       slide.visible = true;
     }
 
@@ -67,26 +67,16 @@ define([ "jquery", "component" ], function($, Component) {
     });
 
     c.defineFunction("cancel", function() {
-      this.onCancel && this.onCancel();
+      this.invokePlugin("exit");
     });
   });
 
   SlideForm.Form = Component.defineClass(function(c) {
 
-    c.defineFunction("open", function() {});
+    c.defineFunction("open", function(data) {});
     c.defineFunction("close", function() {});
-
-    c.defineProperty("context", {
-      get: function() {
-        return this._context;
-      },
-      set: function(context) {
-        this._context = context;
-      }
-    });
-
     c.defineFunction("cancel", function() {
-      this.context.cancel();
+      this.invokePlugin("cancel");
     });
   });
 

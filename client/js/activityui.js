@@ -40,12 +40,14 @@ define([ "jquery", "component", "annviewer", "inveditor" ], function($, Componen
         break;
       }
       self.container.find(".form").empty().append(form.container);
-      form.onCancel = function() {
-        self.onActivityClose && self.onActivityClose();
-      }
-      form.openActionItem = function(actionItem) {
-        self.open(actionItem);
-      }
+      form.addPlugin({
+        exit: function() {
+          self.onActivityClose && self.onActivityClose();
+        },
+        openActionItem: function(actionItem) {
+          self.open(actionItem);
+        }
+      });
       return self;
     });
 

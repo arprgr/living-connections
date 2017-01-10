@@ -1,7 +1,7 @@
 // inveditor.js - Invitation Editor component
 
-define([ "jquery", "component", "services", "vidrec", "button", "slideform", "emailinput" ],
-  function($, Component, Services, VideoRecorder, Button, SlideForm, EmailInput) {
+define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
+  function($, Services, VideoRecorder, Button, SlideForm, EmailInput) {
 
   // Service imports.
 
@@ -11,7 +11,7 @@ define([ "jquery", "component", "services", "vidrec", "button", "slideform", "em
     return new Button($("<button>").addClass("standard")).setLabel(label);
   }
 
-  var InvitationEmailForm = Component.defineClass(SlideForm.Form, function(c) {
+  var InvitationEmailForm = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -54,16 +54,16 @@ define([ "jquery", "component", "services", "vidrec", "button", "slideform", "em
       self.emailInput = emailInput;
     });
 
-    c.defineFunction("open", function() {
+    c.defineFunction("open", function(data) {
       var self = this;
-      self.emailInput.value = self.context.data.email;
+      self.emailInput.value = data.email;
       setTimeout(function() {
         self.emailInput.focus();
       }, 100);
     });
   });
 
-  var InvitationSubmitForm = Component.defineClass(SlideForm.Form, function(c) {
+  var InvitationSubmitForm = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -92,7 +92,7 @@ define([ "jquery", "component", "services", "vidrec", "button", "slideform", "em
     });
   });
 
-  return Component.defineClass(SlideForm, function(c) {
+  return SlideForm.defineClass(function(c) {
 
     c.defineInitializer(function() {
       this.options.slides = [{

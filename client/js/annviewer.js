@@ -34,19 +34,27 @@ define([ "jquery", "component", "services", "videoui", "button" ],
       self.container.find("button").remove();
       if (announcement.creator) {
         addButton("Reply to " + announcement.creator.name, function() {
-          self.context.openActionItem({ type: "pro-rec", user: announcement.creator });
+          self.openActionItem({ type: "gre-cre", user: announcement.creator });
         });
       }
       if (announcement.creator && announcement.creator.asset) {
         addButton("See " + announcement.creator.name + "'s Profile", function() {
-          self.context.openActionItem({ type: "pro-rec", user: announcement.creator });
+          self.openActionItem({ type: "pro-rec", user: announcement.creator });
         });
       }
       addButton("Exit", function() {
-        self.context.exit();
+        self.exit();
       });
 
       return self;
+    });
+
+    c.defineFunction("openActionItem", function(actionItem) {
+      this.dispatchEvent("openActionItem", actionItem);
+    });
+
+    c.defineFunction("exit", function() {
+      this.invokePlugin("exit");
     });
   });
 });
