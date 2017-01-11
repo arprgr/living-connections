@@ -131,7 +131,7 @@ function AuthMgr_initiateSession(self, session) {
   var emailSessionSeed = self.emailSessionSeed;
   if (emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
     // Fire and forget.
-    models.Message.builder().seed(emailSessionSeed).toUser(self.user).build();
+    models.Message.builder().seed(emailSessionSeed).toUser(session.user).build();
   }
 }
 
