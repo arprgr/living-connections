@@ -7,23 +7,17 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
 
   var apiService = Services.apiService;
 
-  function standardButton(label, clickFunc) {
-    return new Button($("<button>").addClass("standard")).setLabel(label);
-  }
-
   var AnnouncementTypeForm = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
 
-      var forwardButton = standardButton("Keep Going")
-      forwardButton.onClick(function() {
+      var forwardButton = Button.create("Keep Going", function() {
         self.data.type = self.value;
         self.advance();
       });
 
-      var cancelButton = standardButton("Cancel");
-      cancelButton.onClick(function() {
+      var cancelButton = Button.create("Cancel", function() {
         self.exit();
       });
 
@@ -72,15 +66,13 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
     c.defineInitializer(function() {
       var self = this;
 
-      var forwardButton = standardButton("Keep Going")
-      forwardButton.onClick(function() {
+      var forwardButton = Button.create("Keep Going", function() {
         self.data.startDate = "2016-12-31";
         self.data.endDate = "2017-03-31";
         self.advance();
       });
 
-      var cancelButton = standardButton("Cancel");
-      cancelButton.onClick(function() {
+      var cancelButton = Button.create("Cancel", function() {
         self.exit();
       });
 
@@ -100,13 +92,11 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
     c.defineInitializer(function() {
       var self = this;
 
-      var doneButton = standardButton("Done")
-      doneButton.onClick(function() {
+      var doneButton = Button.create("Done", function() {
         self.save();
       });
 
-      var cancelButton = standardButton("Cancel");
-      cancelButton.onClick(function() {
+      var cancelButton = Button.create("Cancel", function() {
         self.exit();
       });
 

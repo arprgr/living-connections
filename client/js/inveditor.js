@@ -7,10 +7,6 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
 
   var apiService = Services.apiService;
 
-  function standardButton(label, clickFunc) {
-    return new Button($("<button>").addClass("standard")).setLabel(label);
-  }
-
   var InvitationEmailForm = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
@@ -24,8 +20,7 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
         }
       })
 
-      var forwardButton = standardButton("Keep Going");
-      forwardButton.onClick(function() {
+      var forwardButton = Button.create("Keep Going", function() {
         emailInput.submit();
       });
 
@@ -33,9 +28,8 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
         forwardButton.enabled = isValid;
       });
 
-      var cancelButton = standardButton("Cancel");
-      cancelButton.onClick(function() {
-        self.cancel();
+      var cancelButton = Button.create("Cancel", function() {
+        self.exit();
       });
 
       self.container
@@ -68,8 +62,7 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
     c.defineInitializer(function() {
       var self = this;
 
-      var doneButton = standardButton("Done")
-      doneButton.onClick(function() {
+      var doneButton = Button.create("Done", function() {
         var data = self.data;
         apiService.saveForm("inv", data.id ? "upd" : "cre", data)
         .then(function() {
@@ -80,8 +73,7 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
         });
       });
 
-      var cancelButton = standardButton("Cancel");
-      cancelButton.onClick(function() {
+      var cancelButton = Button.create("Cancel", function() {
         self.exit();
       });
 

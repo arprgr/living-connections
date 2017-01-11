@@ -1,8 +1,8 @@
 // button.js - standard button component
 
-define([ "jquery", "component" ], function($, Component) {
+define([ "component" ], function(Component) {
 
-  return Component.defineClass(function(c) { 
+  var Button = Component.defineClass(function(c) { 
 
     c.defineDefaultContainer("<button>");
 
@@ -10,7 +10,7 @@ define([ "jquery", "component" ], function($, Component) {
       var self = this;
       self._enabled = true;
       self._container.click(function() {
-        self._click();
+        self.invokePlugin("click");
       });
     });
 
@@ -36,17 +36,14 @@ define([ "jquery", "component" ], function($, Component) {
         }
       }
     });
-
-    c.defineFunction("onClick", function(func) {
-      this.clickFunc = func;
-      return this;
-    });
-
-    c.defineFunction("_click", function() {
-      var self = this;
-      if (self.enabled && self.clickFunc) {
-        self.clickFunc();
-      }
-    });
   });
+
+  // Handy factory method.
+  Button.create = function(label, onClick) {
+    return new Button().setLabel(label).addPlugin({
+      click: onClick
+    });
+  }
+
+  return Button;
 });

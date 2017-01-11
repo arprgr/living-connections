@@ -140,7 +140,7 @@ video {
   left: 0px;
   background-color: white;
 }
-button.standard {
+#app button {
   background-color: white;
   color: #004;
   border: solid 2px #004;
@@ -151,11 +151,11 @@ button.standard {
   display: inline;
   margin-left: 4px;
 }
-button.standard:disabled {
+#app button:disabled {
   background-color: #ccc;
   color: #aaa;
   border: solid 2px #aaa;
 }
-button.standard:enabled:hover {
+#app button:enabled:hover {
   background-color: #cc8;
 }

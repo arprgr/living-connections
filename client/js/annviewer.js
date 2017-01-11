@@ -25,7 +25,7 @@ define([ "jquery", "component", "services", "videoui", "button", "actionitem" ],
       var self = this;
 
       function addButton(label, onClick) {
-        var button = new Button($("<button>").addClass("standard")).setLabel(label).onClick(onClick);
+        var button = Button.create(label, onClick);
         button.container.appendTo(self.container.find(".buttons"));
       }
 

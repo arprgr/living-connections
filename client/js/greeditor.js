@@ -7,22 +7,16 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
 
   var apiService = Services.apiService;
 
-  function standardButton(label, clickFunc) {
-    return new Button($("<button>").addClass("standard")).setLabel(label);
-  }
-
   var GreetingSubmitForm = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
 
-      var doneButton = standardButton("Done")
-      doneButton.onClick(function() {
+      var doneButton = Button.create("Done", function() {
         self.save();
       });
 
-      var cancelButton = standardButton("Cancel");
-      cancelButton.onClick(function() {
+      var cancelButton = Button.create("Cancel", function() {
         self.cancel();
       });
 

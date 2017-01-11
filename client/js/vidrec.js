@@ -20,10 +20,7 @@ define([ "jquery", "services", "obs", "videoui", "button", "slideform" ],
   var STATE_ERROR = 8;         // Something went wrong.
 
   function standardButton(label, clickFunc) {
-    return new Button($("<button>").addClass("standard"))
-      .setVisible(false)
-      .setLabel(label)
-      .onClick(clickFunc)
+    return Button.create(label, clickFunc).setVisible(false);
   }
 
   function toErrorState(self) {
