@@ -30,19 +30,17 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
     });
 
     c.defineFunction("save", function() {
-      var data = self.context.data;
-      return apiService.saveForm("gre", data.id ? "upd" : "cre", data);
+      return apiService.saveForm("gre", "upd", self.data);
     });
   });
 
   return SlideForm.defineClass(function(c) {
 
-    c.defineInitializer(function() {
-      this.options.slides = [{
-        componentClass: VideoRecorder
-      },{
-        componentClass: GreetingSubmitForm
-      }]
+    c.defineDefaultOptions({
+      slides: [
+        VideoRecorder,
+        GreetingSubmitForm
+      ]
     });
   })
 });

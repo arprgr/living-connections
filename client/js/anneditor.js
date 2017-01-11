@@ -117,16 +117,13 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
 
   return SlideForm.defineClass(function(c) {
 
-    c.defineInitializer(function() {
-      this.options.slides = [{
-        componentClass: AnnouncementTypeForm
-      },{
-        componentClass: AnnouncementPeriodForm
-      },{
-        componentClass: VideoRecorder
-      },{
-        componentClass: AnnouncementSubmitForm
-      }]
+    c.defineDefaultOptions({
+      slides: [
+        AnnouncementTypeForm,
+        AnnouncementPeriodForm,
+        VideoRecorder,
+        AnnouncementSubmitForm
+      ]
     });
   })
 });

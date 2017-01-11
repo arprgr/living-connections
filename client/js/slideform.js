@@ -12,19 +12,14 @@ define([ "jquery", "component" ], function($, Component) {
     function render(self) {
       if (self.slides == null) {
         self.slides = [];
-        var slideDescs = self.options.slides;
-        for (var i = 0; i < slideDescs.length; ++i) {
-          var slideDesc = slideDescs[i];
-
-          var container = $("<div>");
-          if (slideDesc.cssClass) {
-            container.addClass(slideDesc.cssClass);
-          }
-          self.container.append(container);
-
-          self.slides.push(new (slideDesc.componentClass)(container, slideDesc.options)
+        var slideClasses = self.options.slides;
+        for (var i = 0; i < slideClasses.length; ++i) {
+          var SlideClass = slideClasses[i];
+          var slide = new SlideClass()
             .addPlugin(self)
-            .setVisible(false));
+            .setVisible(false);
+          self.slides.push(slide);
+          self.container.append(slide.container);
         }
       }
     }

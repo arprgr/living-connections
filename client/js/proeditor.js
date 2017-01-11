@@ -86,13 +86,11 @@ define([ "jquery", "services", "textinput", "vidrec", "button", "slideform" ],
   return SlideForm.defineClass(function(c) {
 
     c.defineInitializer(function() {
-      this.options.slides = [{
-        componentClass: ProfileNameForm
-      },{
-        componentClass: VideoRecorder
-      },{
-        componentClass: ProfileSubmitForm
-      }]
+      this.options.slides = [
+        ProfileNameForm,
+        VideoRecorder,
+        ProfileSubmitForm
+      ]
     });
   })
 });

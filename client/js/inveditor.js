@@ -89,13 +89,11 @@ define([ "jquery", "services", "vidrec", "button", "slideform", "emailinput" ],
   return SlideForm.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      slides: [{
-        componentClass: InvitationEmailForm
-      },{
-        componentClass: VideoRecorder
-      },{
-        componentClass: InvitationSubmitForm
-      }]
+      slides: [
+        InvitationEmailForm,
+        VideoRecorder,
+        InvitationSubmitForm
+      ]
     });
   })
 });
