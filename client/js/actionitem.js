@@ -17,7 +17,7 @@ define([ "jquery" ], function($) {
   }
 
   function formatGreeting(greeting) {
-    return "Greeting";
+    return "Greeting from " + formatUser(greeting.fromUser);
   }
 
   function formatInvitation(invitation) {

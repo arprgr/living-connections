@@ -1,7 +1,7 @@
 // activityui.js - ActivityComponent
 
-define([ "jquery", "component", "annviewer", "greeditor", "inveditor", "proeditor", "crossfade" ],
-  function($, Component, AnnouncementViewer, GreetingEditor, InvitationEditor, ProfileEditor, CrossFade) {
+define([ "jquery", "component", "annviewer", "greviewer", "greeditor", "inveditor", "proeditor", "crossfade" ],
+  function($, Component, AnnouncementViewer, GreetingViewer, GreetingEditor, InvitationEditor, ProfileEditor, CrossFade) {
 
   function ComponentClassFor(actionItem) {
     var parts = actionItem.type.split("-");

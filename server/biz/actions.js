@@ -85,14 +85,9 @@ function addGreetingItems(compiler) {
 }
 
 function addProfileItems(compiler) {
-  if (!compiler.user.asset) {
-    addActionItem(compiler, MSG_PROFILE, ACTION_CREATE);
-  }
-  else {
-    addActionItem(compiler, MSG_PROFILE, ACTION_UPDATE, {
-      assetUrl: compiler.user.asset.url
-    });
-  }
+  addActionItem(compiler, MSG_PROFILE, compiler.user.asset ? ACTION_UPDATE : ACTION_CREATE, {
+    user: compiler.user
+  });
 }
 
 function addAnnouncementItems(compiler) {
@@ -112,8 +107,7 @@ function addMessageItems(compiler) {
   for (var i = 0; i < messages.length; ++i) {
     var message = messages[i];
     addActionItem(compiler, MSG_GREETING, ACTION_RECEIVE, {
-      assetUrl: message.asset.url,
-      sender: message.fromUser
+      greeting: message
     });
   }
 }
