@@ -15,19 +15,19 @@ const ACTION_UPDATE = "upd";       // Replace the message in a wrapper with a ne
 const ACTION_RECEIVE = "rec";      // Interact with an incoming message.
 
 const MESSAGES = {
-  "inv": { priority: 9, what: "an invitation" },
-  "gre": { priority: 8, what: "a greeting" },
-  "rem": { priority: 10, what: "a reminder" },
+  "inv": { priority: 11, what: "an invitation" },
+  "gre": { priority: 7, what: "a greeting" },
+  "rem": { priority: 13, what: "a reminder" },
   "pro": { priority: 5, what: "your profile message" },
-  "ann": { priority: 7, what: "an announcement" }
+  "ann": { priority: 3, what: "an announcement" }
 }
 
 const ACTIONS = {
-  "cre": { priority: 8, verbage: function(msgType) {
+  "cre": { priority: 2, verbage: function(msgType) {
     return msgType == MSG_PROFILE ? "Create" : "Send"
   } },
-  "upd": { priority: 4, verbage: function() { return "Update" } },
-  "rec": { priority: 10, verbage: function() { return "View" } }
+  "upd": { priority: 1, verbage: function() { return "Update" } },
+  "rec": { priority: 4, verbage: function() { return "View" } }
 }
 
 const MAX_ACTION_ITEMS = 20;
@@ -41,7 +41,12 @@ function msgActionType(msg, action) {
 }
 
 function priorityOfMsgAction(msg, action) {
-  return MESSAGES[msg].priority * ACTIONS[action].priority;
+  var fudge = 0;
+  if (msg == MSG_PROFILE && action == ACTION_CREATE) {
+    msg = MSG_INVITATION;
+    fudge = 1;
+  }
+  return MESSAGES[msg].priority * ACTIONS[action].priority + fudge;
 }
 
 function msgActionItem(msg, action, data) {
