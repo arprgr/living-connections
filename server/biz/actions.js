@@ -3,6 +3,7 @@
 const extend = require("extend");
 const when = require("../util/when");
 const Miner = require("./miner");
+const Message = require("../models/index").Message;
 
 const MSG_INVITATION = "inv";      // Ask another user to connect.
 const MSG_GREETING = "gre";        // Say hi.  One time, immediate.
@@ -107,13 +108,21 @@ function addAnnouncementItems(compiler) {
   }
 }
 
-function addMessageItems(compiler) {
+function addIncomingMessageItems(compiler) {
   var messages = compiler.incomingMessages;
   for (var i = 0; i < messages.length; ++i) {
     var message = messages[i];
-    addActionItem(compiler, MSG_GREETING, ACTION_RECEIVE, {
-      greeting: message
-    });
+    switch (message.type) {
+    case Message.INVITE_TYPE:
+      addActionItem(compiler, MSG_INVITATION, ACTION_RECEIVE, {
+        invite: message
+      });
+      break;
+    default:
+      addActionItem(compiler, MSG_GREETING, ACTION_RECEIVE, {
+        greeting: message
+      });
+    }
   }
 }
 
@@ -128,7 +137,7 @@ function createActionItems(compiler) {
     addGreetingItems(compiler);
     addProfileItems(compiler);
     addAnnouncementItems(compiler);
-    addMessageItems(compiler);
+    addIncomingMessageItems(compiler);
   }
 }
 

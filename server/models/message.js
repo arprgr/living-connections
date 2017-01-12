@@ -56,6 +56,10 @@ module.exports = function(sequelize, DataTypes) {
         associations.toUser = toUser;
         return this;
       },
+      type: function(type) {
+        values.type = type;
+        return this;
+      },
       build: function() {
         return Message.create(values)
         .then(function(model) {
@@ -116,6 +120,10 @@ module.exports = function(sequelize, DataTypes) {
       destroyAll: destroyAll
     }
   });
+
+  Message.GREETING_TYPE = 0;
+  Message.INVITE_TYPE = 1;
+  Message.ANNOUNCEMENT_TYPE = 2;
 
   return Message;
 };

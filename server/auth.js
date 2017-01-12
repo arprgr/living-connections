@@ -123,7 +123,6 @@ function AuthMgr_logOut(self) {
 // Follow up with newly created session.
 function AuthMgr_initiateSession(self, session) {
   self.session = session;
-
   sendSessionCookie(self.res, session.externalId);
 
   // If user was invited, send the invitation message.
@@ -131,7 +130,11 @@ function AuthMgr_initiateSession(self, session) {
   var emailSessionSeed = self.emailSessionSeed;
   if (emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
     // Fire and forget.
-    models.Message.builder().seed(emailSessionSeed).toUser(session.user).build();
+    models.Message.builder()
+      .seed(emailSessionSeed)
+      .toUser(session.user)
+      .type(models.Message.INVITE_TYPE)
+      .build();
   }
 }
 
