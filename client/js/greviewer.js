@@ -1,11 +1,9 @@
 // greviewer.js - Greeting Viewer component
 
-define([ "jquery", "component", "videoui", "button", "actionitem" ],
-  function($, Component, VideoPlayer, Button, ActionItem) {
+define([ "jquery", "activityui", "videoui", "button", "actionitem" ],
+  function($, Activity, VideoPlayer, Button, ActionItem) {
 
-  // Service imports.
-
-  return Component.defineClass(function(c) {
+  return Activity.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -26,17 +24,19 @@ define([ "jquery", "component", "videoui", "button", "actionitem" ],
         button.container.appendTo(self.container.find(".buttons"));
       }
 
+      Activity.prototype.open.call(self, actionItem);
+
       self.title = actionItem.title;
       var greeting = actionItem.greeting;
       self.videoPlayer.load(greeting.asset.url, { autoplay: true });
       if (greeting.fromUser) {
         addButton("Reply to " + greeting.fromUser.name, function() {
-          self.openActionItem({ type: "gre-cre", user: greeting.fromUser, isReply: 1 });
+          self.openActionItem(new ActionItem({ type: "gre-cre", user: greeting.fromUser, isReply: 1 }));
         });
       }
       if (greeting.fromUser && greeting.fromUser.asset) {
         addButton("See " + greeting.fromUser.name + "'s Profile", function() {
-          self.openActionItem({ type: "pro-rec", user: greeting.fromUser });
+          self.openActionItem(new ActionItem({ type: "pro-rec", user: greeting.fromUser }));
         });
       }
       addButton("Exit", function() {
@@ -44,17 +44,6 @@ define([ "jquery", "component", "videoui", "button", "actionitem" ],
       });
 
       return self;
-    });
-
-    c.defineFunction("close", function() {
-    });
-
-    c.defineFunction("openActionItem", function(actionItem) {
-      this.invokePlugin("openActionItem", new ActionItem(actionItem));
-    });
-
-    c.defineFunction("exit", function() {
-      this.invokePlugin("exit");
     });
   });
 });

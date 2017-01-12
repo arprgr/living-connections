@@ -1,7 +1,7 @@
 // proeditor.js - Profile Editor component
 
-define([ "jquery", "services", "textinput", "vidrec", "button", "slideform" ],
-  function($, Services, TextInput, VideoRecorder, Button, SlideForm) {
+define([ "jquery", "services", "activityui", "textinput", "vidrec", "button", "slideform" ],
+  function($, Services, Activity, TextInput, VideoRecorder, Button, SlideForm) {
 
   // Service imports.
 
@@ -34,10 +34,13 @@ define([ "jquery", "services", "textinput", "vidrec", "button", "slideform" ],
 
       self.container
         .append($("<div>")
+          .addClass("formsect")
           .text("What name would you like to go by in Living Connections?"))
         .append($("<div>")
+          .addClass("formsect")
           .append(nameInput.container))
         .append($("<div>")
+          .addClass("formsect")
           .append(forwardButton.container)
           .append(cancelButton.container))
 
@@ -49,7 +52,7 @@ define([ "jquery", "services", "textinput", "vidrec", "button", "slideform" ],
       self.data = data;
       self.nameInput.value = data.name;
       setTimeout(function() {
-        self.nameInput.focus();
+        self.nameInput.select().focus();
       }, 100);
     });
   });
@@ -83,14 +86,26 @@ define([ "jquery", "services", "textinput", "vidrec", "button", "slideform" ],
     });
   });
 
-  return SlideForm.defineClass(function(c) {
+  return Activity.defineClass(function(c) {
 
     c.defineInitializer(function() {
-      this.options.slides = [
-        ProfileNameForm,
-        VideoRecorder,
-        ProfileSubmitForm
-      ]
+      var self = this;
+      var form = new SlideForm($("<div>").addClass("form"), {
+        slides: [
+          ProfileNameForm,
+          VideoRecorder,
+          ProfileSubmitForm
+        ]
+      })
+      form.addPlugin(self);
+      self.container.append(form.container);
+      self.form = form;
     });
-  })
+
+    c.defineFunction("open", function(actionItem) {
+      var self = this;
+      Activity.prototype.open.call(self, actionItem);
+      self.form.open(actionItem.user);
+    });
+  });
 });

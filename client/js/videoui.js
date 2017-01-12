@@ -10,7 +10,7 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
       var self = this;
       self.state = new Observable(0);
       // jQuery is unable to handle creation of video elements.
-      self.container.html("<video></video>");
+      self.container.addClass("vid").html("<video></video>");
     });
 
     c.defineFunction("load", function(src, options) {

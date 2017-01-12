@@ -77,6 +77,12 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
 
     c.defineFunction("focus", function() {
       this.input.focus();
+      return this;
+    });
+
+    c.defineFunction("select", function() {
+      this.input.select();
+      return this;
     });
 
     c.defineFunction("clearStyles", function() {

@@ -12,7 +12,7 @@ define([ "jquery", "component", "services" ], function($, Component, Services) {
         .addClass("title")
         .text(actionItem.title))
       .click(function() {
-        self.isOpen && self.onActionItemOpen && self.onActionItemOpen(actionItem);
+        self.invokePlugin("openActionItem", actionItem);
       })
   }
 
@@ -29,26 +29,27 @@ define([ "jquery", "component", "services" ], function($, Component, Services) {
   return Component.defineClass(function(c) {
 
     c.defineInitializer(function() {
-      var self = this;
-      Services.sessionManager.addActionListener(function(actionItems) {
-        self.actionItems = actionItems;
-        if (self.isOpen) {
-          render(self);
-        }
-      });
+      this.container.addClass("listing");
     });
 
     c.defineFunction("open", function() {
-      if (!this.isOpen) {
-        render(this);
-        this.isOpen = true;
-      }
+      var self = this;
+      self.actionItems = Services.sessionManager.actionItems.value;
+      render(self);
+      self.closeHandle = Services.sessionManager.addActionListener(function(actionItems) {
+        self.actionItems = actionItems;
+        render(self);
+      });
       return this;
     });
 
     c.defineFunction("close", function() {
-      this.isOpen = false;
-      return this;
+      var self = this;
+      if (self.closeHandle) {
+        self.closeHandle.undo();
+        self.closeHandle = null;
+      }
+      return self;
     });
   });
 });

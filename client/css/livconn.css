@@ -76,13 +76,13 @@ input.invalid {
   height: 35px;
   padding: 15px 8px 6px 60px;
 }
-.userIdent {
+#app .userIdent {
   float: right;
 }
-.logout {
+#app .logout {
   color: #682;
 }
-#app .body .listing {
+#app .listing {
   padding: 0 5px;
 }
 #app .listing .item {
@@ -105,14 +105,25 @@ input.invalid {
   width: 32px;
   height: 32px;
 }
+#app .body {
+  position: relative;
+  width: 100%;
+}
+#app .body > div {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+}
 #app .activity {
   padding: 8px 12px;
   background-color: white;
   color: #004;
 }
-#app .activity .exit {
-  float: right;
-  font-weight: bold;
+#app .activity span.title {
+  position: relative;
+  top: -11px;
+  left: 12px;
 }
 #app .activity .vid {
   clear: both;
@@ -124,21 +135,18 @@ video {
   object-fit: contain;
   object-position: 50% 50%;
 }
-#app .functions {
+#app .buttons {
+  width: 100%;
   padding-top: 3px;
   text-align: center;
 }
 #app .form {
-  text-align: center;
   margin: 4px;
-  position: relative;
-  background-color: white;
+  text-align: center;
 }
-#app .form > div {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  background-color: white;
+#app .formsect {
+  max-width: 640px;
+  margin-bottom: 8px;
 }
 #app button {
   background-color: white;

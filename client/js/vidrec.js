@@ -19,10 +19,6 @@ define([ "jquery", "services", "obs", "videoui", "button", "slideform" ],
   var STATE_REVIEW = 6;        // Playing a previously recorded video.
   var STATE_ERROR = 8;         // Something went wrong.
 
-  function standardButton(label, clickFunc) {
-    return Button.create(label, clickFunc).setVisible(false);
-  }
-
   function toErrorState(self) {
     self.videoBlob = null;
     self.videoComponent.clear();
@@ -59,39 +55,56 @@ define([ "jquery", "services", "obs", "videoui", "button", "slideform" ],
 
   function acceptRecording(self) {
     self.videoComponent.pause();
-    self.state.setValue(STATE_SAVING);
     var videoBlob = self.videoBlob;
-    self.videoBlob = null;
-    return apiService.saveVideo(videoBlob)
-      .then(function(asset) {
-        self.openAsset(asset);
-        self.data.asset = asset;
-        self.data.assetId = asset.id;
-        self.invokePlugin("advance");
-      })
-      .catch(function() {
-        toErrorState(self);
-      });
+    if (videoBlob) {
+      self.state.setValue(STATE_SAVING);
+      self.videoBlob = null;
+      return apiService.saveVideo(videoBlob)
+        .then(function(asset) {
+          self.openAsset(asset);
+          self.data.asset = asset;
+          self.data.assetId = asset.id;
+          self.advance();
+        })
+        .catch(function() {
+          toErrorState(self);
+        });
+    }
+    else {
+      self.advance();
+    }
   }
 
   return SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
+
+      function addButton(label, clickFunc) {
+        var button = Button.create(label, clickFunc).setVisible(false);
+        button.container.appendTo(self.container.find(".buttons"));
+        return button;
+      }
+
       var videoComponent = new VideoComponent($("<div>").addClass("vid"));
-      var startButton = standardButton("Start recording", function() {
+
+      self.container
+        .append(videoComponent.container)
+        .append($("<div>").addClass("buttons"))
+
+      var startButton = addButton("Start recording", function() {
         startRecording(self);
       });
-      var stopButton = standardButton("Stop recording", function() {
+      var stopButton = addButton("Stop recording", function() {
         stopRecording(self);
       });
-      var acceptButton = standardButton("Looks good!", function() {
+      var acceptButton = addButton("Looks good!", function() {
         acceptRecording(self);
       });
-      var discardButton = standardButton("Discard and re-record", function() {
+      var discardButton = addButton("Discard and re-record", function() {
         self.openCamera();
       });
-      var cancelButton = standardButton("Cancel", function() {
+      var cancelButton = addButton("Cancel", function() {
         self.exit();
       });
       var state = new Observable(STATE_INIT);
@@ -99,21 +112,10 @@ define([ "jquery", "services", "obs", "videoui", "button", "slideform" ],
       state.addChangeListener(function(value) {
         startButton.visible = value == STATE_LIVE;
         stopButton.visible = value == STATE_RECORDING;
-        acceptButton.visible = !!self.videoBlob;
-        discardButton.visible = !!self.videoBlob;
+        acceptButton.visible = value == STATE_REVIEW || value == STATE_PLAYBACK;
+        discardButton.visible = value == STATE_REVIEW || value == STATE_PLAYBACK;
         cancelButton.visible = value != STATE_RECORDING;
       });
-
-      self.container
-        .append(videoComponent.container)
-        .append($("<div>")
-          .addClass("buttons")
-          .append(startButton.container)
-          .append(stopButton.container)
-          .append(acceptButton.container)
-          .append(discardButton.container)
-          .append(cancelButton.container)
-        );
 
       self.videoComponent = videoComponent;
       self.state = state;
