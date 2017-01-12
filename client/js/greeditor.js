@@ -51,8 +51,7 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
     c.defineFunction("open", function(actionItem) {
       var self = this;
       Activity.prototype.open.call(self, actionItem);
-      self.form.open(actionItem.greeting);
+      self.form.open({ toUserId: actionItem.user.id });
     });
   });
-
 });
