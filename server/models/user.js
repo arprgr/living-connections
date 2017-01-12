@@ -63,6 +63,7 @@ module.exports = function(sequelize, DataTypes) {
   User = sequelize.define("User", schema(), {
     classMethods: {
       associate: associate,
+      builder: builder,
       findById: findById,
       includeMe: includeMe,
       superuser: superuser
