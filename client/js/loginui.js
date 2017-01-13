@@ -22,9 +22,16 @@ define([ "jquery", "component", "emailinput", "services" ], function($, Componen
       var self = this;
 
       var emailInput = new EmailInput($("<span>"))
-      emailInput.onSubmit = function(text) {
-        submit(self, text);
-      }
+
+      emailInput.addPlugin({
+        submit: function(text) {
+          submit(self, text);
+        },
+        showInvalid: function() {
+          showMessage(self, "That doesn't look like an email address.  Please retype it and try again.");
+        }
+      });
+
       emailInput.valid.addChangeListener(function(valid) {
         if (valid) {
           showMessage(self);
@@ -39,10 +46,7 @@ define([ "jquery", "component", "emailinput", "services" ], function($, Componen
           .append($("<button>")
             .text("Go!")
             .click(function() {
-              input.submit();
-              if (!input.valid.value) {
-                showMessage(self, "That doesn't look like an email address.  Please retype it and try again.");
-              }
+              emailInput.submit();
               return true;
             })))
         .append($("<div>").addClass("message"));

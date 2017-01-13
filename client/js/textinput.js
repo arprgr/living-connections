@@ -72,6 +72,7 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
       }
       else {
         self.input.focus().select();
+        self.invokePlugin("showInvalid");
       }
     });
 
