@@ -1,7 +1,9 @@
 // activities.js - ActivityComponent
 
-define([ "annviewer", "greviewer", "greeditor", "inveditor", "proeditor" ],
-  function(AnnouncementViewer, GreetingViewer, GreetingEditor, InvitationEditor, ProfileEditor) {
+define([ "annviewer", "greviewer", "invviewer", 
+  "greeditor", "inveditor", "proeditor" ],
+function(AnnouncementViewer, GreetingViewer, InvitationViewer,
+  GreetingEditor, InvitationEditor, ProfileEditor) {
 
   return {
     ClassForActionItem: function(actionItem) {

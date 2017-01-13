@@ -20,8 +20,8 @@ define([ "jquery" ], function($) {
     return "Greeting from " + formatUser(greeting.fromUser);
   }
 
-  function formatInvitation(invitation) {
-    return "Invitation";
+  function formatInvitation(invite) {
+    return "Invitation from " + formatUser(invite.fromUser);
   }
 
   var titleProperty = {
@@ -38,11 +38,11 @@ define([ "jquery" ], function($) {
       case "gre-cre":
         return (this.isReply ? "Reply to " : "Send a greeting to ") + formatUser(this.user);
       case "inv-rec":
-        return formatInvitation(this.invitation);
+        return formatInvitation(this.invite);
       case "inv-cre":
         return "Invite someone to connect with you";
       case "inv-upd":
-        return "Update " + formatInvitation(this.announcement);
+        return "Update " + formatInvitation(this.invite);
       case "pro-rec":
         return formatUser(this.user) + "'s profile";
       case "pro-cre":

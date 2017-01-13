@@ -24,7 +24,7 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
       self.container
         .append($("<div>")
           .addClass("formsect")
-          .text("Press Done to send your greeting, or Cancel to throw it out."))
+          .text("Press Done to send your message, or Cancel to throw it out."))
         .append($("<div>")
           .addClass("formsect")
           .append(doneButton.container)

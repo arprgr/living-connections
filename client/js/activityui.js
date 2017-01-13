@@ -17,6 +17,7 @@ define([ "jquery", "component" ], function($, Component) {
       var self = this;
       self.container.find("img.lilIcon").attr("src", actionItem.iconUri || "");
       self.container.find("span.title").text(actionItem.title || "");
+      self.actionItem = actionItem;
     });
 
     c.defineFunction("close", function() {
