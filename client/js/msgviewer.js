@@ -1,4 +1,4 @@
-// greviewer.js - Greeting Viewer component
+// msgviewer.js - Mesage Viewer component
 
 define([ "jquery", "activityui", "videoui", "button", "actionitem" ],
   function($, Activity, VideoPlayer, Button, ActionItem) {
@@ -11,7 +11,7 @@ define([ "jquery", "activityui", "videoui", "button", "actionitem" ],
 
       self.container
         .append(videoPlayer.container)
-        .append($("<div>").addClass("buttons"))
+        .append($("<div>").addClass("formsect").addClass("buttons"))
 
       self.videoPlayer = videoPlayer;
     });
@@ -27,16 +27,22 @@ define([ "jquery", "activityui", "videoui", "button", "actionitem" ],
       Activity.prototype.open.call(self, actionItem);
 
       self.title = actionItem.title;
-      var greeting = actionItem.greeting;
-      self.videoPlayer.load(greeting.asset.url, { autoplay: true });
-      if (greeting.fromUser) {
-        addButton("Reply to " + greeting.fromUser.name, function() {
-          self.openActionItem(new ActionItem({ type: "gre-cre", user: greeting.fromUser, isReply: 1 }));
+      var message = actionItem.message;
+      self.videoPlayer.load(message.asset.url, { autoplay: true });
+
+      if (actionItem.type.match(/inv-/)) {
+        addButton("Accept " + message.fromUser.name + "'s invitation to connect", function() {
+        });
+        addButton("No, thanks", function() {
+          self.exit();
         });
       }
-      if (greeting.fromUser && greeting.fromUser.asset) {
-        addButton("See " + greeting.fromUser.name + "'s Profile", function() {
-          self.openActionItem(new ActionItem({ type: "pro-rec", user: greeting.fromUser }));
+      addButton("Reply to " + message.fromUser.name, function() {
+        self.openActionItem(new ActionItem({ type: "gre-cre", user: message.fromUser, isReply: 1 }));
+      });
+      if (message.fromUser.asset) {
+        addButton("See " + message.fromUser.name + "'s Profile", function() {
+          self.openActionItem(new ActionItem({ type: "pro-rec", user: message.fromUser }));
         });
       }
       addButton("Exit", function() {

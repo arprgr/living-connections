@@ -8,43 +8,31 @@ define([ "jquery" ], function($) {
     }
   }
 
-  function formatUser(user) {
-    return user.name;
-  }
-
-  function formatAnnouncement(announcement) {
-    return "Announcement from " + formatUser(announcement.creator);
-  }
-
-  function formatGreeting(greeting) {
-    return "Greeting from " + formatUser(greeting.fromUser);
-  }
-
-  function formatInvitation(invite) {
-    return "Invitation from " + formatUser(invite.fromUser);
+  function userName(user) {
+    return (user && user.name) || "another user";
   }
 
   var titleProperty = {
     get: function() {
       switch (this.type) {
       case "ann-rec":
-        return formatAnnouncement(this.announcement);
+        return "Announcement from " + userName(this.message.fromUser);
       case "ann-cre":
         return "Make an announcement";
       case "ann-upd":
-        return "Update " + formatAnnouncement(this.announcement);
+        return "Update announcement";
       case "gre-rec":
-        return formatGreeting(this.greeting);
+        return "Message from " + userName(this.message.fromUser);
       case "gre-cre":
-        return (this.isReply ? "Reply to " : "Send a greeting to ") + formatUser(this.user);
+        return (this.isReply ? "Reply to " : "Send a greeting to ") + userName(this.user);
       case "inv-rec":
-        return formatInvitation(this.invite);
+        return "Invitation from " + userName(this.message.fromUser);
       case "inv-cre":
         return "Invite someone to connect with you";
       case "inv-upd":
-        return "Update " + formatInvitation(this.invite);
+        return "Update invitation for " + userName(this.invite.email);
       case "pro-rec":
-        return formatUser(this.user) + "'s profile";
+        return userName(this.user) + "'s profile";
       case "pro-cre":
         return "Create your profile";
       case "pro-upd":

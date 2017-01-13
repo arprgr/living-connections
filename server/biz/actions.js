@@ -102,7 +102,10 @@ function addAnnouncementItems(compiler) {
     var ann = announcements[i];
     if (ann.creatorId != compiler.user.id) {
       addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, {
-        announcement: ann
+        message: {
+          fromUser: ann.creator,
+          asset: ann.asset
+        }
       });
     }
   }
@@ -115,12 +118,12 @@ function addIncomingMessageItems(compiler) {
     switch (message.type) {
     case Message.INVITE_TYPE:
       addActionItem(compiler, MSG_INVITATION, ACTION_RECEIVE, {
-        invite: message
+        message: message
       });
       break;
     default:
       addActionItem(compiler, MSG_GREETING, ACTION_RECEIVE, {
-        greeting: message
+        message: message
       });
     }
   }
