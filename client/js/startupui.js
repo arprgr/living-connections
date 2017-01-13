@@ -84,19 +84,26 @@ define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cook
     }
   }
 
+  function showCapabilityWarning(self) {
+    showInnerInWaitingPosition(self);
+    selectMessageBox(self)
+      .append($("<div>")
+        .append($("<span>").text(NO_VID + " "))
+        .append($("<a>").text(VID_SUPPORT_REF).attr("target", "_new").attr("href", VID_SUPPORT_URL)))
+      .append($("<div>")
+        .append($("<button>").text(CONTINUE_ANYWAY).click(function() {
+          CONTINUE_ANYWAY_COOKIE.set("1");
+          selectMessageBox(self).empty();
+          toLoginStateNoCheck(self);
+        })));
+  }
+
   function toLoginState(self) {
-    if (!CONTINUE_ANYWAY_COOKIE.get() && !Services.videoService.isCapable()) {
-      showInnerInWaitingPosition(self);
-      selectMessageBox(self)
-        .append($("<div>")
-          .append($("<span>").text(NO_VID + " "))
-          .append($("<a>").text(VID_SUPPORT_REF).attr("target", "_new").attr("href", VID_SUPPORT_URL)))
-        .append($("<div>")
-          .append($("<button>").text(CONTINUE_ANYWAY).click(function() {
-            CONTINUE_ANYWAY_COOKIE.set("1");
-            selectMessageBox(self).empty();
-            toLoginStateNoCheck(self);
-          })));
+    if (!CONTINUE_ANYWAY_COOKIE.get() && !self.checkedCapable) {
+      self.checkedCapable = 1;
+      if (!Services.videoService.isCapable()) {
+        showCapabilityWarning(self);
+      }
     }
     else {
       toLoginStateNoCheck(self);
