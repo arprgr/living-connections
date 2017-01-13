@@ -20,7 +20,8 @@ function Invitation(req, options, goodForDays) {
   this.externalId = externalId;
 
   var host = req.headers.host;
-  var protocol = req.connection.encrypted ? "https:" : "http:";
+  //var protocol = req.connection.encrypted ? "https:" : "http:";
+  var protocol = host.match(/localhost/) ? "http:" : "https:";
   this.url = protocol + "//" + host + "?e=" + externalId;
 
   var expiresAt = dateFromNow(goodForDays);
