@@ -1,7 +1,7 @@
 // startupui.js - StartupComponent
 
 define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cookie" ],
-  function($, Component, Services, LoginComponent, WaitAnimController, Animation, Cookie) {
+  function($, Component, Services, LoginComponent, WaitAnim, Animation, Cookie) {
 
   var NO_VID = "Sorry, but your browser is not capable of sending and receiving Living Connections video messages.";
   var VID_SUPPORT_REF = "Read more about supported browsers.";
@@ -84,6 +84,14 @@ define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cook
     }
   }
 
+  function shouldShowCapabilityWarning(self) {
+    if (!CONTINUE_ANYWAY_COOKIE.get() && !self.checkedCapable) {
+      self.checkedCapable = 1;
+      return !Services.videoService.isCapable();
+    }
+    return false;
+  }
+
   function showCapabilityWarning(self) {
     showInnerInWaitingPosition(self);
     selectMessageBox(self)
@@ -99,11 +107,8 @@ define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cook
   }
 
   function toLoginState(self) {
-    if (!CONTINUE_ANYWAY_COOKIE.get() && !self.checkedCapable) {
-      self.checkedCapable = 1;
-      if (!Services.videoService.isCapable()) {
+    if (shouldShowCapabilityWarning(self)) {
         showCapabilityWarning(self);
-      }
     }
     else {
       toLoginStateNoCheck(self);
@@ -112,18 +117,12 @@ define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cook
   }
 
   function showWaitingIndicator(self) {
-    if (!self.waitingController) {
-      self.waitingController = new WaitAnimController();
-    }
     showInnerInWaitingPosition(self);
-    selectInner(self).removeClass("loginpos");
-    self.waitingController.show().start();
+    self.waitAnim.setVisible(true).start();
   }
 
   function removeWaitingIndicator(self) {
-    if (self.waitingController) {
-      self.waitingController.stop().hide();
-    }
+    self.waitAnim.setVisible(false).stop();
   }
 
   // TODO: make this into a component.
@@ -136,15 +135,25 @@ define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cook
 
     c.defineInitializer(function() {
       var self = this;
-      var container = self.container;
-      self.login = new LoginComponent(container.find(".login")).setVisible(false);
-      self.originalHeight = container.height();
+
+      var login = new LoginComponent($("<div>").addClass("login")).setVisible(false);
+      var waitAnim = new WaitAnim($("<div>").addClass("waiting")).setVisible(false);
+
+      selectInner(self)
+        .append(login.container)
+        .append(waitAnim.container)
+        .append($("<div>").addClass("message"));
+
       Services.sessionManager.addStateChangeListener(function(sessionManager) {
         sessionManager.waiting ? showWaitingIndicator(self) : removeWaitingIndicator(self);
         if (sessionManager.isUnresponsive()) {
           showUnresponsive(self);
         }
       });
+
+      self.originalHeight = self.container.height();
+      self.login = login;
+      self.waitAnim = waitAnim;
     });
 
     c.defineFunction("toLoginState", function() {

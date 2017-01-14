@@ -1,71 +1,40 @@
 // waitanim.js - WaitAnimController
 
-define([ "jquery", "fadedot" ], function($, FadeDotController) {
+define([ "jquery", "component", "fadedot" ], function($, Component, FadeDot) {
 
-  var NDOTS = 7;
-  var PAUSE = 700;
+  return Component.defineClass(function(c) {
 
-  function selectContainer() {
-    return $("#startup .waiting");
-  }
+    c.defineDefaultOptions({
+      ndots: 7
+    });
 
-  function isRendered() {
-    return selectContainer().children().length;
-  }
-
-  function render() {
-    for (var i = 0; i < NDOTS; ++i) {
-      $("<canvas>")
-        .attr("id", "dot" + i)
-        .attr("width", 18)
-        .attr("height", 18)
-        .addClass("dot")
-        .appendTo(selectContainer());
-    }
-  }
-
-  function Controller() {
-    var self = this;
-    self.dots = [];
-    for (var i = 0; i < NDOTS; ++i) {
-      self.dots.push(new FadeDotController("dot" + i));
-    }
-  }
-
-  Controller.prototype = {
-    show: function() {
-      if (!isRendered()) {
-        render();
-      }
-      else {
-        selectContainer().show();
-      }
-      return this;
-    },
-    hide: function() {
-      selectContainer().hide();
-    },
-    start: function start() {
+    c.defineInitializer(function() {
       var self = this;
-      var index = 0;
-      (function kickOffNext() {
-        self.dots[index].start();
-        self.timeout = setTimeout(kickOffNext, PAUSE);
-      })();
-      return self;
-    },
-    stop: function() {
+      self.dots = [];
+      for (var i = 0; i < self.options.ndots; ++i) {
+        var fadedot = new FadeDot($("<span>"), {
+          period: self.options.ndots * 500,
+          delay: i * 500
+        });
+        self.dots.push(fadedot);
+        self.container.append(fadedot.container);
+      }
+    });
+
+    c.defineFunction("start", function() {
       var self = this;
-      if (self.running) {
-        clearTimeout(self.timeout);
-        for (var i = 0; i < NDOTS; ++i) {
-          self.dots.stop();
-        }
-        self.running = false;
+      for (var i = 0; i < self.dots.length; ++i) {
+        self.dots[i].start();
       }
       return self;
-    }
-  }
+    });
 
-  return Controller;
+    c.defineFunction("stop", function() {
+      var self = this;
+      for (var i = 0; i < self.dots.length; ++i) {
+        self.dots[i].stop();
+      }
+      return self;
+    });
+  });
 });

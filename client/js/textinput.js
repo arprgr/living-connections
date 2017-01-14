@@ -8,6 +8,7 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
 
     c.defineInitializer(function() {
       var self = this;
+      self._enabled = true;
       self.container.append($("<input>")
         .attr("type", "text")
         .on("blur", function() {
@@ -40,6 +41,21 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
         var self = this;
         self.input.val(value);
         self.validate();
+      }
+    });
+
+    c.defineProperty("enabled", {
+      get: function() {
+        return this._enabled;
+      },
+      set: function(enabled) {
+        var self = this;
+        enabled = !!enabled;
+        if (self._enabled != enabled) {
+          self._enabled = enabled;
+          self.input.attr("disabled", !enabled);
+          self.input.attr("readonly", !enabled);
+        }
       }
     });
 
