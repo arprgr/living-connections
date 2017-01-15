@@ -6,62 +6,65 @@ define([ "jquery", "component" ], function($, Component) {
 
     c.defineInitializer(function() {
       var self = this;
+      var slideClasses = self.options.slides;
+      var slides = [];
+      for (var i = 0; i < slideClasses.length; ++i) {
+        var SlideClass = slideClasses[i];
+        var slide = new SlideClass()
+          .addPlugin(self)
+          .setVisible(false);
+        slides.push(slide);
+        self.container.append(slide.container);
+      }
+      self.slides = slides;
       self.slideIndex = -1;
     });
 
-    function render(self) {
-      if (self.slides == null) {
-        self.slides = [];
-        var slideClasses = self.options.slides;
-        for (var i = 0; i < slideClasses.length; ++i) {
-          var SlideClass = slideClasses[i];
-          var slide = new SlideClass()
-            .addPlugin(self)
-            .setVisible(false);
-          self.slides.push(slide);
-          self.container.append(slide.container);
-        }
+    function SlideForm_open(self, data) {
+      self.data = $.extend({}, data || {});
+      var isNew = true;  // until...
+      self.slideIndex = isNew ? 0 : -1;
+      for (var i = 0; i < self.slides.length; ++i) {
+        var slide = self.slides[i];
+        slide.data = data;
+        slide.render(i == self.slideIndex);
+        slide.visible = true;
       }
+      return self;
     }
 
-    function doOpen(self) {
-      var slide = self.slides[self.slideIndex];
-      slide.open(self.data);
-      slide.visible = true;
+    function SlideForm_close(self) {
+      for (var i = 0; i < self.slides.length; ++i) {
+        var slide = self.slides[i];
+        slide.visible = false;
+      }
+      return self;
+    }
+
+    function SlideForm_advance(self, incr) {
+      if (incr == null) {
+        incr = 1;
+      }
+      if (incr != 0) {
+        if (self.slideIndex >= 0) {
+          self.slides[self.slideIndex].render(false);
+        }
+        self.slideIndex += incr;
+        self.slides[self.slideIndex].render(true);
+      }
+      return self;
     }
 
     c.extendPrototype({
       open: function(data) {
-        var self = this;
-        render(self);
-        self.data = $.extend({}, data || {});
-        self.close();
-        self.slideIndex = 0;
-        doOpen(self);
-        return self;
+        return SlideForm_open(this, data);
       },
-
-      close: function(incr) {
-        var self = this;
-        if (self.slideIndex >= 0) {
-          var slide = self.slides[self.slideIndex];
-          slide.visible = false;
-          slide.close();
-        }
+      close: function() {
+        return SlideForm_close(this);
       },
-
       advance: function(incr) {
-        var self = this;
-        if (incr == null) {
-          incr = 1;
-        }
-        if (incr != 0) {
-          self.close();
-          self.slideIndex += incr;
-          doOpen(self);
-        }
+        return SlideForm_advance(this, incr);
       },
-
       exit: function() {
         this.invokePlugin("exit");
       }
@@ -71,11 +74,9 @@ define([ "jquery", "component" ], function($, Component) {
   SlideForm.Form = Component.defineClass(function(c) {
 
     c.extendPrototype({
-      open: function(data) {
-        this.data = data;
+      render: function(expanded) {
         return this;
       },
-      close: function() {},
       exit: function() {
         this.invokePlugin("exit");
       },
