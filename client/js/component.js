@@ -99,9 +99,11 @@ define([ "jquery" ], function($) {
       },
       defineProperty: function(name, definition) {
         Object.defineProperty(proto, name, definition);
-        proto["set" + name.charAt(0).toUpperCase() + name.substring(1)] = function(value) {
-          this[name] = value;
-          return this;
+        if ("set" in definition) {
+          proto["set" + name.charAt(0).toUpperCase() + name.substring(1)] = function(value) {
+            this[name] = value;
+            return this;
+          }
         }
       }
     });
