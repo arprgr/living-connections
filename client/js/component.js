@@ -94,8 +94,8 @@ define([ "jquery" ], function($) {
       defineDefaultOptions: function(defaultOptions) {
         proto.DEFAULT_OPTIONS = defaultOptions;
       },
-      defineFunction: function(name, func) {
-        proto[name] = func;
+      extendPrototype: function(extension) {
+        $.extend(proto, extension);
       },
       defineProperty: function(name, definition) {
         Object.defineProperty(proto, name, definition);

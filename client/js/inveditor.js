@@ -49,13 +49,15 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform", "e
       self.emailInput = emailInput;
     });
 
-    c.defineFunction("open", function(data) {
-      var self = this;
-      self.data = data;
-      self.emailInput.value = data.email;
-      setTimeout(function() {
-        self.emailInput.focus();
-      }, 100);
+    c.extendPrototype({
+      open: function(data) {
+        var self = this;
+        self.data = data;
+        self.emailInput.value = data.email;
+        setTimeout(function() {
+          self.emailInput.focus();
+        }, 100);
+      }
     });
   });
 
@@ -107,11 +109,13 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform", "e
       self.data = {};
     });
 
-    c.defineFunction("open", function(actionItem) {
-      var self = this;
-      Activity.prototype.open.call(self, actionItem);
-      self.data.id = actionItem.invite && actionItem.invite.id;
-      self.form.open(self.data);
+    c.extendPrototype({
+      open: function(actionItem) {
+        var self = this;
+        Activity.prototype.open.call(self, actionItem);
+        self.data.id = actionItem.invite && actionItem.invite.id;
+        self.form.open(self.data);
+      }
     });
   });
 });

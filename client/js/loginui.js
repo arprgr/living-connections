@@ -54,11 +54,13 @@ define([ "jquery", "component", "button", "emailinput", "services" ], function($
       self.goButton = goButton;
     });
 
-    c.defineFunction("open", function() {
-      var self = this;
-      setTimeout(function() {
-        self.emailInput.focus();
-      }, 100);
+    c.extendPrototype({
+      open: function() {
+        var self = this;
+        setTimeout(function() {
+          self.emailInput.focus();
+        }, 100);
+      }
     });
   });
 

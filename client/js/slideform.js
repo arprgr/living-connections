@@ -30,51 +30,58 @@ define([ "jquery", "component" ], function($, Component) {
       slide.visible = true;
     }
 
-    c.defineFunction("open", function(data) {
-      var self = this;
-      render(self);
-      self.data = $.extend({}, data || {});
-      self.close();
-      self.slideIndex = 0;
-      doOpen(self);
-      return self;
-    });
-
-    c.defineFunction("close", function(incr) {
-      var self = this;
-      if (self.slideIndex >= 0) {
-        var slide = self.slides[self.slideIndex];
-        slide.visible = false;
-        slide.close();
-      }
-    });
-
-    c.defineFunction("advance", function(incr) {
-      var self = this;
-      if (incr == null) {
-        incr = 1;
-      }
-      if (incr != 0) {
+    c.extendPrototype({
+      open: function(data) {
+        var self = this;
+        render(self);
+        self.data = $.extend({}, data || {});
         self.close();
-        self.slideIndex += incr;
+        self.slideIndex = 0;
         doOpen(self);
-      }
-    });
+        return self;
+      },
 
-    c.defineFunction("exit", function() {
-      this.invokePlugin("exit");
+      close: function(incr) {
+        var self = this;
+        if (self.slideIndex >= 0) {
+          var slide = self.slides[self.slideIndex];
+          slide.visible = false;
+          slide.close();
+        }
+      },
+
+      advance: function(incr) {
+        var self = this;
+        if (incr == null) {
+          incr = 1;
+        }
+        if (incr != 0) {
+          self.close();
+          self.slideIndex += incr;
+          doOpen(self);
+        }
+      },
+
+      exit: function() {
+        this.invokePlugin("exit");
+      }
     });
   });
 
   SlideForm.Form = Component.defineClass(function(c) {
 
-    c.defineFunction("open", function(data) { this.data = data; return this; });
-    c.defineFunction("close", function() {});
-    c.defineFunction("exit", function() {
-      this.invokePlugin("exit");
-    });
-    c.defineFunction("advance", function() {
-      this.invokePlugin("advance");
+    c.extendPrototype({
+      open: function(data) {
+        this.data = data;
+        return this;
+      },
+      close: function() {},
+      exit: function() {
+        this.invokePlugin("exit");
+      },
+      advance: function() {
+        this.invokePlugin("advance");
+      }
     });
   });
 

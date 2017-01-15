@@ -57,9 +57,11 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
       }
     });
 
-    c.defineFunction("open", function(data) {
-      this.data = data;
-      this.value = data.type;
+    c.extendPrototype({
+      open: function(data) {
+        this.data = data;
+        this.value = data.type;
+      }
     });
   });
 
@@ -116,9 +118,11 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
         );
     });
 
-    c.defineFunction("save", function() {
-      var data = self.data;
-      return apiService.saveForm("ann", data.id ? "upd" : "cre", data);
+    c.extendPrototype({
+      save: function() {
+        var data = this.data;
+        return apiService.saveForm("ann", data.id ? "upd" : "cre", data);
+      }
     });
   });
 
@@ -139,10 +143,12 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
       self.form = form;
     });
 
-    c.defineFunction("open", function(actionItem) {
-      var self = this;
-      Activity.prototype.open.call(self, actionItem);
-      self.form.open(actionItem.announcement);
+    c.extendPrototype({
+      open: function(actionItem) {
+        var self = this;
+        Activity.prototype.open.call(self, actionItem);
+        self.form.open(actionItem.announcement);
+      }
     });
   })
 });

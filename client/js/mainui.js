@@ -59,18 +59,20 @@ define([ "jquery", "services", "component", "listingui", "activities", "crossfad
       self.currentBody = newBody;
     }
 
-    c.defineFunction("open", function() {
-      var self = this;
-      if (!self.currentBody) {
-        open(self, new Listing());
-      }
-    });
+    c.extendPrototype({
+      open: function() {
+        var self = this;
+        if (!self.currentBody) {
+          open(self, new Listing());
+        }
+      },
 
-    c.defineFunction("close", function() {
-      var self = this;
-      if (self.currentBody) {
-        self.currentBody.close();
-        self.currentBody = null;
+      close: function() {
+        var self = this;
+        if (self.currentBody) {
+          self.currentBody.close();
+          self.currentBody = null;
+        }
       }
     });
   });

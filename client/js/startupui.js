@@ -156,8 +156,10 @@ define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cook
       self.waitAnim = waitAnim;
     });
 
-    c.defineFunction("toLoginState", function() {
-      return toLoginState(this);
+    c.extendPrototype({
+      toLoginState: function() {
+        return toLoginState(this);
+      }
     });
   });
 });

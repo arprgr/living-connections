@@ -21,20 +21,22 @@ define([ "jquery", "component", "fadedot" ], function($, Component, FadeDot) {
       }
     });
 
-    c.defineFunction("start", function() {
-      var self = this;
-      for (var i = 0; i < self.dots.length; ++i) {
-        self.dots[i].start();
-      }
-      return self;
-    });
+    c.extendPrototype({
+      start: function() {
+        var self = this;
+        for (var i = 0; i < self.dots.length; ++i) {
+          self.dots[i].start();
+        }
+        return self;
+      },
 
-    c.defineFunction("stop", function() {
-      var self = this;
-      for (var i = 0; i < self.dots.length; ++i) {
-        self.dots[i].stop();
+      stop: function() {
+        var self = this;
+        for (var i = 0; i < self.dots.length; ++i) {
+          self.dots[i].stop();
+        }
+        return self;
       }
-      return self;
     });
   });
 });

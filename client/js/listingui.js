@@ -32,24 +32,26 @@ define([ "jquery", "component", "services" ], function($, Component, Services) {
       this.container.addClass("listing");
     });
 
-    c.defineFunction("open", function() {
-      var self = this;
-      self.actionItems = Services.sessionManager.actionItems.value;
-      render(self);
-      self.closeHandle = Services.sessionManager.addActionListener(function(actionItems) {
-        self.actionItems = actionItems;
+    c.extendPrototype({
+      open: function() {
+        var self = this;
+        self.actionItems = Services.sessionManager.actionItems.value;
         render(self);
-      });
-      return this;
-    });
+        self.closeHandle = Services.sessionManager.addActionListener(function(actionItems) {
+          self.actionItems = actionItems;
+          render(self);
+        });
+        return this;
+      },
 
-    c.defineFunction("close", function() {
-      var self = this;
-      if (self.closeHandle) {
-        self.closeHandle.undo();
-        self.closeHandle = null;
+      close: function() {
+        var self = this;
+        if (self.closeHandle) {
+          self.closeHandle.undo();
+          self.closeHandle = null;
+        }
+        return self;
       }
-      return self;
     });
   });
 });

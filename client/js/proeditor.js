@@ -47,13 +47,15 @@ define([ "jquery", "services", "activityui", "textinput", "vidrec", "button", "s
       self.nameInput = nameInput;
     });
 
-    c.defineFunction("open", function(data) {
-      var self = this;
-      self.data = data;
-      self.nameInput.value = data.name;
-      setTimeout(function() {
-        self.nameInput.select().focus();
-      }, 100);
+    c.extendPrototype({
+      open: function(data) {
+        var self = this;
+        self.data = data;
+        self.nameInput.value = data.name;
+        setTimeout(function() {
+          self.nameInput.select().focus();
+        }, 100);
+      }
     });
   });
 
@@ -102,10 +104,12 @@ define([ "jquery", "services", "activityui", "textinput", "vidrec", "button", "s
       self.form = form;
     });
 
-    c.defineFunction("open", function(actionItem) {
-      var self = this;
-      Activity.prototype.open.call(self, actionItem);
-      self.form.open(actionItem.user);
+    c.extendPrototype({
+      open: function(actionItem) {
+        var self = this;
+        Activity.prototype.open.call(self, actionItem);
+        self.form.open(actionItem.user);
+      }
     });
   });
 });

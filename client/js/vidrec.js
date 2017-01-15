@@ -121,36 +121,35 @@ define([ "jquery", "services", "obs", "videoui", "button", "slideform" ],
       self.state = state;
     });
 
-    c.defineFunction("open", function(data) {
-      var self = this;
-      self.data = data;
-      if (data.asset) {
-        self.openAsset(data.asset);
+    c.extendPrototype({
+      open: function(data) {
+        var self = this;
+        self.data = data;
+        var asset = data.asset;
+        return asset ? self.openAsset(asset) : self.openCamera();
+      },
+
+      openCamera: function() {
+        var self = this;
+        self.videoBlob = null;
+        self.state.setValue(STATE_LOADING);
+        self.videoComponent.clear();
+        videoService.open().then(function(stream) {
+          showVideo(self, stream, STATE_LIVE);
+        });
+        return self;
+      },
+
+      openAsset: function(asset) {
+        var self = this;
+        showVideo(self, asset.url, STATE_REVIEW);
+        return self;
+      },
+
+      close: function() {
+        videoService.close();
+        return this;
       }
-      else {
-        self.openCamera();
-      }
-    });
-
-    c.defineFunction("openCamera", function() {
-      var self = this;
-      self.videoBlob = null;
-      self.state.setValue(STATE_LOADING);
-      self.videoComponent.clear();
-      videoService.open().then(function(stream) {
-        showVideo(self, stream, STATE_LIVE);
-      });
-    });
-
-    c.defineFunction("openAsset", function(asset) {
-      var self = this;
-      showVideo(self, asset.url, STATE_REVIEW);
-      return self;
-    });
-
-    c.defineFunction("close", function() {
-      videoService.close();
-      return this;
     });
   });
 });

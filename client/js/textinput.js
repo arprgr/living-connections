@@ -59,51 +59,53 @@ define([ "jquery", "component", "obs" ], function($, Component, Observable) {
       }
     });
 
-    c.defineFunction("validate", function(style) {
-      var self = this;
-      var isValid = self._isValueValid();
-      self.valid.setValue(isValid);
-      return isValid;
-    });
+    c.extendPrototype({
+      validate: function(style) {
+        var self = this;
+        var isValid = self._isValueValid();
+        self.valid.setValue(isValid);
+        return isValid;
+      },
 
-    c.defineFunction("_isValueValid", function() {
-      return this.value.length > 0;
-    });
+      _isValueValid: function() {
+        return this.value.length > 0;
+      },
 
-    c.defineFunction("validateAndStyle", function(style) {
-      var self = this;
-      if (self.validate() || self.value == "") {
-        self.clearStyles();
+      validateAndStyle: function(style) {
+        var self = this;
+        if (self.validate() || self.value == "") {
+          self.clearStyles();
+        }
+        else {
+          self.input.addClass(INVALID_CLASS);
+        }
+      },
+
+      submit: function() {
+        var self = this;
+        var isValid = self.validate(true);
+        if (isValid) {
+          self.invokePlugin("submit", self.value);
+        }
+        else {
+          self.input.focus().select();
+          self.invokePlugin("showInvalid");
+        }
+      },
+
+      focus: function() {
+        this.input.focus();
+        return this;
+      },
+
+      select: function() {
+        this.input.select();
+        return this;
+      },
+
+      clearStyles: function() {
+        this.input.removeClass(INVALID_CLASS);
       }
-      else {
-        self.input.addClass(INVALID_CLASS);
-      }
-    });
-
-    c.defineFunction("submit", function() {
-      var self = this;
-      var isValid = self.validate(true);
-      if (isValid) {
-        self.invokePlugin("submit", self.value);
-      }
-      else {
-        self.input.focus().select();
-        self.invokePlugin("showInvalid");
-      }
-    });
-
-    c.defineFunction("focus", function() {
-      this.input.focus();
-      return this;
-    });
-
-    c.defineFunction("select", function() {
-      this.input.select();
-      return this;
-    });
-
-    c.defineFunction("clearStyles", function() {
-      this.input.removeClass(INVALID_CLASS);
     });
   });
 });

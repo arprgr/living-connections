@@ -13,22 +13,24 @@ define([ "jquery", "component" ], function($, Component) {
           .append($("<span>").addClass("title")))
     })
 
-    c.defineFunction("open", function(actionItem) {
-      var self = this;
-      self.container.find("img.lilIcon").attr("src", actionItem.iconUri || "");
-      self.container.find("span.title").text(actionItem.title || "");
-      self.actionItem = actionItem;
-    });
+    c.extendPrototype({
+      open: function(actionItem) {
+        var self = this;
+        self.container.find("img.lilIcon").attr("src", actionItem.iconUri || "");
+        self.container.find("span.title").text(actionItem.title || "");
+        self.actionItem = actionItem;
+      },
 
-    c.defineFunction("close", function() {
-    });
+      close: function() {
+      },
 
-    c.defineFunction("openActionItem", function(actionItem) {
-      this.invokePlugin("openActionItem", actionItem);
-    });
+      openActionItem: function(actionItem) {
+        this.invokePlugin("openActionItem", actionItem);
+      },
 
-    c.defineFunction("exit", function() {
-      this.invokePlugin("exit");
+      exit: function() {
+        this.invokePlugin("exit");
+      }
     });
   });
 });

@@ -10,8 +10,10 @@ define([ "jquery", "textinput" ], function($, TextInput) {
 
   return TextInput.defineClass(function(c) {
 
-    c.defineFunction("_isValueValid", function(style) {
-      return isValidEmail(this.value.toLowerCase());
+    c.extendPrototype({
+      _isValueValid: function(style) {
+        return isValidEmail(this.value.toLowerCase());
+      }
     });
   });
 });
