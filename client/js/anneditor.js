@@ -1,7 +1,7 @@
 // anneditor.js - Announcement Editor component
 
-define([ "jquery", "services", "vidrec", "button", "slideform" ],
-  function($, Services, VideoRecorder, Button, SlideForm) {
+define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
+  function($, Services, Activity, VideoRecorder, Button, SlideForm) {
 
   // Service imports.
 
@@ -23,16 +23,18 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
 
       self.container
         .append($("<div>")
-          .text("You wish to make an announcement to the users."))
+          .addClass("formsect")
+          .text("Announce to all users, or only to new users?"))
         .append($("<div>")
-          .text("To all users, or only to new users?"))
-        .append($("<div>")
+          .addClass("formsect")
           .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 1))
           .append($("<span>").text("To all users")))
         .append($("<div>")
+          .addClass("formsect")
           .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 2))
           .append($("<span>").text("To new users")))
         .append($("<div>")
+          .addClass("formsect")
           .append(forwardButton.container)
           .append(cancelButton.container))
     });
@@ -78,10 +80,13 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
 
       self.container
         .append($("<div>")
+          .addClass("formsect")
           .text("Future versions of this app will allow you to assign an active period for the announcement."))
         .append($("<div>")
+          .addClass("formsect")
           .text("For now, all announcements last until March 2017!"))
         .append($("<div>")
+          .addClass("formsect")
           .append(forwardButton.container)
           .append(cancelButton.container))
     });
@@ -102,8 +107,10 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
 
       self.container
         .append($("<div>")
+          .addClass("formsect")
           .text("Press Done to save your announcement, or Cancel to throw it out."))
         .append($("<div>")
+          .addClass("formsect")
           .append(doneButton.container)
           .append(cancelButton.container)
         );
@@ -115,15 +122,27 @@ define([ "jquery", "services", "vidrec", "button", "slideform" ],
     });
   });
 
-  return SlideForm.defineClass(function(c) {
+  return Activity.defineClass(function(c) {
 
-    c.defineDefaultOptions({
-      slides: [
-        AnnouncementTypeForm,
-        AnnouncementPeriodForm,
-        VideoRecorder,
-        AnnouncementSubmitForm
-      ]
+    c.defineInitializer(function() {
+      var self = this;
+      var form = new SlideForm($("<div>").addClass("form"), {
+        slides: [
+          AnnouncementTypeForm,
+          AnnouncementPeriodForm,
+          VideoRecorder,
+          AnnouncementSubmitForm
+        ]
+      })
+      form.addPlugin(self);
+      self.container.append(form.container);
+      self.form = form;
+    });
+
+    c.defineFunction("open", function(actionItem) {
+      var self = this;
+      Activity.prototype.open.call(self, actionItem);
+      self.form.open(actionItem.announcement);
     });
   })
 });
