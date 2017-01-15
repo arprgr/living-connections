@@ -100,7 +100,14 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
       var self = this;
 
       var doneButton = Button.create("Done", function() {
-        self.save();
+        var data = self.data;
+        apiService.saveForm("ann", data.id ? "upd" : "cre", data)
+        .then(function() {
+          self.exit();
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
       });
 
       var cancelButton = Button.create("Cancel", function() {
@@ -116,13 +123,6 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
           .append(doneButton.container)
           .append(cancelButton.container)
         );
-    });
-
-    c.extendPrototype({
-      save: function() {
-        var data = this.data;
-        return apiService.saveForm("ann", data.id ? "upd" : "cre", data);
-      }
     });
   });
 
