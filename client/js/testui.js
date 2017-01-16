@@ -1,6 +1,6 @@
 // testui.js
 
-define([ "jquery", "button", "waitanim"], function($, Button, WaitAnim) {
+define([ "jquery", "ui/button", "waitanim"], function($, Button, WaitAnim) {
 
   function Test() {
   }

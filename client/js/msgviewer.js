@@ -1,7 +1,9 @@
 // msgviewer.js - Mesage Viewer component
 
-define([ "jquery", "activityui", "videoui", "button", "actionitem" ],
-  function($, Activity, VideoPlayer, Button, ActionItem) {
+define([ "jquery", "activityui", "ui/index", "actionitem" ], function($, Activity, ui, ActionItem) {
+
+  var Button = ui.Button;
+  var VideoPlayer = ui.Video;
 
   return Activity.defineClass(function(c) {
 

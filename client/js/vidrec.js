@@ -1,7 +1,11 @@
 // vidrec.js - VideoRecorder component
 
-define([ "jquery", "services", "obs", "videoui", "button", "slideform" ],
-  function($, Services, Observable, VideoComponent, Button, SlideForm) {
+define([ "jquery", "services", "ui/index", "slideform" ],
+  function($, Services, ui, SlideForm) {
+
+  var Button = ui.Button;
+  var Observable = ui.Observable;
+  var VideoComponent = ui.Video;
 
   // Service imports.
 

@@ -1,6 +1,6 @@
 // textinput.js - TextInput component
 
-define([ "jquery", "component", "obs" ], function($, Component, Observable) {
+define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Observable) {
 
   var INVALID_CLASS = "invalid";
 

@@ -1,6 +1,6 @@
 // greeditor.js - Greeting Editor component
 
-define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
+define([ "jquery", "services", "activityui", "vidrec", "ui/button", "slideform" ],
   function($, Services, Activity, VideoRecorder, Button, SlideForm) {
 
   var apiService = Services.apiService;

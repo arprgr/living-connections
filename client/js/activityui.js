@@ -1,6 +1,6 @@
 // activityui.js - ActivityComponent
 
-define([ "jquery", "component" ], function($, Component) {
+define([ "jquery", "ui/component" ], function($, Component) {
 
   return Component.defineClass(function(c) {
 

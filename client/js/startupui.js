@@ -1,6 +1,6 @@
 // startupui.js - StartupComponent
 
-define([ "jquery", "component", "services", "loginui", "waitanim", "anim", "cookie" ],
+define([ "jquery", "ui/component", "services", "loginui", "waitanim", "anim", "cookie" ],
   function($, Component, Services, LoginComponent, WaitAnim, Animation, Cookie) {
 
   var NO_VID = "Sorry, but your browser is not capable of sending and receiving Living Connections video messages.";

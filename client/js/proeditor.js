@@ -1,7 +1,10 @@
 // proeditor.js - Profile Editor component
 
-define([ "jquery", "services", "activityui", "textinput", "vidrec", "button", "slideform" ],
-  function($, Services, Activity, TextInput, VideoRecorder, Button, SlideForm) {
+define([ "jquery", "services", "activityui", "ui/index", "vidrec", "slideform" ],
+  function($, Services, Activity, ui, VideoRecorder, SlideForm) {
+
+  var Button = ui.Button;
+  var TextInput = ui.TextInput;
 
   // Service imports.
 

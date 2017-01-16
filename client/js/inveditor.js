@@ -1,7 +1,10 @@
 // inveditor.js - Invitation Editor component
 
-define([ "jquery", "services", "activityui", "vidrec", "button", "slideform", "emailinput" ],
-  function($, Services, Activity, VideoRecorder, Button, SlideForm, EmailInput) {
+define([ "jquery", "services", "activityui", "vidrec", "slideform", "ui/index" ],
+  function($, Services, Activity, VideoRecorder, SlideForm, ui) {
+
+  var Button = ui.Button;
+  var EmailInput = ui.EmailInput;
 
   var apiService = Services.apiService;
 

@@ -1,8 +1,7 @@
-// videoui.js - VideoComponent
+// video.js - Video component.
+// Sourced by either string (URL) or stream.
 
-// Accepts source of either string (URL) or stream.
-
-define([ "jquery", "component", "obs" ], function($, Component, Observable) {
+define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Observable) {
 
   return Component.defineClass(function(c) {
 

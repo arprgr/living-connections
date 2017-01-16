@@ -1,10 +1,10 @@
 // slideform.js - A framework component for "one bite at a time" input forms.
 
-define([ "jquery", "component" ], function($, Component) {
+define([ "jquery", "ui/component" ], function($, Component) {
 
   var SlideForm = Component.defineClass(function(c) {
 
-    function SlideForm_makeSlide(self, slideDesc) {
+    function SlideForm_makeSlide(self, slideDesc, index) {
       if (typeof slideDesc == "function") {
         slideDesc = {
           cons: slideDesc
@@ -16,7 +16,11 @@ define([ "jquery", "component" ], function($, Component) {
         ele.addClass(slideDesc.cssClass);
       }
       return new SlideClass(ele)
-        .addPlugin(self)
+        .addPlugin($.extend({}, self, {
+          requestOpen: function() {
+            return self.requestOpen(index);
+          }
+        }))
         .setVisible(false);
     }
 
@@ -24,7 +28,7 @@ define([ "jquery", "component" ], function($, Component) {
       var slideClasses = self.options.slides;
       var slides = [];
       for (var i = 0; i < slideClasses.length; ++i) {
-        var slide = SlideForm_makeSlide(self, slideClasses[i]);
+        var slide = SlideForm_makeSlide(self, slideClasses[i], i);
         slides.push(slide);
         self.container.append(slide.container);
       }
@@ -34,12 +38,16 @@ define([ "jquery", "component" ], function($, Component) {
 
     function SlideForm_open(self, data) {
       self.data = data = $.extend({}, data || {});
-      var isNew = true;  // until...
-      self.slideIndex = isNew ? 0 : -1;
+      self.slideIndex = -1;
       for (var i = 0; i < self.slides.length; ++i) {
         var slide = self.slides[i];
         slide.data = data;
-        slide.render(i == self.slideIndex);
+        var expand = false;
+        if (self.slideIndex < 0 && !slide.isFull) {
+          self.slideIndex = i;
+          expand = true;
+        }
+        slide.render(expand);
         slide.visible = true;
       }
       return self;
@@ -57,12 +65,16 @@ define([ "jquery", "component" ], function($, Component) {
       if (incr == null) {
         incr = 1;
       }
-      if (incr != 0) {
+      return SlideForm_requestOpen(self.slideIndex + incr);
+    }
+
+    function SlideForm_requestOpen(self, newIndex) {
+      if (newIndex != self.slideIndex) {
         if (self.slideIndex >= 0) {
           self.slides[self.slideIndex].render(false);
         }
-        self.slideIndex += incr;
-        self.slides[self.slideIndex].render(true);
+        self.slideIndex = newIndex;
+        self.slides[newIndex].render(true);
       }
       return self;
     }
@@ -107,6 +119,9 @@ define([ "jquery", "component" ], function($, Component) {
       },
       exit: function() {
         this.invokePlugin("exit");
+      },
+      requestOpen: function() {
+        this.invokePlugin("requestOpen");
       },
       advance: function() {
         this.invokePlugin("advance");

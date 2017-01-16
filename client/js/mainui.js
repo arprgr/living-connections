@@ -2,8 +2,11 @@
 
 // Manages transitions between listing and activity views.
 
-define([ "jquery", "services", "component", "listingui", "activities", "crossfade" ],
-  function($, Services, Component, Listing, Activities, CrossFade) {
+define([ "jquery", "services", "listingui", "activities", "ui/index" ],
+  function($, Services, Listing, Activities, ui) {
+
+  var Component = ui.Component;
+  var CrossFade = ui.CrossFade;
 
   var sessionManager = Services.sessionManager;
 

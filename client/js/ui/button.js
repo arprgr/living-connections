@@ -1,6 +1,6 @@
 // button.js - standard button component
 
-define([ "component" ], function(Component) {
+define([ "ui/component" ], function(Component) {
 
   var Button = Component.defineClass(function(c) { 
 

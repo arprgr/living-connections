@@ -1,6 +1,6 @@
 // listingui.js
 
-define([ "jquery", "component", "services" ], function($, Component, Services) {
+define([ "jquery", "ui/component", "services" ], function($, Component, Services) {
 
   function renderItem(self, actionItem) {
     return $("<div>")

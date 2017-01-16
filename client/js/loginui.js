@@ -1,6 +1,10 @@
 // loginui.js
 
-define([ "jquery", "component", "button", "emailinput", "services" ], function($, Component, Button, EmailInput, Services) {
+define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
+
+  var Button = ui.Button;
+  var Component = ui.Component;
+  var EmailInput = ui.EmailInput;
 
   function showMessage(self, msg) {
     self.container.find(".message").text(msg || "");
@@ -63,6 +67,4 @@ define([ "jquery", "component", "button", "emailinput", "services" ], function($
       }
     });
   });
-
-  return LoginComponent;
 });

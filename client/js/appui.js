@@ -1,6 +1,6 @@
 // appui.js
 
-define([ "jquery", "services", "startupui", "mainui", "crossfade" ],
+define([ "jquery", "services", "startupui", "mainui", "ui/crossfade" ],
   function($, Services, StartupComponent, MainComponent, CrossFade) {
 
   return function() {

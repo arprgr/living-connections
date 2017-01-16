@@ -1,6 +1,6 @@
 // emailinput.js - EmailInputComponent
 
-define([ "jquery", "textinput" ], function($, TextInput) {
+define([ "jquery", "ui/textinput" ], function($, TextInput) {
 
   var EMAIL_REGEX = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/;
 

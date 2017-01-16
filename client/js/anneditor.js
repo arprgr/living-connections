@@ -1,6 +1,6 @@
 // anneditor.js - Announcement Editor component
 
-define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
+define([ "jquery", "services", "activityui", "vidrec", "ui/button", "slideform" ],
   function($, Services, Activity, VideoRecorder, Button, SlideForm) {
 
   // Service imports.
@@ -32,6 +32,12 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
           .addClass("expanded")
           .text("Announce to all users, or only to new users?"))
         .append(stateLabel)
+        .append($("<div>")
+          .addClass("formsect")
+          .addClass("collapsed")
+          .append(Button.create("Change", function() {
+            self.requestOpen();
+          })))
         .append($("<div>")
           .addClass("formsect")
           .addClass("expanded")
@@ -87,6 +93,12 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
       AnnouncementTypeForm_init(this);
     });
 
+    c.defineProperty("isFull", {
+      get: function() {
+        return this.data && this.data.type != null;
+      }
+    });
+
     c.extendPrototype({
       render: function(expanded) {
         return AnnouncementTypeForm_render(this, expanded);
@@ -114,11 +126,9 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
         .append(stateLabel)
         .append($("<div>")
           .addClass("formsect")
-          .addClass("expanded")
           .text("Future versions of this app will allow you to assign an active period for the announcement."))
         .append($("<div>")
           .addClass("formsect")
-          .addClass("expanded")
           .text("For now, all announcements last until March 2017!"))
         .append($("<div>")
           .addClass("formsect")
@@ -126,6 +136,12 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
           .append(forwardButton.container))
 
       self.stateLabel = stateLabel;
+    });
+
+    c.defineProperty("isFull", {
+      get: function() {
+        return this.data && this.data.startDate != null;
+      }
     });
   });
 
