@@ -9,58 +9,87 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
 
   var AnnouncementTypeForm = SlideForm.Form.defineClass(function(c) {
 
-    c.defineInitializer(function() {
-      var self = this;
+    function AnnouncementTypeForm_init(self) {
 
       var forwardButton = Button.create("Keep Going", function() {
         self.data.type = self.value;
         self.advance();
       });
 
-      var cancelButton = Button.create("Cancel", function() {
-        self.exit();
-      });
+      var stateLabel = $("<div>")
+        .addClass("formsect")
+        .addClass("collapsed");
+
+      function updateValue() {
+        self.data.type = self.container.find("input:radio[name='annType']:checked").val();
+      }
 
       self.container
+        .addClass("formpanel")
+        .addClass("odd")
         .append($("<div>")
           .addClass("formsect")
+          .addClass("expanded")
           .text("Announce to all users, or only to new users?"))
+        .append(stateLabel)
         .append($("<div>")
           .addClass("formsect")
-          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 1))
+          .addClass("expanded")
+          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 1).on("change", updateValue))
           .append($("<span>").text("To all users")))
         .append($("<div>")
           .addClass("formsect")
-          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 2))
+          .addClass("expanded")
+          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 2).on("change", updateValue))
           .append($("<span>").text("To new users")))
         .append($("<div>")
+          .addClass("expanded")
           .addClass("formsect")
-          .append(forwardButton.container)
-          .append(cancelButton.container))
-    });
+          .append(forwardButton.container))
 
-    c.defineProperty("value", {
-      get: function() {
-        this.container.find("input:radio[name='annType']:checked").val();
-      },
-      set: function(value) {
-        var self = this;
-        var foundIt = false;
-        self.container.find("input:radio[name='annType']").each(function(ix, radio) {
-          var equal = $(radio).val() == value;
-          $(radio).attr("checked", equal);
-          if (equal) foundIt = true;
-        });
-        if (!foundIt) {
-          $(self.container.find("input:radio[name='annType']")[0]).attr("checked", true);
-        }
+      self.stateLabel = stateLabel;
+    }
+
+    function AnnouncementTypeForm_renderRadios(self) {
+
+      function selectRadios() {
+        return $(self.container.find("input:radio[name='annType']"));
       }
+
+      var value = self.data.type;
+      var indexToCheck = 0;
+      if (value != null) {
+        selectRadios().each(function(ix, radio) {
+          var equal = $(radio).val() == value;
+          if (equal) {
+            indexToCheck = ix;
+          }
+          else {
+            $(radio).attr("checked", equal);
+          }
+        });
+      }
+      $(selectRadios()[indexToCheck]).attr("checked", true);
+    }
+
+    function AnnouncementTypeForm_renderLabel(self) {
+      self.stateLabel.text("Announcement " + (self.data.type == 0 ? "to all users" : "to new users"));
+    }
+
+    function AnnouncementTypeForm_render(self, expanded) {
+      SlideForm.Form.prototype.render.call(self, expanded);
+      AnnouncementTypeForm_renderRadios(self);
+      AnnouncementTypeForm_renderLabel(self);
+      return self;
+    }
+
+    c.defineInitializer(function() {
+      AnnouncementTypeForm_init(this);
     });
 
     c.extendPrototype({
-      open: function(data) {
-        this.data = data;
-        this.value = data.type;
+      render: function(expanded) {
+        return AnnouncementTypeForm_render(this, expanded);
       }
     });
   });
@@ -70,27 +99,33 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
     c.defineInitializer(function() {
       var self = this;
 
-      var forwardButton = Button.create("Keep Going", function() {
+      var stateLabel = $("<div>")
+        .addClass("formsect")
+        .addClass("collapsed");
+
+      var forwardButton = Button.create("OK", function() {
         self.data.startDate = "2016-12-31";
         self.data.endDate = "2017-03-31";
         self.advance();
       });
 
-      var cancelButton = Button.create("Cancel", function() {
-        self.exit();
-      });
-
       self.container
+        .addClass("formpanel")
+        .append(stateLabel)
         .append($("<div>")
           .addClass("formsect")
+          .addClass("expanded")
           .text("Future versions of this app will allow you to assign an active period for the announcement."))
         .append($("<div>")
           .addClass("formsect")
+          .addClass("expanded")
           .text("For now, all announcements last until March 2017!"))
         .append($("<div>")
           .addClass("formsect")
-          .append(forwardButton.container)
-          .append(cancelButton.container))
+          .addClass("expanded")
+          .append(forwardButton.container))
+
+      self.stateLabel = stateLabel;
     });
   });
 
@@ -115,6 +150,7 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
       });
 
       self.container
+        .addClass("formpanel")
         .append($("<div>")
           .addClass("formsect")
           .text("Press Done to save your announcement, or Cancel to throw it out."))
@@ -130,16 +166,15 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform" ],
 
     c.defineInitializer(function() {
       var self = this;
-      var form = new SlideForm($("<div>").addClass("form"), {
+      var form = new SlideForm(self.container.find(".form"), {
         slides: [
-          AnnouncementTypeForm,
+          { cons: AnnouncementTypeForm, cssClass: "odd" },
           AnnouncementPeriodForm,
-          VideoRecorder,
+          { cons: VideoRecorder, cssClass: "odd" },
           AnnouncementSubmitForm
         ]
       })
       form.addPlugin(self);
-      self.container.append(form.container);
       self.form = form;
     });
 

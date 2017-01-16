@@ -4,24 +4,36 @@ define([ "jquery", "component" ], function($, Component) {
 
   var SlideForm = Component.defineClass(function(c) {
 
-    c.defineInitializer(function() {
-      var self = this;
+    function SlideForm_makeSlide(self, slideDesc) {
+      if (typeof slideDesc == "function") {
+        slideDesc = {
+          cons: slideDesc
+        };
+      }
+      var SlideClass = slideDesc.cons;
+      var ele = $("<div>");
+      if (slideDesc.cssClass) {
+        ele.addClass(slideDesc.cssClass);
+      }
+      return new SlideClass(ele)
+        .addPlugin(self)
+        .setVisible(false);
+    }
+
+    function SlideForm_init(self) {
       var slideClasses = self.options.slides;
       var slides = [];
       for (var i = 0; i < slideClasses.length; ++i) {
-        var SlideClass = slideClasses[i];
-        var slide = new SlideClass()
-          .addPlugin(self)
-          .setVisible(false);
+        var slide = SlideForm_makeSlide(self, slideClasses[i]);
         slides.push(slide);
         self.container.append(slide.container);
       }
       self.slides = slides;
       self.slideIndex = -1;
-    });
+    }
 
     function SlideForm_open(self, data) {
-      self.data = $.extend({}, data || {});
+      self.data = data = $.extend({}, data || {});
       var isNew = true;  // until...
       self.slideIndex = isNew ? 0 : -1;
       for (var i = 0; i < self.slides.length; ++i) {
@@ -55,6 +67,10 @@ define([ "jquery", "component" ], function($, Component) {
       return self;
     }
 
+    c.defineInitializer(function() {
+      SlideForm_init(this);
+    });
+
     c.extendPrototype({
       open: function(data) {
         return SlideForm_open(this, data);
@@ -73,9 +89,21 @@ define([ "jquery", "component" ], function($, Component) {
 
   SlideForm.Form = Component.defineClass(function(c) {
 
+    function SlideFormForm_render(self, expanded) {
+      if (expanded) {
+        self.container.find(".expanded").show();
+        self.container.find(".collapsed").hide();
+      }
+      else {
+        self.container.find(".expanded").hide();
+        self.container.find(".collapsed").show();
+      }
+      return self;
+    }
+
     c.extendPrototype({
       render: function(expanded) {
-        return this;
+        return SlideFormForm_render(this, expanded);
       },
       exit: function() {
         this.invokePlugin("exit");

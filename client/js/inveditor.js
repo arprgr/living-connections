@@ -96,16 +96,13 @@ define([ "jquery", "services", "activityui", "vidrec", "button", "slideform", "e
 
     c.defineInitializer(function() {
       var self = this;
-      var form = new SlideForm($("<div>").addClass("form"), {
+      self.form = new SlideForm(self.container.find(".form"), {
         slides: [
           InvitationEmailForm,
           VideoRecorder,
           InvitationSubmitForm
         ]
-      })
-      form.addPlugin(self);
-      self.container.append(form.container);
-      self.form = form;
+      }).addPlugin(self);
       self.data = {};
     });
 

@@ -9,15 +9,27 @@ define([ "jquery", "component" ], function($, Component) {
       self.container
         .addClass("activity")
         .append($("<div>")
-          .append($("<img>").addClass("lilIcon"))
-          .append($("<span>").addClass("title")))
-    })
+          .addClass("header")
+          .append($("<div>").addClass("icon").append($("<img>")))
+          .append($("<div>").addClass("title").append($("<span>")))
+          .append($("<div>").addClass("cancel")
+            .append($("<a>")
+              .text("Cancel")
+              .attr("href", "#")
+              .click(function() {
+                self.exit();
+              })
+            )
+          )
+        )
+        .append($("<div>").addClass("form"));
+    });
 
     c.extendPrototype({
       open: function(actionItem) {
         var self = this;
-        self.container.find("img.lilIcon").attr("src", actionItem.iconUri || "");
-        self.container.find("span.title").text(actionItem.title || "");
+        self.container.find(".icon img").attr("src", actionItem.iconUri || "");
+        self.container.find(".title span").text(actionItem.title || "");
         self.actionItem = actionItem;
       },
 

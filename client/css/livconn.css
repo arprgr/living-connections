@@ -68,7 +68,7 @@ input.invalid {
   height: 100%;
   overflow: scroll;
 }
-#app .header {
+#app > .header {
   background-image: url(/img/symbol.png);
   background-position: 8px 10px;
   background-size: 41px 32px;
@@ -79,8 +79,18 @@ input.invalid {
 #app .userIdent {
   float: right;
 }
-#app .logout {
+#app a {
   color: #682;
+}
+#app .body {
+  position: relative;
+  width: 100%;
+}
+#app .body > div {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
 }
 #app .listing {
   padding: 0 5px;
@@ -101,35 +111,46 @@ input.invalid {
   width: 64px;
   height: 64px;
 }
-#app img.lilIcon {
-  width: 32px;
-  height: 32px;
-}
-#app .body {
-  position: relative;
-  width: 100%;
-}
-#app .body > div {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 100%;
-}
 #app .activity {
-  padding: 8px 12px;
   background-color: white;
   color: #004;
 }
-#app .activity span.title {
+#app .activity .header {
   position: relative;
-  top: -11px;
-  left: 12px;
+  height: 40px;
+}
+#app .activity .header .icon {
+  padding: 4px;
+}
+#app .activity .header .icon img {
+  width: 32px;
+  height: 32px;
+}
+#app .activity .header .title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 9px 40px;
+}
+#app .activity .header .cancel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 9px 6px;
 }
 #app .activity .vid {
   clear: both;
-  width: 100%;
   margin: 6px;
   text-align: center;
+}
+#app .formhead {
+  padding: 0px 5px;
+  margin-bottom: 4px;
+}
+#app .formpanel {
+  border-top: dashed 1px #c6c8d0;
+  padding: 5px;
+  margin-bottom: 8px;
 }
 video {
   object-fit: contain;
@@ -139,14 +160,6 @@ video {
   width: 100%;
   padding-top: 3px;
   text-align: center;
-}
-#app .form {
-  margin: 4px;
-  text-align: center;
-}
-#app .formsect {
-  max-width: 640px;
-  margin-bottom: 8px;
 }
 #app button {
   background-color: white;
