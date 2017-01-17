@@ -22,7 +22,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
             )
           )
         )
-        .append($("<div>").addClass("form"));
+        .append($("<div>").addClass("body"));
     });
 
     c.extendPrototype({

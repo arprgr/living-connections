@@ -5,13 +5,10 @@ define([ "msgviewer", "anneditor", "greeditor", "inveditor", "proeditor" ],
 
   return {
     ClassForActionItem: function(actionItem) {
-      var parts = actionItem.type.split("-");
-      var what = parts[0];
-      var action = parts[1];
-      if (action == "rec") {
+      if (actionItem.action == "rec") {
         return MsgViewer;
       }
-      switch (what) {
+      switch (actionItem.what) {
       case "ann":
         return AnnouncementEditor;
       case "gre":

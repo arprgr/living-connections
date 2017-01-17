@@ -44,6 +44,9 @@ define([ "jquery" ], function($) {
 
   return function(data) {
     $.extend(this, data);
+    var parts = data.type.split("-");
+    this.what = parts[0];
+    this.action = parts[1];
     Object.defineProperty(this, "iconUri", iconUriProperty);
     Object.defineProperty(this, "title", titleProperty);
   }

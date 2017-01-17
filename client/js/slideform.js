@@ -43,7 +43,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
         var slide = self.slides[i];
         slide.data = data;
         var expand = false;
-        if (self.slideIndex < 0 && !slide.isFull) {
+        if (self.slideIndex < 0 && slide.isLacking) {
           self.slideIndex = i;
           expand = true;
         }

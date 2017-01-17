@@ -92,7 +92,7 @@ define([ "jquery" ], function($) {
         proto.DEFAULT_CONTAINER = defaultContainer;
       },
       defineDefaultOptions: function(defaultOptions) {
-        proto.DEFAULT_OPTIONS = defaultOptions;
+        proto.DEFAULT_OPTIONS = $.extend({}, proto.DEFAULT_OPTIONS, defaultOptions);
       },
       extendPrototype: function(extension) {
         $.extend(proto, extension);
