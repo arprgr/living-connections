@@ -9,6 +9,10 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
 
   var InvitationEmailForm = Editor.Form.defineClass(function(c) {
 
+    c.defineDefaultOptions({
+      outputProperties: [ "email" ]
+    });
+
     c.defineInitializer(function() {
       var self = this;
 
@@ -29,8 +33,10 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
 
       self.container
         .append($("<div>")
+          .addClass("expanded")
           .text("What is your friend's email address?"))
         .append($("<div>")
+          .addClass("expanded")
           .append(emailInput.container)
           .append(okButton.container))
 
@@ -42,7 +48,7 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
         var self = this;
         Editor.Form.prototype.render.call(self, expanded);
         if (expanded) {
-          self.emailInput.value = data.email;
+          self.emailInput.value = self.data.email;
           setTimeout(function() {
             self.emailInput.focus();
           }, 100);
