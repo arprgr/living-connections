@@ -21,30 +21,19 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
       }
 
       self.container
-        .addClass("panel")
         .append($("<div>")
-          .addClass("formsect")
           .addClass("expanded")
           .text("Announce to all users, or only to new users?"))
         .append($("<div>")
-          .addClass("formsect")
-          .addClass("collapsed")
-          .append(Button.create("Change", function() {
-            self.requestOpen();
-          })))
-        .append($("<div>")
-          .addClass("formsect")
           .addClass("expanded")
           .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 1).on("change", updateValue))
           .append($("<span>").text("To all users")))
         .append($("<div>")
-          .addClass("formsect")
           .addClass("expanded")
           .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 2).on("change", updateValue))
           .append($("<span>").text("To new users")))
         .append($("<div>")
           .addClass("expanded")
-          .addClass("formsect")
           .append(forwardButton.container))
     }
 
@@ -123,7 +112,6 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
   return Editor.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      inputProperty: "announcement",
       forms: [ AnnouncementTypeForm, AnnouncementPeriodForm, VideoRecorder ]
     });
   })

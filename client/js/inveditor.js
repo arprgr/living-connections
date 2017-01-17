@@ -1,120 +1,69 @@
 // inveditor.js - Invitation Editor component
 
-define([ "jquery", "services", "activityui", "vidrec", "slideform", "ui/index" ],
-  function($, Services, Activity, VideoRecorder, SlideForm, ui) {
+define([ "jquery", "services", "editor", "vidrec",      "ui/index" ],
+function($,        Services,   Editor,   VideoRecorder, ui) {
 
   var Button = ui.Button;
-  var EmailInput = ui.EmailInput;
 
   var apiService = Services.apiService;
 
-  var InvitationEmailForm = SlideForm.Form.defineClass(function(c) {
+  var InvitationEmailForm = Editor.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
 
-      var emailInput = new EmailInput($("<div>"));
-      emailInput.addPlugin({
+      var emailInput = new ui.EmailInput().addPlugin({
         submit: function(email) {
           self.data.email = email;
           self.advance();
         }
       })
 
-      var forwardButton = Button.create("Keep Going", function() {
+      var okButton = Button.create("OK", function() {
         emailInput.submit();
       });
 
       emailInput.valid.addChangeListener(function(isValid) {
-        forwardButton.enabled = isValid;
-      });
-
-      var cancelButton = Button.create("Cancel", function() {
-        self.exit();
+        okButton.enabled = isValid;
       });
 
       self.container
         .append($("<div>")
-          .addClass("formsect")
           .text("What is your friend's email address?"))
         .append($("<div>")
-          .addClass("formsect")
-          .text("Sorry, in this version of the site you must know your friend's email address. " + 
-            "(Future versions will allow other means of identification.)"))
-        .append($("<div>")
-          .addClass("formsect")
-          .append(emailInput.container))
-        .append($("<div>")
-          .addClass("formsect")
-          .append(forwardButton.container)
-          .append(cancelButton.container))
+          .append(emailInput.container)
+          .append(okButton.container))
 
       self.emailInput = emailInput;
     });
 
     c.extendPrototype({
-      open: function(data) {
+      render: function(expanded) {
         var self = this;
-        self.data = data;
-        self.emailInput.value = data.email;
-        setTimeout(function() {
-          self.emailInput.focus();
-        }, 100);
+        Editor.Form.prototype.render.call(self, expanded);
+        if (expanded) {
+          self.emailInput.value = data.email;
+          setTimeout(function() {
+            self.emailInput.focus();
+          }, 100);
+        }
+        return self;
+      },
+      _renderSummary: function() {
+        return "Email to:" + this.data.email;
       }
     });
   });
 
-  var InvitationSubmitForm = SlideForm.Form.defineClass(function(c) {
+  return Editor.defineClass(function(c) {
 
-    c.defineInitializer(function() {
-      var self = this;
-
-      var doneButton = Button.create("Done", function() {
-        var data = self.data;
-        apiService.saveForm("inv", data.id ? "upd" : "cre", data)
-        .then(function() {
-          self.exit();
-        })
-        .catch(function(err) {
-          console.log(err);
-        });
-      });
-
-      var cancelButton = Button.create("Cancel", function() {
-        self.exit();
-      });
-
-      self.container
-        .append($("<div>")
-          .addClass("formsect")
-          .text("Press Done to send your invitation, or Cancel to throw it out."))
-        .append($("<div>")
-          .addClass("formsect")
-          .append(doneButton.container)
-          .append(cancelButton.container))
-    });
-  });
-
-  return Activity.defineClass(function(c) {
-
-    c.defineInitializer(function() {
-      var self = this;
-      self.form = new SlideForm(self.container.find(".form"), {
-        slides: [
-          InvitationEmailForm,
-          VideoRecorder,
-          InvitationSubmitForm
-        ]
-      }).addPlugin(self);
-      self.data = {};
+    c.defineDefaultOptions({
+      forms: [ InvitationEmailForm, VideoRecorder ]
     });
 
     c.extendPrototype({
-      open: function(actionItem) {
-        var self = this;
-        Activity.prototype.open.call(self, actionItem);
-        self.data.id = actionItem.invite && actionItem.invite.id;
-        self.form.open(self.data);
+      _initData: function() {
+        return this.actionItem.invite;
       }
     });
   });

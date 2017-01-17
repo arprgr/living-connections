@@ -4,6 +4,8 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
 
   return Component.defineClass(function(c) {
 
+    c.defineDefaultContainer("span");
+
     c.defineDefaultOptions({
       invalidCssClass: "invalid"
     });

@@ -12,7 +12,7 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
     c.defineInitializer(function() {
       var self = this;
 
-      var nameInput = new ui.TextInput($("<span>")).addPlugin({
+      var nameInput = new ui.TextInput().addPlugin({
         submit: function(name) {
           self.data.name = name;
           self.advance();
@@ -28,7 +28,6 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
       });
 
       self.container
-        .addClass("panel")
         .append($("<div>")
           .addClass("expanded")
           .text("What name would you like to go by in Living Connections?"))
@@ -60,7 +59,6 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
   return Editor.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      inputProperty: "user",
       forms: [ ProfileNameForm, VideoRecorder ]
     });
 

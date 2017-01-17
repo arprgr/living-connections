@@ -54,8 +54,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
 
     function SlideForm_close(self) {
       for (var i = 0; i < self.slides.length; ++i) {
-        var slide = self.slides[i];
-        slide.visible = false;
+        self.slides[i].close();
       }
       return self;
     }
@@ -124,6 +123,8 @@ define([ "jquery", "ui/component" ], function($, Component) {
         self.container.find(".expanded").setVisible(expanded);
         self.container.find(".collapsed").setVisible(!expanded);
         return self;
+      },
+      close: function() {
       },
       exit: function() {
         this.invokePlugin("exit");

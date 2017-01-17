@@ -12,6 +12,7 @@ function($,        Services,   Activity,     SlideForm,   ui) {
     c.defineInitializer(function() {
       var self = this;
       self.container
+        .addClass("panel")
         .append($("<div>")
           .addClass("collapsed")
           .append($("<span>").addClass("summary"))
@@ -105,6 +106,11 @@ function($,        Services,   Activity,     SlideForm,   ui) {
         Activity.prototype.open.call(self, actionItem);
         self.form.actionItem = actionItem;
         self.form.open(self._initData());
+        return self;
+      },
+      close: function() {
+        var self = this;
+        self.form.close();
         return self;
       },
       _initData: function() {
