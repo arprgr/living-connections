@@ -22,8 +22,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
             return self.openByIndex(index);
           }
         })
-        .setParent(self)
-        .setVisible(false);
+        .setParent(self);
     }
 
     function SlideForm_init(self) {
@@ -49,7 +48,6 @@ define([ "jquery", "ui/component" ], function($, Component) {
           expand = true;
         }
         slide.render(expand);
-        slide.visible = true;
       }
       return self;
     }

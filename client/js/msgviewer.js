@@ -12,8 +12,10 @@ define([ "jquery", "activityui", "ui/index", "actionitem" ], function($, Activit
       var videoPlayer = new VideoPlayer(); 
 
       self.container
-        .append(videoPlayer.container)
-        .append($("<div>").addClass("formsect").addClass("buttons"))
+        .append($("<div>")
+          .addClass("panel")
+          .append(videoPlayer.container)
+          .append($("<div>").addClass("formsect").addClass("buttons")))
 
       self.videoPlayer = videoPlayer;
     });
@@ -30,27 +32,27 @@ define([ "jquery", "activityui", "ui/index", "actionitem" ], function($, Activit
         Activity.prototype.open.call(self, actionItem);
 
         self.title = actionItem.title;
-        var message = actionItem.message;
+        var message = actionItem.message || actionItem.user;
         self.videoPlayer.load(message.asset.url, { autoplay: true });
 
-        if (actionItem.type.match(/inv-/)) {
-          addButton("Accept " + message.fromUser.name + "'s invitation to connect", function() {
+        var fromUser = message.fromUser;
+        if (fromUser) {
+          if (actionItem.type.match(/inv-/)) {
+            addButton("Accept " + fromUser.name + "'s invitation to connect", function() {
+            });
+            addButton("No, thanks", function() {
+              self.exit();
+            });
+          }
+          addButton("Reply to " + fromUser.name, function() {
+            self.openActionItem(new ActionItem({ type: "gre-cre", user: fromUser, isReply: 1 }));
           });
-          addButton("No, thanks", function() {
-            self.exit();
-          });
+          if (fromUser.asset) {
+            addButton("See " + fromUser.name + "'s Profile", function() {
+              self.openActionItem(new ActionItem({ type: "pro-rec", user: fromUser }));
+            });
+          }
         }
-        addButton("Reply to " + message.fromUser.name, function() {
-          self.openActionItem(new ActionItem({ type: "gre-cre", user: message.fromUser, isReply: 1 }));
-        });
-        if (message.fromUser.asset) {
-          addButton("See " + message.fromUser.name + "'s Profile", function() {
-            self.openActionItem(new ActionItem({ type: "pro-rec", user: message.fromUser }));
-          });
-        }
-        addButton("Exit", function() {
-          self.exit();
-        });
 
         return self;
       }

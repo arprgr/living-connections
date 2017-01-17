@@ -9,7 +9,7 @@ define([ "jquery" ], function($) {
   }
 
   function userName(user) {
-    return (user && user.name) || "another user";
+    return (user && user.name) || "Another user";
   }
 
   var titleProperty = {

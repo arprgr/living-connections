@@ -1,7 +1,7 @@
 // editor.js - Editor = an Activity that creates/modifies an entity.
 
 define([ "jquery", "services", "activityui", "slideform", "ui/index" ],
-function($, Services, Activity, SlideForm, ui) {
+function($,        Services,   Activity,     SlideForm,   ui) {
 
   var Form = SlideForm.Form.defineClass(function(c) {
 
@@ -31,8 +31,9 @@ function($, Services, Activity, SlideForm, ui) {
       get: function() {
         var self = this;
         if (!self.data) return true;
-        for (var i = 0; i < self.options.outputProperties.length; ++i) {
-          if (self.options.outputProperties[i] == null) {
+        var outputProperties = self.options.outputProperties;
+        for (var i = 0; i < outputProperties.length; ++i) {
+          if (self.data[outputProperties[i]] == null) {
             return true;
           }
         }
