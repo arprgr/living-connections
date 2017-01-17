@@ -1,114 +1,73 @@
 // proeditor.js - Profile Editor component
 
-define([ "jquery", "services", "activityui", "ui/index", "vidrec", "slideform" ],
-  function($, Services, Activity, ui, VideoRecorder, SlideForm) {
+define([ "jquery", "editor", "ui/index", "vidrec" ],
+  function($, Editor, ui, VideoRecorder) {
 
-  var Button = ui.Button;
-  var TextInput = ui.TextInput;
+  var ProfileNameForm = Editor.Form.defineClass(function(c) {
 
-  // Service imports.
-
-  var apiService = Services.apiService;
-
-  var ProfileNameForm = SlideForm.Form.defineClass(function(c) {
+    c.defineDefaultOptions({
+      outputProperties: [ "name" ]
+    });
 
     c.defineInitializer(function() {
       var self = this;
 
-      var nameInput = new TextInput($("<div>"));
-      nameInput.addPlugin({
+      var nameInput = new ui.TextInput($("<span>")).addPlugin({
         submit: function(name) {
           self.data.name = name;
           self.advance();
         }
       });
 
-      var forwardButton = Button.create("Keep Going", function() {
+      var okButton = ui.Button.create("OK", function() {
         nameInput.submit();
       });
 
       nameInput.valid.addChangeListener(function(isValid) {
-        forwardButton.enabled = isValid;
-      });
-
-      var cancelButton = Button.create("Cancel", function() {
-        self.exit();
+        okButton.enabled = isValid;
       });
 
       self.container
+        .addClass("panel")
         .append($("<div>")
-          .addClass("formsect")
+          .addClass("expanded")
           .text("What name would you like to go by in Living Connections?"))
         .append($("<div>")
-          .addClass("formsect")
-          .append(nameInput.container))
-        .append($("<div>")
-          .addClass("formsect")
-          .append(forwardButton.container)
-          .append(cancelButton.container))
+          .addClass("expanded")
+          .append(nameInput.container)
+          .append($("<span>").text(" "))
+          .append(okButton.container));
 
       self.nameInput = nameInput;
     });
 
     c.extendPrototype({
-      open: function(data) {
+      render: function(expanded) {
         var self = this;
-        self.data = data;
-        self.nameInput.value = data.name;
-        setTimeout(function() {
-          self.nameInput.select().focus();
-        }, 100);
+        Editor.Form.prototype.render.call(self, expanded);
+        if (expanded) {
+          self.nameInput.value = self.data.name;
+          setTimeout(function() {
+            self.nameInput.select().focus();
+          }, 100);
+        }
+      },
+      _renderSummary: function() {
+        return "Your name is " + (this.data.name || "not set");
       }
     });
   });
 
-  var ProfileSubmitForm = SlideForm.Form.defineClass(function(c) {
+  return Editor.defineClass(function(c) {
 
-    c.defineInitializer(function() {
-      var self = this;
-
-      var doneButton = Button.create("Done", function() {
-        doneButton.enabled = false;
-        apiService.saveForm("pro", "upd", self.data)
-        .then(function() {
-          self.exit();
-        })
-        .catch(function(err) {
-          console.log(err);
-        });
-      });
-
-      var cancelButton = Button.create("Cancel", function() {
-        self.exit();
-      });
-
-      self.container
-        .append($("<div>")
-          .text("Press Done to submit your profile, or Cancel to throw it out."))
-        .append($("<div>")
-          .append(doneButton.container)
-          .append(cancelButton.container))
-    });
-  });
-
-  return Activity.defineClass(function(c) {
-
-    c.defineInitializer(function() {
-      var self = this;
-      self.form = new SlideForm(self.container.find(".form"), {
-        slides: [
-          ProfileNameForm,
-          VideoRecorder,
-          ProfileSubmitForm
-        ]
-      }).addPlugin(self);
+    c.defineDefaultOptions({
+      inputProperty: "user",
+      forms: [ ProfileNameForm, VideoRecorder ]
     });
 
     c.extendPrototype({
-      open: function(actionItem) {
-        var self = this;
-        Activity.prototype.open.call(self, actionItem);
-        self.form.open(actionItem.user);
+      _initData: function() {
+        return this.actionItem.user;
       }
     });
   });

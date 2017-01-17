@@ -82,11 +82,11 @@ div {
 #app a {
   color: #682;
 }
-#app .body {
+#app > .body {
   position: relative;
   width: 100%;
 }
-#app .body > div {
+#app > .body > div {
   position: absolute;
   top: 0px;
   left: 0px;

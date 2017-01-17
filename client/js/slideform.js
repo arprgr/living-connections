@@ -21,6 +21,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
             return self.requestOpen(index);
           }
         }))
+        .setParent(self)
         .setVisible(false);
     }
 
@@ -41,7 +42,6 @@ define([ "jquery", "ui/component" ], function($, Component) {
       self.slideIndex = -1;
       for (var i = 0; i < self.slides.length; ++i) {
         var slide = self.slides[i];
-        slide.data = data;
         var expand = false;
         if (self.slideIndex < 0 && slide.isLacking) {
           self.slideIndex = i;
@@ -101,21 +101,27 @@ define([ "jquery", "ui/component" ], function($, Component) {
 
   SlideForm.Form = Component.defineClass(function(c) {
 
-    function SlideFormForm_render(self, expanded) {
-      if (expanded) {
-        self.container.find(".expanded").show();
-        self.container.find(".collapsed").hide();
+    c.defineProperty("parent", {
+      set: function(parent) {
+        this._parent = parent;
+      },
+      get: function() {
+        return this._parent;
       }
-      else {
-        self.container.find(".expanded").hide();
-        self.container.find(".collapsed").show();
+    });
+
+    c.defineProperty("data", {
+      get: function() {
+        return this.parent.data;
       }
-      return self;
-    }
+    });
 
     c.extendPrototype({
       render: function(expanded) {
-        return SlideFormForm_render(this, expanded);
+        var self = this;
+        self.container.find(".expanded").setVisible(expanded);
+        self.container.find(".collapsed").setVisible(!expanded);
+        return self;
       },
       exit: function() {
         this.invokePlugin("exit");

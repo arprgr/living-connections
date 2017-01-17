@@ -90,7 +90,7 @@ define([ "jquery", "services", "ui/index", "slideform" ],
         return button;
       }
 
-      var videoComponent = new VideoComponent($("<div>").addClass("vid"));
+      var videoComponent = new VideoComponent($("<div>").addClass("vid").addClass("expanded"));
 
       self.container
         .append(videoComponent.container)

@@ -22,7 +22,6 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
 
       self.container
         .addClass("panel")
-        .addClass("odd")
         .append($("<div>")
           .addClass("formsect")
           .addClass("expanded")
