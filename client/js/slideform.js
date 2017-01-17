@@ -16,11 +16,12 @@ define([ "jquery", "ui/component" ], function($, Component) {
         ele.addClass(slideDesc.cssClass);
       }
       return new SlideClass(ele)
-        .addPlugin($.extend({}, self, {
+        .addPlugin(self)
+        .addPlugin({
           requestOpen: function() {
-            return self.requestOpen(index);
+            return self.openByIndex(index);
           }
-        }))
+        })
         .setParent(self)
         .setVisible(false);
     }
@@ -61,7 +62,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
       return self;
     }
 
-    function SlideForm_requestOpen(self, newIndex) {
+    function SlideForm_openByIndex(self, newIndex) {
       if (newIndex != self.slideIndex) {
         if (self.slideIndex >= 0) {
           self.slides[self.slideIndex].render(false);
@@ -76,7 +77,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
       if (incr == null) {
         incr = 1;
       }
-      return SlideForm_requestOpen(self, self.slideIndex + incr);
+      return SlideForm_openByIndex(self, self.slideIndex + incr);
     }
 
     c.defineInitializer(function() {
@@ -87,8 +88,8 @@ define([ "jquery", "ui/component" ], function($, Component) {
       open: function(data) {
         return SlideForm_open(this, data);
       },
-      requestOpen: function(newIndex) {
-        return SlideForm_requestOpen(this, newIndex);
+      openByIndex: function(newIndex) {
+        return SlideForm_openByIndex(this, newIndex);
       },
       close: function() {
         return SlideForm_close(this);
