@@ -17,6 +17,12 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
 
   return Editor.Form.defineClass(function(c) {
 
+    c.defineDefaultOptions({
+      prompt: "Record a videogram",
+      summary: "Your videogram",
+      outputProperties: [ "asset" ]
+    });
+
     function toErrorState(self) {
       self.videoBlob = null;
       self.videoComponent.clear();
@@ -87,7 +93,7 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       self.container
         .addClass("panel")
         .append(videoComponent.container)
-        .append($("<div>").addClass("buttons"))
+        .append($("<div>").addClass("buttons").addClass("expanded"))
 
       var startButton = addButton("Start recording", function() {
         startRecording(self);
@@ -101,9 +107,6 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       var discardButton = addButton("Discard and re-record", function() {
         self.openCamera();
       });
-      var cancelButton = addButton("Cancel", function() {
-        self.exit();
-      });
       var state = new ui.Observable(STATE_INIT);
 
       state.addChangeListener(function(value) {
@@ -111,7 +114,6 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
         stopButton.visible = value == STATE_RECORDING;
         acceptButton.visible = value == STATE_REVIEW || value == STATE_PLAYBACK;
         discardButton.visible = value == STATE_REVIEW || value == STATE_PLAYBACK;
-        cancelButton.visible = value != STATE_RECORDING;
       });
 
       self.videoComponent = videoComponent;
@@ -120,11 +122,14 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
 
     c.extendPrototype({
 
-      open: function(data) {
+      render: function(expanded) {
         var self = this;
-        self.data = data;
-        var asset = data.asset;
-        return asset ? self.openAsset(asset) : self.openCamera();
+        Editor.Form.prototype.render.call(self, expanded);
+        if (expanded) {
+          var asset = self.data.asset;
+          asset ? self.openAsset(asset) : self.openCamera();
+        }
+        return self;
       },
 
       openCamera: function() {
@@ -150,7 +155,8 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       },
 
       _renderSummary: function() {
-        return "Your videogram";
+        var self = this;
+        return self.isLacking ? self.options.prompt : self.options.summary;
       }
     });
   });

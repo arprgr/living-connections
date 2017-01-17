@@ -81,7 +81,8 @@ function($, Services, Activity, SlideForm, ui) {
 
     c.defineDefaultOptions({
       forms: [],
-      submit: Submit
+      submit: Submit,
+      exitLinkText: "Cancel"
     });
 
     function getSlides(self) {

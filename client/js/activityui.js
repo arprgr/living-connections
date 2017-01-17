@@ -4,6 +4,10 @@ define([ "jquery", "ui/component" ], function($, Component) {
 
   return Component.defineClass(function(c) {
 
+    c.defineDefaultOptions({
+      exitLinkText: "Exit"
+    });
+
     c.defineInitializer(function() {
       var self = this;
       self.container
@@ -14,7 +18,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
           .append($("<div>").addClass("title").append($("<span>")))
           .append($("<div>").addClass("cancel")
             .append($("<a>")
-              .text("Cancel")
+              .text(self.options.exitLinkText)
               .attr("href", "#")
               .click(function() {
                 self.exit();
