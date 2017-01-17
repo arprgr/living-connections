@@ -1,8 +1,7 @@
 // loginui.js
 
-define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
+define([ "jquery", "ui/index", "fb", "services" ], function($, ui, FacebookLogin, Services) {
 
-  var Button = ui.Button;
   var Component = ui.Component;
   var EmailInput = ui.EmailInput;
 
@@ -42,9 +41,11 @@ define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
         }
       });
 
-      var goButton = Button.create("Go!", function() {
+      var goButton = ui.Button.create("Go!", function() {
         emailInput.submit();
       });
+
+      var fb = new FacebookLogin();
 
       self.container
         .append($("<div>")
@@ -52,7 +53,8 @@ define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
         .append($("<div>")
           .append(emailInput.container)
           .append(goButton.container))
-        .append($("<div>").addClass("message"));
+        .append($("<div>").addClass("message"))
+        .append(fb.container);
 
       self.emailInput = emailInput;
       self.goButton = goButton;
