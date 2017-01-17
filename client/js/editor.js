@@ -52,7 +52,7 @@ function($, Services, Activity, SlideForm, ui) {
     });
   });
 
-  var Submit = Form.defineClass(function(c) {
+  var Submit = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -68,6 +68,12 @@ function($, Services, Activity, SlideForm, ui) {
         .append(ui.Button.create("Cancel", function() {
           self.exit();
         }).container)
+    });
+
+    c.defineProperty("actionItem", {
+      get: function() {
+        return this.parent.actionItem;
+      }
     });
   });
 

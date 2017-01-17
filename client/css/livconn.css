@@ -145,8 +145,7 @@ div {
 }
 #app .activity .body .panel {
   border-top: dashed 1px #c6c8d0;
-  padding: 5px;
-  margin-bottom: 8px;
+  padding: 5px 18px;
 }
 video {
   object-fit: contain;
@@ -175,4 +174,12 @@ video {
 }
 #app button:enabled:hover {
   background-color: #cc8;
+}
+#app input {
+  background-color: white;
+  color: #004;
+  border: solid 2px #004;
+  font-size: 18px;
+  padding: 4px;
+  display: inline;
 }

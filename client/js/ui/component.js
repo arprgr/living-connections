@@ -2,12 +2,15 @@
 
 define([ "jquery" ], function($) {
 
+  var serial = 0; 
+
   function Component(container, options) {
     var proto = Object.getPrototypeOf(this);
     this._container = container || $(proto.DEFAULT_CONTAINER);
     this._visible = true;
     this._options = $.extend({}, proto.DEFAULT_OPTIONS, options);
     this._plugins = [];
+    this._serial = serial++;
   }
 
   Component.prototype = (function(defineProperty) {
@@ -40,12 +43,14 @@ define([ "jquery" ], function($) {
         return this;
       },
 
-      invokePlugin: function(method, data) {
+      invokePlugin: function(method) {
         var plugins = this._plugins;
+        var args = Array.prototype.slice.call(arguments);
+        var method = args.shift();
         for (var i = 0; i < plugins.length; ++i) {
           var plugin = plugins[i];
           if (method in plugin) {
-            plugin[method](data);
+            plugin[method].apply(plugin, args);
           }
         }
         return this;

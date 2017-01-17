@@ -11,15 +11,18 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
 
     c.defineInitializer(function() {
       var self = this;
+console.log(self);
 
       var nameInput = new ui.TextInput($("<span>")).addPlugin({
         submit: function(name) {
+console.log(self);
           self.data.name = name;
           self.advance();
         }
       });
 
       var okButton = ui.Button.create("OK", function() {
+console.log(self);
         nameInput.submit();
       });
 
@@ -35,7 +38,6 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
         .append($("<div>")
           .addClass("expanded")
           .append(nameInput.container)
-          .append($("<span>").text(" "))
           .append(okButton.container));
 
       self.nameInput = nameInput;

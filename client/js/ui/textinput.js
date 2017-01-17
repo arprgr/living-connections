@@ -106,7 +106,7 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
       },
 
       clearStyles: function() {
-        this.input.removeClass(INVALID_CLASS);
+        this.input.removeClass(this.options.invalidCssClass);
       }
     });
   });

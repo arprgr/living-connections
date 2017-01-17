@@ -61,13 +61,6 @@ define([ "jquery", "ui/component" ], function($, Component) {
       return self;
     }
 
-    function SlideForm_advance(self, incr) {
-      if (incr == null) {
-        incr = 1;
-      }
-      return SlideForm_requestOpen(self.slideIndex + incr);
-    }
-
     function SlideForm_requestOpen(self, newIndex) {
       if (newIndex != self.slideIndex) {
         if (self.slideIndex >= 0) {
@@ -79,6 +72,13 @@ define([ "jquery", "ui/component" ], function($, Component) {
       return self;
     }
 
+    function SlideForm_advance(self, incr) {
+      if (incr == null) {
+        incr = 1;
+      }
+      return SlideForm_requestOpen(self, self.slideIndex + incr);
+    }
+
     c.defineInitializer(function() {
       SlideForm_init(this);
     });
@@ -86,6 +86,9 @@ define([ "jquery", "ui/component" ], function($, Component) {
     c.extendPrototype({
       open: function(data) {
         return SlideForm_open(this, data);
+      },
+      requestOpen: function(newIndex) {
+        return SlideForm_requestOpen(this, newIndex);
       },
       close: function() {
         return SlideForm_close(this);

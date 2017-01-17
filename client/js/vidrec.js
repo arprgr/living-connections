@@ -1,16 +1,8 @@
 // vidrec.js - VideoRecorder component
 
-define([ "jquery", "services", "ui/index", "slideform" ],
-  function($, Services, ui, SlideForm) {
-
-  var Button = ui.Button;
-  var Observable = ui.Observable;
-  var VideoComponent = ui.Video;
-
-  // Service imports.
+define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui, Editor) {
 
   var videoService = Services.videoService;
-  var apiService = Services.apiService;
 
   // Component states.
 
@@ -23,76 +15,77 @@ define([ "jquery", "services", "ui/index", "slideform" ],
   var STATE_REVIEW = 6;        // Playing a previously recorded video.
   var STATE_ERROR = 8;         // Something went wrong.
 
-  function toErrorState(self) {
-    self.videoBlob = null;
-    self.videoComponent.clear();
-    self.state.setValue(STATE_ERROR);
-  }
+  return Editor.Form.defineClass(function(c) {
 
-  function showVideo(self, src, nextState) {
-    self.state.setValue(STATE_LOADING);
-    self.videoComponent.load(src)
-    .then(function() {
-      self.state.setValue(nextState);
-    })
-    .catch(function() {
-      toErrorState(self);
-    });
-  }
-
-  function startRecording(self) {
-    videoService.startRecording();
-    self.state.setValue(STATE_RECORDING);
-    return self;
-  }
-
-  function stopRecording(self) {
-    self.videoComponent.pause();
-    self.state.setValue(STATE_LOADING);
-    videoService.stopRecording(function(blob, url) {
-      self.videoBlob = blob;
-      videoService.close();
-      showVideo(self, url, STATE_PLAYBACK);
-    });
-    return self;
-  }
-
-  function acceptRecording(self) {
-    self.videoComponent.pause();
-    var videoBlob = self.videoBlob;
-    if (videoBlob) {
-      self.state.setValue(STATE_SAVING);
+    function toErrorState(self) {
       self.videoBlob = null;
-      return apiService.saveVideo(videoBlob)
-        .then(function(asset) {
-          self.openAsset(asset);
-          self.data.asset = asset;
-          self.data.assetId = asset.id;
-          self.advance();
-        })
-        .catch(function() {
-          toErrorState(self);
-        });
+      self.videoComponent.clear();
+      self.state.setValue(STATE_ERROR);
     }
-    else {
-      self.advance();
-    }
-  }
 
-  return SlideForm.Form.defineClass(function(c) {
+    function showVideo(self, src, nextState) {
+      self.state.setValue(STATE_LOADING);
+      self.videoComponent.load(src)
+      .then(function() {
+        self.state.setValue(nextState);
+      })
+      .catch(function() {
+        toErrorState(self);
+      });
+    }
+
+    function startRecording(self) {
+      videoService.startRecording();
+      self.state.setValue(STATE_RECORDING);
+      return self;
+    }
+
+    function stopRecording(self) {
+      self.videoComponent.pause();
+      self.state.setValue(STATE_LOADING);
+      videoService.stopRecording(function(blob, url) {
+        self.videoBlob = blob;
+        videoService.close();
+        showVideo(self, url, STATE_PLAYBACK);
+      });
+      return self;
+    }
+
+    function acceptRecording(self) {
+      self.videoComponent.pause();
+      var videoBlob = self.videoBlob;
+      if (videoBlob) {
+        self.state.setValue(STATE_SAVING);
+        self.videoBlob = null;
+        return Services.apiService.saveVideo(videoBlob)
+          .then(function(asset) {
+            self.openAsset(asset);
+            self.data.asset = asset;
+            self.data.assetId = asset.id;
+            self.advance();
+          })
+          .catch(function() {
+            toErrorState(self);
+          });
+      }
+      else {
+        self.advance();
+      }
+    }
 
     c.defineInitializer(function() {
       var self = this;
 
       function addButton(label, clickFunc) {
-        var button = Button.create(label, clickFunc).setVisible(false);
+        var button = ui.Button.create(label, clickFunc).setVisible(false);
         button.container.appendTo(self.container.find(".buttons"));
         return button;
       }
 
-      var videoComponent = new VideoComponent($("<div>").addClass("vid").addClass("expanded"));
+      var videoComponent = new ui.Video($("<div>").addClass("vid").addClass("expanded"));
 
       self.container
+        .addClass("panel")
         .append(videoComponent.container)
         .append($("<div>").addClass("buttons"))
 
@@ -111,7 +104,7 @@ define([ "jquery", "services", "ui/index", "slideform" ],
       var cancelButton = addButton("Cancel", function() {
         self.exit();
       });
-      var state = new Observable(STATE_INIT);
+      var state = new ui.Observable(STATE_INIT);
 
       state.addChangeListener(function(value) {
         startButton.visible = value == STATE_LIVE;
@@ -126,6 +119,7 @@ define([ "jquery", "services", "ui/index", "slideform" ],
     });
 
     c.extendPrototype({
+
       open: function(data) {
         var self = this;
         self.data = data;
@@ -153,6 +147,10 @@ define([ "jquery", "services", "ui/index", "slideform" ],
       close: function() {
         videoService.close();
         return this;
+      },
+
+      _renderSummary: function() {
+        return "Your videogram";
       }
     });
   });
