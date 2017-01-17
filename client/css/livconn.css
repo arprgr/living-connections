@@ -49,8 +49,8 @@ div {
   width: 240px;
   font-size: 20px;
 }
-input.invalid {
-  border: solid 2px red;
+.invalid {
+  border: solid 3px red;
 }
 #startup .login button {
   font-size: 20px;
@@ -143,11 +143,7 @@ input.invalid {
   margin: 6px;
   text-align: center;
 }
-#app .formhead {
-  padding: 0px 5px;
-  margin-bottom: 4px;
-}
-#app .formpanel {
+#app .activity .body .panel {
   border-top: dashed 1px #c6c8d0;
   padding: 5px;
   margin-bottom: 8px;

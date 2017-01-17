@@ -2,9 +2,11 @@
 
 define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Observable) {
 
-  var INVALID_CLASS = "invalid";
-
   return Component.defineClass(function(c) {
+
+    c.defineDefaultOptions({
+      invalidCssClass: "invalid"
+    });
 
     c.defineInitializer(function() {
       var self = this;
@@ -77,7 +79,7 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
           self.clearStyles();
         }
         else {
-          self.input.addClass(INVALID_CLASS);
+          self.input.addClass(self.options.invalidCssClass);
         }
       },
 
