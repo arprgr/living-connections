@@ -5,12 +5,48 @@
 define([ "jquery", "services", "listingui", "activities", "ui/index" ],
   function($, Services, Listing, Activities, ui) {
 
-  var Component = ui.Component;
-  var CrossFade = ui.CrossFade;
-
   var sessionManager = Services.sessionManager;
 
-  return Component.defineClass(function(c) {
+  return ui.Component.defineClass(function(c) {
+
+    function Main_open(self, createNewBody) {
+      if (!self.inTransition) {
+        self.inTransition = true;
+        var newBody = createNewBody();
+        self.container.find("> .body").append(newBody.container);
+        var oldBody = self.currentBody;
+        self.currentBody = newBody;
+        if (oldBody) {
+          oldBody.close();
+          new ui.CrossFade(oldBody, newBody, { duration: 700 }).run()
+          .then(function() {
+            oldBody.container.remove();
+            self.inTransition = false;
+          });
+        }
+        else {
+          self.inTransition = false;
+        }
+      }
+    }
+
+    function Main_newListing(self) {
+      return function() {
+        var listing = new Listing();
+        listing.addPlugin(self.callback);
+        listing.open();
+        return listing;
+      }
+    }
+
+    function Main_newActivity(self, actionItem) {
+      return function() {
+        var activity = new (Activities.ClassForActionItem(actionItem))();
+        activity.addPlugin(self.callback);
+        activity.open(actionItem);
+        return activity;
+      }
+    }
 
     c.defineInitializer(function() {
       var self = this;
@@ -34,6 +70,15 @@ define([ "jquery", "services", "listingui", "activities", "ui/index" ],
         .append($("<div>").addClass("body")
         );
 
+      self.callback = {
+        openActionItem: function(actionItem) {
+          Main_open(self, Main_newActivity(self, actionItem));
+        },
+        exit: function() {
+          Main_open(self, Main_newListing(self));
+        }
+      }
+
       sessionManager.addStateChangeListener(function() {
         var user = sessionManager.user || {}
         var header = self.container.find(".header");
@@ -41,32 +86,11 @@ define([ "jquery", "services", "listingui", "activities", "ui/index" ],
       });
     });
 
-    function open(self, newBody, actionItem) {
-      newBody.open(actionItem);
-      newBody.addPlugin({
-        openActionItem: function(actionItem) {
-          open(self, new (Activities.ClassForActionItem(actionItem))(), actionItem);
-        },
-        exit: function() {
-          open(self, new Listing());
-        }
-      });
-      self.container.find(".body").append(newBody.container);
-      var oldBody = self.currentBody;
-      if (oldBody) {
-        new CrossFade(oldBody, newBody, { duration: 700 }).run()
-        .then(function() {
-          oldBody.container.remove();
-        });
-      }
-      self.currentBody = newBody;
-    }
-
     c.extendPrototype({
       open: function() {
         var self = this;
         if (!self.currentBody) {
-          open(self, new Listing());
+          Main_open(self, Main_newListing(self));
         }
       },
 
