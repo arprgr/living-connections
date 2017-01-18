@@ -14,6 +14,14 @@ module.exports = (function() {
     }
   });
 
+  // Create a connection.
+  router.post("/", function(req, res) {
+    res.jsonResultOf(Connection.builder()
+      .user(req.user)
+      .peerId(req.body.peerId) 
+      .build());
+  });
+
   // Delete all.
   router.delete("/", function(req, res) {
     res.jsonResultOf(Connection.destroy({ where: {} }));

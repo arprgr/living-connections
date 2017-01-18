@@ -165,6 +165,18 @@ define([ "http" ], function(HttpMethod) {
 
     saveForm: function(what, action, form) {
       return this.saveMethods[what][action](form);
+    },
+
+    addConnection: function(peerId) {
+      var PostConnectionMethod = new HttpMethod.PostForm()
+        .addPathComponent("connections")
+        .addQueryParameter("peerId")
+        .addQueryParameter("status")
+        .build();
+
+      return new PostConnectionMethod()
+        .setPeerId(peerId)
+        .execute();
     }
   }
 

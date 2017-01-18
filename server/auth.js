@@ -91,8 +91,8 @@ function AuthMgr_lookupSession(self) {
 function AuthMgr_lookupEmailSessionSeed(self) {
   if (self.eseed) {
     if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
-      if (self.eseed.match(/u\d+/)) {
-        self.emailSessionSeed = { userId: self.eseed.substring(1) }
+      if (self.eseed.match(/u_\d+/)) {
+        self.emailSessionSeed = { userId: self.eseed.substring(2) }
         return self;
       }
     }
@@ -125,7 +125,8 @@ function AuthMgr_initiateSession(self, session) {
   self.session = session;
   sendSessionCookie(self.res, session.externalId);
 
-  // If user was invited, send the invitation message.
+  // If user was invited, send the invitation message and create a tentative
+  // connection.
   // TODO: move this into a biz logic module.
   var emailSessionSeed = self.emailSessionSeed;
   if (emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
@@ -134,6 +135,11 @@ function AuthMgr_initiateSession(self, session) {
       .seed(emailSessionSeed)
       .toUser(session.user)
       .type(models.Message.INVITE_TYPE)
+      .build();
+    // Fire and forget.
+    models.Connection.builder()
+      .userId(emailSessionSeed.fromUserId)
+      .peerId(session.user.id)
       .build();
   }
 }

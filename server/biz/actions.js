@@ -111,21 +111,26 @@ function addAnnouncementItems(compiler) {
   }
 }
 
+function userIsConnection(compiler, user) {
+  var connections = compiler.connections;
+  for (var i = 0; i < connections.length; ++i) {
+    var conn = connections[i];
+    if (conn.peer.id == user.id) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function addIncomingMessageItems(compiler) {
   var messages = compiler.incomingMessages;
   for (var i = 0; i < messages.length; ++i) {
     var message = messages[i];
-    switch (message.type) {
-    case Message.INVITE_TYPE:
-      addActionItem(compiler, MSG_INVITATION, ACTION_RECEIVE, {
-        message: message
-      });
-      break;
-    default:
-      addActionItem(compiler, MSG_GREETING, ACTION_RECEIVE, {
-        message: message
-      });
+    var what = MSG_GREETING;
+    if (message.type == Message.INVITE_TYPE && !userIsConnection(compiler, message.fromUser)) {
+      what = MSG_INVITATION;
     }
+    addActionItem(compiler, what, ACTION_RECEIVE, { message: message });
   }
 }
 
