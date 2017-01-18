@@ -21,22 +21,32 @@ define([ "http" ], function(HttpMethod) {
     }
   }
 
-  function makeUpdateAnnouncement() {
-    var UpdateAnnouncementMethod = new HttpMethod.PutForm()
-      .addPathComponent("announcements")
-      .addPathParameter("id")
-      .addQueryParameter("assetId")
-      .addQueryParameter("startDate")
-      .addQueryParameter("endDate")
-      .addQueryParameter("type")
-      .build();
+  var UpdateAnnouncementMethod = new HttpMethod.PutForm()
+    .addPathComponent("announcements")
+    .addPathParameter("id")
+    .addQueryParameter("assetId")
+    .addQueryParameter("startDate")
+    .addQueryParameter("endDate")
+    .addQueryParameter("type")
+    .build();
 
+  function makeUpdateAnnouncement() {
     return function(form) {
       return new UpdateAnnouncementMethod()
+        .setId(form.id)
         .setAssetId(form.assetId)
         .setStartDate(form.startDate)
         .setEndDate(form.endDate)
         .setType(form.type)
+        .execute();
+    }
+  }
+
+  function makeDeleteAnnouncement() {
+    return function(form) {
+      return new UpdateAnnouncementMethod()
+        .setId(form.id)
+        .setEndDate(new Date(new Date().getTime() - 1000000))
         .execute();
     }
   }
@@ -121,7 +131,8 @@ define([ "http" ], function(HttpMethod) {
     this.saveMethods = {
       "ann": {
         "cre": makePostAnnouncement(),
-        "upd": makeUpdateAnnouncement()
+        "upd": makeUpdateAnnouncement(),
+        "del": makeDeleteAnnouncement()
       },
       "gre": {
         "cre": makePostGreeting(),

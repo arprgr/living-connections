@@ -114,5 +114,11 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
     c.defineDefaultOptions({
       forms: [ AnnouncementTypeForm, AnnouncementPeriodForm, VideoRecorder ]
     });
+
+    c.extendPrototype({
+      _initData: function() {
+        return this.actionItem.announcement;
+      }
+    });
   })
 });

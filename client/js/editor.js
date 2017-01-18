@@ -54,32 +54,61 @@ function($,        Services,   Activity,     SlideForm,   ui) {
     });
   });
 
+  function submit(form, action) {
+    var actionItem = form.actionItem;
+    Services.apiService.saveForm(actionItem.what, action || actionItem.action, form.data).then(function() {
+      form.exit();
+    }).catch(function(err) {
+      console.log(err);
+    });
+  }
+
   var Submit = SlideForm.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
+
+      var deleteButton = ui.Button.create("Delete!", function() {
+        submit(self, "del");
+      });
+      var doneButton = ui.Button.create("Done", function() {
+        submit(self);
+      });
+      var cancelButton = ui.Button.create("Cancel", function() {
+        self.exit();
+      });
+
       self.container
         .addClass("panel")
         .append($("<div>")
           .addClass("expanded")
-          .append(ui.Button.create("Done", function() {
-            var actionItem = self.actionItem;
-            // TODO: dirty check
-            Services.apiService.saveForm(actionItem.what, actionItem.action, self.data).then(function() {
-              self.exit();
-            }).catch(function(err) {
-              console.log(err);
-            });
-          }).container)
-          .append(ui.Button.create("Cancel", function() {
-            self.exit();
-          }).container)
+          .append(deleteButton.container)
+          .append(doneButton.container)
+          .append(cancelButton.container)
         );
+
+      self.deleteButton = deleteButton;
+      self.doneButtton = doneButton;
+      self.cancelButton = cancelButton;
     });
 
     c.defineProperty("actionItem", {
       get: function() {
         return this.parent.actionItem;
+      }
+    });
+
+    c.defineProperty("isLacking", {
+      get: function() {
+        return true;
+      }
+    });
+
+    c.extendPrototype({
+      render: function(expanded) {
+        var self = this;
+        // TODO: dirty check
+        self.deleteButton.visible = self.actionItem.type == "ann-upd";
       }
     });
   });
