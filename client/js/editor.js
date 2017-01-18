@@ -109,6 +109,7 @@ function($,        Services,   Activity,     SlideForm,   ui) {
         var self = this;
         // TODO: dirty check
         self.deleteButton.visible = self.actionItem.type == "ann-upd";
+        return self;
       }
     });
   });
