@@ -84,7 +84,8 @@ div {
 }
 #app > .body {
   position: relative;
-  width: 100%;
+  width: 98%;
+  margin: auto;
 }
 #app > .body > div {
   position: absolute;
@@ -141,7 +142,6 @@ div {
 #app .activity .vid {
   clear: both;
   margin: 6px;
-  text-align: center;
 }
 #app .activity .panel {
   border-top: dashed 1px #c6c8d0;
@@ -150,11 +150,6 @@ div {
 video {
   object-fit: contain;
   object-position: 50% 50%;
-}
-#app .buttons {
-  width: 100%;
-  padding-top: 3px;
-  text-align: center;
 }
 #app button {
   background-color: white;
