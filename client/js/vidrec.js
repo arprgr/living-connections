@@ -94,6 +94,10 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
         .addClass("panel")
         .append(videoComponent.container)
         .append($("<div>").addClass("buttons").addClass("expanded"))
+        .append($("<div>")
+          .addClass("thumb")
+          .addClass("collapsed")
+          .append($("<img>")));
 
       var startButton = addButton("Start recording", function() {
         startRecording(self);
@@ -120,14 +124,23 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       self.state = state;
     });
 
+    function webmToJpg(url) {
+      return url
+        .replace(/webm$/, "jpg")
+        .replace(/v[0-9]+/, "w_400,h_400,c_crop,g_face,r_40/w_80");
+    }
+
     c.extendPrototype({
 
       render: function(expanded) {
         var self = this;
+        var asset = self.data.asset;
         Editor.Form.prototype.render.call(self, expanded);
         if (expanded) {
-          var asset = self.data.asset;
           asset ? self.openAsset(asset) : self.openCamera();
+        }
+        else {
+          self.container.find(".thumb img").attr("src", asset && webmToJpg(asset.url));
         }
         return self;
       },
