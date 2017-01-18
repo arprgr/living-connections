@@ -48,7 +48,7 @@ module.exports = (function() {
               else {
                 resolve({
                   key: result.public_id,
-                  url: result.url,
+                  url: result.secure_url,
                   storageSystemId: 1
                 });
               }
