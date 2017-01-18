@@ -15,14 +15,18 @@ router.use(function(req, res, next) {
 });
 
 function parseDate(str) {
-  return str ? new Date(str) : new Date();
+  try {
+    if (str) return new Date(str);
+  }
+  catch (e) {
+  }
 }
 
 // Create
 router.post("/", function(req, res) {
   res.jsonResultOf(Announcement.create({
-    startDate: parseDate(req.body.startDate),
-    endDate: parseDate(req.body.endDate),
+    startDate: parseDate(req.body.startDate) || new Date(),
+    endDate: parseDate(req.body.endDate) || new Date(new Date().getTime() + 30*24*60*60*1000),
     creatorId: req.user.id,
     assetId: req.body.assetId
   }));
@@ -40,16 +44,21 @@ router.get("/", function(req, res) {
 
 // Update
 router.put("/:id", function(req, res) {
-  Announcement.findById(req.params.id)
-  .then(function(announcement) {
-    res.jsonResultOf(announcement.updateAttributes({
-      startDate: parseDate(req.body.startDate),
-      endDate: parseDate(req.body.endDate),
-      assetId: req.body.assetId
-    }));
-  }).catch(function(error) {
-    res.jsonError(error);
-  });
+  res.jsonResultOf(Announcement.findById(req.params.id)
+    .then(function(announcement) {
+      var attrs = {};
+      if ("startDate" in req.body) {
+        attrs.startDate = new Date(req.body.startDate);
+      }
+      if ("endDate" in req.body) {
+        attrs.endDate = new Date(req.body.endDate);
+      }
+      if ("assetId" in req.body) {
+        attrs.assetId = req.body.assetId;
+      }
+      return announcement.updateAttributes(attrs);
+    })
+  );
 });
 
 // Delete one.
