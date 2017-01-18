@@ -62,7 +62,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
     function SlideForm_openByIndex(self, newIndex) {
       if (newIndex != self.slideIndex) {
         if (self.slideIndex >= 0) {
-          self.slides[self.slideIndex].render(false);
+          self.slides[self.slideIndex].render(false).close();
         }
         self.slideIndex = newIndex;
         self.slides[newIndex].render(true);

@@ -32,7 +32,7 @@ define([ "jquery" ], function($) {
       case "inv-upd":
         return "Update invitation for " + userName(this.invite.email);
       case "pro-rec":
-        return userName(this.user) + "'s profile";
+        return userName(this) + "'s profile";
       case "pro-cre":
         return "Create your profile";
       case "pro-upd":

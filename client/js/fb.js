@@ -31,7 +31,7 @@ define([ "jquery", "ui/index" ], function($, ui) {
     var AUTH_EVT = "auth.authResponseChange";
     
     FB.Event.subscribe(AUTH_EVT, function(response) {
-      console.log("FB", AUTH_EVT, reponse);
+      console.log("FB", AUTH_EVT, response);
       status = response.status;
       if (status == "connected") {
         connected = true;
