@@ -60,16 +60,21 @@ function($,        Services,   Activity,     SlideForm,   ui) {
       var self = this;
       self.container
         .addClass("panel")
-        .append(ui.Button.create("Done", function() {
-          Services.apiService.saveForm(self.actionItem.what, self.actionItem.action, self.data).then(function() {
+        .append($("<div>")
+          .addClass("expanded")
+          .append(ui.Button.create("Done", function() {
+            var actionItem = self.actionItem;
+            // TODO: dirty check
+            Services.apiService.saveForm(actionItem.what, actionItem.action, self.data).then(function() {
+              self.exit();
+            }).catch(function(err) {
+              console.log(err);
+            });
+          }).container)
+          .append(ui.Button.create("Cancel", function() {
             self.exit();
-          }).catch(function(err) {
-            console.log(err);
-          });
-        }).container)
-        .append(ui.Button.create("Cancel", function() {
-          self.exit();
-        }).container)
+          }).container)
+        );
     });
 
     c.defineProperty("actionItem", {
