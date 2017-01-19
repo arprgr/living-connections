@@ -25,6 +25,10 @@ module.exports = function(sequelize, DataTypes) {
         values.userId = user.id;
         return this;
       },
+      userId: function(userId) {
+        values.userId = userId;
+        return this;
+      },
       peerId: function(peerId) {
         values.peerId = peerId;
         return this;
