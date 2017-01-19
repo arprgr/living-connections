@@ -11,11 +11,7 @@ define([ "jquery", "ui/component", "services", "loginui", "waitanim", "anim", "c
   var CONTINUE_ANYWAY_COOKIE = new Cookie("xd");
 
   function selectInner(self) {
-    return self.container.find(".inner");
-  }
-
-  function selectMessageBox(self) {
-    return self.container.find(".message");
+    return self.container.find("> .inner");
   }
 
   var LOGIN_TOP = -338;
@@ -94,14 +90,15 @@ define([ "jquery", "ui/component", "services", "loginui", "waitanim", "anim", "c
 
   function showCapabilityWarning(self) {
     showInnerInWaitingPosition(self);
-    selectMessageBox(self)
+    self.messageBox
+      .empty()
       .append($("<div>")
         .append($("<span>").text(NO_VID + " "))
         .append($("<a>").text(VID_SUPPORT_REF).attr("target", "_new").attr("href", VID_SUPPORT_URL)))
       .append($("<div>")
         .append($("<button>").text(CONTINUE_ANYWAY).click(function() {
           CONTINUE_ANYWAY_COOKIE.set("1");
-          selectMessageBox(self).empty();
+          self.messageBox.empty();
           toLoginStateNoCheck(self);
         })));
   }
@@ -127,7 +124,7 @@ define([ "jquery", "ui/component", "services", "loginui", "waitanim", "anim", "c
 
   // TODO: make this into a component.
   function showUnresponsive(self) {
-    selectMessageBox(self).text("We're not able to connect to Living Connections' server at this time. " +
+    self.messageBox.empty().text("We're not able to connect to Living Connections' server at this time. " +
       "We'll keep trying. In the meantime, please check your internet connection.");
   }
 
@@ -138,11 +135,12 @@ define([ "jquery", "ui/component", "services", "loginui", "waitanim", "anim", "c
 
       var login = new LoginComponent($("<div>").addClass("login")).setVisible(false);
       var waitAnim = new WaitAnim($("<div>").addClass("waiting")).setVisible(false);
+      var messageBox = $("<div>").addClass("message");
 
       selectInner(self)
         .append(login.container)
         .append(waitAnim.container)
-        .append($("<div>").addClass("message"));
+        .append(messageBox)
 
       Services.sessionManager.addStateChangeListener(function(sessionManager) {
         sessionManager.waiting ? showWaitingIndicator(self) : removeWaitingIndicator(self);
@@ -154,6 +152,7 @@ define([ "jquery", "ui/component", "services", "loginui", "waitanim", "anim", "c
       self.originalHeight = self.container.height();
       self.login = login;
       self.waitAnim = waitAnim;
+      self.messageBox = messageBox;
     });
 
     c.extendPrototype({
