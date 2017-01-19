@@ -7,10 +7,10 @@ module.exports = (function() {
   const nodemailer = require("nodemailer");
   const mailgun = require("nodemailer-mailgun-transport");
 
-  const emailFrom = "admin@livingcx.com";
-
   const SANDBOX_DOMAIN = "sandboxd9cba0aefb144d048bd0592ac8ea3585.mailgun.org";
   const REAL_DOMAIN = "mg.livingcx.com";
+
+  const emailFrom = "Rob Saltzman <admin@" + REAL_DOMAIN + ">";
 
   const auth = {
     auth: {
@@ -26,7 +26,7 @@ module.exports = (function() {
       console.log("email", options.to, options.subject);
 
       nodemailer.createTransport(mailgun(auth)).sendMail(extend({
-        from: emailFrom,
+        from: emailFrom
       }, options), function(error, info) {
         if (error) {
           reject(error);

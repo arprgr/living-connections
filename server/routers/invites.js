@@ -21,7 +21,7 @@ router.use(function(req, res, next) {
 
 // Create.
 router.post("/", function(req, res) {
-  res.jsonResultOf(admittance.createInvitation(req, req.body.email, req.user, req.body.assetId));
+  res.jsonResultOf(new admittance.Invitation(req, req.body.email, req.user, req.body.assetId).process());
 });
 
 // Update the associated asset.

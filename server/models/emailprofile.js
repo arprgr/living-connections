@@ -61,6 +61,10 @@ module.exports = function(sequelize, DataTypes) {
     return findWhere({ email: email });
   }
 
+  function findByUser(user) {
+    return findWhere({ userId: user.id });
+  }
+
   function destroyWhere(where) {
     return EmailProfile.destroy({ where: where });
   }
@@ -79,6 +83,7 @@ module.exports = function(sequelize, DataTypes) {
       builder: builder,
       findById: findById,
       findByEmail: findByEmail,
+      findByUser: findByUser,
       destroyAll: destroyAll,
       destroyById: destroyById
     }

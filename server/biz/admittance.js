@@ -4,57 +4,89 @@ const CONF = require("../conf");
 
 const extend = require("extend");
 const pug = require("pug");
-const email = require("../connectors/email");
-const EmailSessionSeed = require("../models/index").EmailSessionSeed;
+const emailer = require("../connectors/email");
+const models = require("../models/index");
+const EmailProfile = models.EmailProfile;
 const random = require("../util/random");
 
 function dateFromNow(days) {
   return new Date(new Date().getTime() + (days * 24 * 60 * 60 * 1000));
 }
 
-function Invitation(req, options, goodForDays) {
-  extend(this, options);
-  this.goodForDays = goodForDays || 1;
-
-  var externalId = random.id();
-  this.externalId = externalId;
+function Ticket(req, toEmail) {
+  this.toEmail = toEmail;
+  this.templateName = "templates/ticket.pug";
+  this.subject = "Living Connections";
+  this.goodForDays = 1;
+  this.externalId = random.id();
 
   var host = req.headers.host;
   //var protocol = req.connection.encrypted ? "https:" : "http:";
   var protocol = host.match(/localhost/) ? "http:" : "https:";
-  this.url = protocol + "//" + host + "?e=" + externalId;
+  this.url = protocol + "//" + host + "?e=" + this.externalId;
 
-  var expiresAt = dateFromNow(goodForDays);
-  this.expiresAtDate = expiresAt;
-  this.expiresAtString = expiresAt.toString();
+  Object.defineProperty(this, "expiresAt", {
+    get: function() {
+      return dateFromNow(this.goodForDays);
+    }
+  });
+
+  Object.defineProperty(this, "expiresAtString", {
+    get: function() {
+      return this.expiresAt.toString();
+    }
+  });
 }
 
-function getEmailBody(self, templateName) {
-  var bodyFunction = pug.compileFile(templateName, CONF.pug);
-  return bodyFunction(self);
+function Invitation(req, toEmail, fromUser, assetId) {
+  Ticket.call(this, req, toEmail);
+  this.user = req.user;
+  this.fromUser = fromUser;
+  this.assetId = assetId;
+  this.templateName = "templates/invitation.pug"; 
+  this.subject = "Join me on Living Connections";
+  this.goodForDays = 5;
 }
 
-function process(self, templateName) {
-  var builder = EmailSessionSeed.builder()
+// Create an EmailSessionSeed model object.
+// Return a promise.
+function createEmailSessionSeed(self) {
+  var builder = models.EmailSessionSeed.builder()
     .externalId(self.externalId)
-    .email(self.email)
-    .expiresAt(dateFromNow(self.goodForDays));
+    .email(self.toEmail)
+    .expiresAt(self.expiresAt);
+  if (self.fromUser) {
+    builder.fromUser(self.fromUser)
+    builder.assetId(self.assetId)
+  }
+  return builder.build();
+}
 
-  if (self.fromUser != null) {
-    builder.fromUser(self.fromUser);
+// Generate the email message and send it.
+// Return a promise.
+function sendEmail(self) {
+  var bodyFunction = pug.compileFile(self.templateName, CONF.pug);
+  var body = bodyFunction(self);
+
+  var emailOptions = {
+    to: self.toEmail,
+    subject: self.subject,
+    html: body
+  };
+  if (self.senderEmail) {
+    emailOptions.from = self.fromUser.name
+      ? (self.fromUser.name + " <" + self.senderEmail + ">")
+      : self.senderEmail; 
+    emailOptions["h:ReplyTo"] = self.senderEmail;
   }
 
-  if (self.assetId != null) {
-    builder.assetId(self.assetId);
-  }
+  return emailer.send(emailOptions);
+}
 
-  return builder.build()
+function processTicket(self) {
+  return createEmailSessionSeed(self)
   .then(function(emailSessionSeed) {
-    return email.send({
-      to: self.email,
-      subject: "Living Connections",
-      html: getEmailBody(self, templateName)
-    })
+    return sendEmail(self)
     .then(function(emailResult) {
       console.log(emailResult);
       return emailSessionSeed;
@@ -62,23 +94,26 @@ function process(self, templateName) {
   });
 }
 
+Ticket.prototype = {
+  process: function() {
+    return processTicket(this);
+  }
+}
+
 Invitation.prototype = {
-  process: function(days, templateName) {
-    return process(this, days, templateName);
+  process: function() {
+    var self = this;
+    return models.EmailProfile.findByUser(self.fromUser)
+    .then(function(emailProfile) {
+      if (emailProfile) {
+        self.senderEmail = emailProfile.email;
+      }
+      return processTicket(self);
+    })
   }
 }
 
 module.exports = {
-
-  createInvitation: function(req, email, fromUser, assetId) {
-    return new Invitation(req, {
-      email: email,
-      fromUser: fromUser,
-      assetId: assetId
-    }, 5).process("templates/invitation.pug");
-  },
-
-  createTicket: function(req, email) {
-    return new Invitation(req, { email: email }).process("templates/ticket.pug");
-  }
+  Invitation: Invitation,
+  Ticket: Ticket
 };
