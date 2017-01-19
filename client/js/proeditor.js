@@ -49,6 +49,7 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
             self.nameInput.select().focus();
           }, 100);
         }
+        return self;
       },
       _renderSummary: function() {
         return "Your name is " + (this.data.name || "not set");
