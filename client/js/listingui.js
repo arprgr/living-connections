@@ -1,8 +1,8 @@
 // listingui.js
 
-define([ "jquery", "ui/component", "services" ], function($, Component, Services) {
+define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
 
-  return Component.defineClass(function(c) {
+  return ui.Component.defineClass(function(c) {
 
     function renderItem(self, actionItem) {
       return $("<div>")
@@ -29,6 +29,9 @@ define([ "jquery", "ui/component", "services" ], function($, Component, Services
           container.append(itemView);
           if (lastBatch && !(actionItem.id in lastBatch)) {
             itemView.addClass("new");
+            if (self.chime) {
+              self.chime.play();
+            }
           }
           newBatch[actionItem.id] = actionItem;
         }
@@ -37,7 +40,12 @@ define([ "jquery", "ui/component", "services" ], function($, Component, Services
     }
 
     c.defineInitializer(function() {
-      this.container.addClass("listing");
+      var self = this;
+      self.container.addClass("listing");
+      new ui.Audio().load("audio/chime.wav").then(function(chime) {
+        self.container.addClass(chime.container);
+        self.chime = chime;
+      });
     });
 
     c.extendPrototype({

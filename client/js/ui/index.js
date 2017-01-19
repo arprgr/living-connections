@@ -2,6 +2,7 @@
 (function() {
 
   var CLASS_LIST = [
+    "Audio",
     "Button",
     "Component",
     "CrossFade",
