@@ -19,9 +19,9 @@ define([ "jquery" ], function($) {
   }
 
   function webmToJpg(url) {
-    return url
+    return matchProtocol(url
       .replace(/webm$/, "jpg")
-      .replace(/v[0-9]+/, "w_400,h_400,c_crop,g_face,r_max/w_100");
+      .replace(/v[0-9]+/, "w_400,h_400,c_crop,g_face,r_max/w_100"));
   }
 
   function assetIcon(item) {
@@ -30,6 +30,12 @@ define([ "jquery" ], function($) {
 
   function defaultIcon(actionItem) {
     return "/img/" + actionItem.type + ".png";
+  }
+
+  var actionProperty = {
+    get: function() {
+      return this.idParts[1];
+    }
   }
 
   var iconUriProperty = {
@@ -68,12 +74,25 @@ define([ "jquery" ], function($) {
     }
   }
 
+  var typeProperty = {
+    get: function() {
+      return this.what + "-" + this.action;
+    }
+  }
+
+  var whatProperty = {
+    get: function() {
+      return this.idParts[0];
+    }
+  }
+
   return function(data) {
     $.extend(this, data);
-    var parts = data.type.split("-");
-    this.what = parts[0];
-    this.action = parts[1];
+    this.idParts = data.id.split("-");
+    Object.defineProperty(this, "action", actionProperty);
     Object.defineProperty(this, "iconUri", iconUriProperty);
     Object.defineProperty(this, "title", titleProperty);
+    Object.defineProperty(this, "type", typeProperty);
+    Object.defineProperty(this, "what", whatProperty);
   }
 });

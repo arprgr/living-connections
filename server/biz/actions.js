@@ -37,10 +37,6 @@ function byPriorityDesc(a, b) {
   return b.priority - a.priority;
 }
 
-function msgActionType(msg, action) {
-  return msg + "-" + action;
-}
-
 function priorityOfMsgAction(msg, action) {
   var fudge = 0;
   if (msg == MSG_PROFILE && action == ACTION_CREATE) {
@@ -50,20 +46,21 @@ function priorityOfMsgAction(msg, action) {
   return MESSAGES[msg].priority * ACTIONS[action].priority + fudge;
 }
 
-function msgActionItem(msg, action, data) {
-  return extend({
-    type: msgActionType(msg, action),
-    priority: priorityOfMsgAction(msg, action)
-  }, data);
-}
-
 function ActionCompiler(user) {
   this.user = user;
   this.actionItems = [];
 }
 
 function addActionItem(compiler, msg, action, data) {
-  compiler.actionItems.push(msgActionItem(msg, action, data));
+  var id = msg + "-" + action;
+  if (arguments.length > 4) {
+    id += "-" + arguments[3];
+  }
+  var data = arguments.length > 3 ? arguments[arguments.length - 1] : undefined;
+  compiler.actionItems.push(extend({
+    id: id,
+    priority: priorityOfMsgAction(msg, action)
+  }, data));
 }
 
 function addAdminAnnouncementItems(compiler) {
@@ -72,7 +69,7 @@ function addAdminAnnouncementItems(compiler) {
   var announcements = compiler.announcements;
   for (var i = 0; i < announcements.length; ++i) {
     var ann = announcements[i];
-    addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, {
+    addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, ann.id, {
       announcement: ann
     });
   }
@@ -101,7 +98,7 @@ function addAnnouncementItems(compiler) {
   for (var i = 0; i < announcements.length; ++i) {
     var ann = announcements[i];
     if (ann.creatorId != compiler.user.id) {
-      addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, {
+      addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, ann.id, {
         message: {
           fromUser: ann.creator,
           asset: ann.asset
@@ -130,7 +127,7 @@ function addIncomingMessageItems(compiler) {
     if (message.type == Message.INVITE_TYPE && !userIsConnection(compiler, message.fromUser)) {
       what = MSG_INVITATION;
     }
-    addActionItem(compiler, what, ACTION_RECEIVE, { message: message });
+    addActionItem(compiler, what, ACTION_RECEIVE, message.id, { message: message });
   }
 }
 
