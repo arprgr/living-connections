@@ -101,6 +101,9 @@ div {
   color: #004;
   box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
 }
+#app .listing .item.new {
+  background-color: yellow;
+}
 #app .listing .item .title {
   float: right;
   font-size: 20px;

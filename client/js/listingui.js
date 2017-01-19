@@ -2,31 +2,39 @@
 
 define([ "jquery", "ui/component", "services" ], function($, Component, Services) {
 
-  function renderItem(self, actionItem) {
-    return $("<div>")
-      .addClass("item")
-      .append($("<img>")
-        .addClass("bigIcon")
-        .attr("src", actionItem.iconUri))
-      .append($("<div>")
-        .addClass("title")
-        .text(actionItem.title))
-      .click(function() {
-        self.invokePlugin("openActionItem", actionItem);
-      })
-  }
-
-  function render(self) {
-    var container = self.container.empty()      // TODO: render incrememtally.
-    var actionItems = self.actionItems;
-    if (actionItems) {
-      for (var i = 0; i < actionItems.length; ++i) {
-        container.append(renderItem(self, actionItems[i]));
-      }
-    }
-  }
-
   return Component.defineClass(function(c) {
+
+    function renderItem(self, actionItem) {
+      return $("<div>")
+        .addClass("item")
+        .append($("<img>")
+          .addClass("bigIcon")
+          .attr("src", actionItem.iconUri))
+        .append($("<div>")
+          .addClass("title")
+          .text(actionItem.title))
+        .click(function() {
+          self.invokePlugin("openActionItem", actionItem);
+        })
+    }
+
+    function render(self, actionItems) {
+      var container = self.container.empty()      // TODO: render incrememtally.
+      var lastBatch = self.lastBatch;
+      var newBatch = {};
+      if (actionItems) {
+        for (var i = 0; i < actionItems.length; ++i) {
+          var actionItem = actionItems[i];
+          var itemView = renderItem(self, actionItem);
+          container.append(itemView);
+          if (lastBatch && !(actionItem.id in lastBatch)) {
+            itemView.addClass("new");
+          }
+          newBatch[actionItem.id] = actionItem;
+        }
+      }
+      self.lastBatch = newBatch;
+    }
 
     c.defineInitializer(function() {
       this.container.addClass("listing");
@@ -35,11 +43,9 @@ define([ "jquery", "ui/component", "services" ], function($, Component, Services
     c.extendPrototype({
       open: function() {
         var self = this;
-        self.actionItems = Services.sessionManager.actionItems.value;
-        render(self);
+        render(self, Services.sessionManager.actionItems.value);
         self.closeHandle = Services.sessionManager.addActionListener(function(actionItems) {
-          self.actionItems = actionItems;
-          render(self);
+          render(self, actionItems);
         });
         return this;
       },
