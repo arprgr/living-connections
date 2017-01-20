@@ -26,11 +26,11 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
           .text("Announce to all users, or only to new users?"))
         .append($("<div>")
           .addClass("expanded")
-          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 1).on("change", updateValue))
+          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 3).on("change", updateValue))
           .append($("<span>").text("To all users")))
         .append($("<div>")
           .addClass("expanded")
-          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 2).on("change", updateValue))
+          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 4).on("change", updateValue))
           .append($("<span>").text("To new users")))
         .append($("<div>")
           .addClass("expanded")
@@ -85,10 +85,6 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
 
   var AnnouncementPeriodForm = SlideForm.Form.defineClass(function(c) {
 
-    c.defineDefaultOptions({
-      outputProperties: [ "startDate", "endDate" ]
-    });
-
     c.defineInitializer(function() {
       var self = this;
       self.container
@@ -97,12 +93,7 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
           .text("Future versions of this app will allow you to assign an active period for the announcement."))
         .append($("<div>")
           .addClass("expanded")
-          .text("For now, all announcements last until March 2017!"))
-        .append($("<div>")
-          .addClass("expanded")
           .append(Button.create("OK", function() {
-            self.data.startDate = "2016-12-31";
-            self.data.endDate = "2017-03-31";
             self.advance();
           }).container)
         )

@@ -16,7 +16,7 @@ define([ "http" ], function(HttpMethod) {
         .setAssetId(form.assetId)
         .setStartDate(form.startDate)
         .setEndDate(form.endDate)
-        .setType(form.type)
+        .setType(form.type || 3)
         .execute();
     }
   }

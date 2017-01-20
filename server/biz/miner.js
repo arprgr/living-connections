@@ -34,7 +34,10 @@ function getOutgoingMessages(miner) {
 }
 
 function getAnnouncements(miner) {
-  return models.Announcement.findCurrent()
+  return models.Message.findAnnouncements({
+    deep: true,
+    current: true
+  })
   .then(function(announcements) {
     miner.announcements = announcements || [];
   })

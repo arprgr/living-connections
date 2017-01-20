@@ -100,7 +100,7 @@ function addAnnouncementItems(compiler) {
     if (ann.creatorId != compiler.user.id) {
       addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, ann.id, {
         message: {
-          fromUser: ann.creator,
+          fromUser: ann.fromUser,
           asset: ann.asset
         }
       });

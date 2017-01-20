@@ -110,6 +110,17 @@ module.exports = function(sequelize, DataTypes) {
     return Message.findAll(query);
   }
 
+  function findAnnouncements(options) {
+    return findAllWhere({
+      "toUserId": null,
+      "$or": [{
+        "type": 3,
+      }, {
+        "type": 4,
+      }],
+    }, options);
+  }
+
   function findByFromUserId(fromUserId, options) {
     return findAllWhere({ fromUserId: fromUserId }, options);
   }
@@ -136,6 +147,7 @@ module.exports = function(sequelize, DataTypes) {
       builder: builder,
       destroyAll: destroyAll,
       destroyById: destroyById,
+      findAnnouncements: findAnnouncements,
       findById: findById,
       findByFromUserId: findByFromUserId,
       findByToUserId: findByToUserId
