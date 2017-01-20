@@ -7,6 +7,8 @@ module.exports = function(sequelize, DataTypes) {
 
   function schema() {
     return {
+      endDate: DataTypes.DATE,
+      startDate: DataTypes.DATE,
       type: DataTypes.INTEGER,
       status: DataTypes.INTEGER
     }
@@ -70,37 +72,57 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function findById(id) {
-    return Message.find({ where: { id: id } });
+  function findById(id, options) {
+    var query = {
+      where: { id: id }
+    };
+    if (options && options.deep) {
+      query.include = [
+        includeAsset(), 
+        includeUser("toUser"),
+        includeUser("fromUser")
+      ]
+    }
+    return Message.find(query);
   }
 
-  function findAllWhere(where, includes) {
-    return Message.findAll({
+  function findAllWhere(where, options) {
+    var query = {
       where: where,
-      include: includes,
-      order: [ [ "createdAt", "DESC" ] ]
-    });
+      order: [ [ "startDate", "DESC" ] ]
+    };
+    options = options || {};
+    if (options.current) {
+      var date = new Date();
+      query.where.startDate = { "$lte": date };
+      query.where.endDate = { "$gt": date };
+    }
+    if (options.limit) {
+      query.limit = options.limit;
+    }
+    if (options.deep) {
+      query.include = [
+        includeAsset(), 
+        includeUser("fromUser"),
+        includeUser("toUser")
+      ];
+    }
+    return Message.findAll(query);
   }
 
-  function findByFromUserId(fromUserId) {
-    return findAllWhere({ fromUserId: fromUserId }, [
-      includeAsset(), 
-      includeUser("toUser")
-    ]);
+  function findByFromUserId(fromUserId, options) {
+    return findAllWhere({ fromUserId: fromUserId }, options);
   }
 
-  function findByToUserId(toUserId) {
-    return findAllWhere({ toUserId: toUserId }, [
-      includeAsset(), 
-      includeUser("fromUser")
-    ]);
+  function findByToUserId(toUserId, options) {
+    return findAllWhere({ toUserId: toUserId }, options);
   }
 
   function destroyWhere(where) {
     return Message.destroy({ where: where });
   }
-  
-  function destroyAll() {
+
+  function destroyAll(id) {
     return destroyWhere({});
   }
 
@@ -112,18 +134,20 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: associate,
       builder: builder,
+      destroyAll: destroyAll,
+      destroyById: destroyById,
       findById: findById,
       findByFromUserId: findByFromUserId,
-      findByToUserId: findByToUserId,
-      findByFromUserId: findByFromUserId,
-      destroyById: destroyById,
-      destroyAll: destroyAll
+      findByToUserId: findByToUserId
     }
   });
 
   Message.GREETING_TYPE = 0;
   Message.INVITE_TYPE = 1;
-  Message.ANNOUNCEMENT_TYPE = 2;
+  Message.PROFILE_TYPE = 2;
+  Message.ANNOUNCEMENT_TO_ALL_TYPE = 3;
+  Message.ANNOUNCEMENT_TO_NEW_TYPE = 4;
+  Message.MAX_TYPE = 4;
 
   return Message;
 };

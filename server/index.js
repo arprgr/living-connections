@@ -60,25 +60,34 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
 server.use("/a", require("./routers/alpha"));
 server.use("/l", require("./routers/login"));
 server.use("/o", require("./routers/omega"));
+server.use("/api/messages", require("./routers/messages_api"));
 server.use("/admin", require("./routers/admin"));
 for (var type in {
-  "announcements": 1,
   "assets": 1,
   "connections": 1,
   "emailprofiles": 1,
   "invites": 1,
-  "messages": 1,
   "sessions": 1,
   "users": 1
 }) {
   server.use("/" + type, require("./routers/" + type));
 }
 
+function setAdminKey() {
+  const random = require("./util/random");
+  const fs = require('fs');
+  var adminKey = random.id();
+  CONFIG.adminKey = adminKey;
+  console.log(adminKey);
+  if (!fs.existsSync("tmp")) {
+    fs.mkdirSync("tmp", 0744);
+  }
+  fs.writeFileSync("tmp/adminKey", adminKey);
+}
+
 var port = process.env.PORT || CONFIG.server.port;
 server.set("port", port);
 server.listen(port, function () {
-  const random = require("./util/random");
+  setAdminKey();
   console.log("Listening on port", port);
-  CONFIG.adminKey = random.id();
-  console.log(CONFIG.adminKey);
 });

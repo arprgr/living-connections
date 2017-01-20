@@ -88,7 +88,6 @@ function processTicket(self) {
   .then(function(emailSessionSeed) {
     return sendEmail(self)
     .then(function(emailResult) {
-      console.log(emailResult);
       return emailSessionSeed;
     });
   });

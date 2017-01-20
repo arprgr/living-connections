@@ -4,7 +4,7 @@ define([ "http" ], function(HttpMethod) {
 
   function makePostAnnouncement() {
     var PostAnnouncementMethod = new HttpMethod.PostForm()
-      .addPathComponent("announcements")
+      .addPathComponent("api/messages")
       .addQueryParameter("assetId")
       .addQueryParameter("startDate")
       .addQueryParameter("endDate")
@@ -22,7 +22,7 @@ define([ "http" ], function(HttpMethod) {
   }
 
   var UpdateAnnouncementMethod = new HttpMethod.PutForm()
-    .addPathComponent("announcements")
+    .addPathComponent("api/messages")
     .addPathParameter("id")
     .addQueryParameter("assetId")
     .addQueryParameter("startDate")
@@ -53,7 +53,7 @@ define([ "http" ], function(HttpMethod) {
 
   function makePostGreeting() {
     var PostGreetingMethod = new HttpMethod.PostForm()
-      .addPathComponent("messages")
+      .addPathComponent("api/messages")
       .addQueryParameter("assetId")
       .addQueryParameter("toUserId")
       .build();
@@ -68,7 +68,7 @@ define([ "http" ], function(HttpMethod) {
 
   function makeUpdateGreeting() {
     var UpdateGreetingMethod = new HttpMethod.PutForm()
-      .addPathComponent("messages")
+      .addPathComponent("api/messages")
       .addPathParameter("id")
       .addQueryParameter("assetId")
       .build();

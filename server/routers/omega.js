@@ -14,7 +14,6 @@ module.exports = (function() {
     var self = this;
     return new Promise(function(resolve, reject) {
       var sessionId = self.request.params.sid;
-      console.log("remove session id", sessionId);
       resolve(models.Session.destroyByExternalId(sessionId));
     });
   }

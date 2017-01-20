@@ -168,7 +168,13 @@ function AuthMgr_resolveSeed(self) {
 
 // Got secret access key?
 function hasSecretAccessKey(req) {
-  return req.headers["x-access-key"] === CONFIG.adminKey;
+  var accessKey = req.headers["x-access-key"];
+  if (accessKey) {
+    var equal = accessKey === CONFIG.adminKey;
+    console.log(accessKey, CONFIG.adminKey, equal);
+    return equal;
+  }
+  return false;
 }
 
 // Does the request originate from the local host?
