@@ -9,6 +9,7 @@
     "EmailInput",
     "Link",
     "Observable",
+    "RadioGroup",
     "TextInput",
     "Video" 
   ]

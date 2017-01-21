@@ -28,7 +28,7 @@ define([], function() {
 
   function Observable(value) {
     var self = this;
-    self.value = value;
+    self._value = value;
     self.listeners = [];
   }
 
@@ -39,17 +39,24 @@ define([], function() {
     removeChangeListener: function(listener) {
       removeListener(this.listeners, listener);
     },
-    notifyChangeListeners: function() {
-      notifyListeners(this.listeners, this.value);
-    },
     setValue: function(value) {
-      var self = this;
-      if (value != self.value) {
-        self.value = value;
-        self.notifyChangeListeners();
-      }
+      this.value = value;
+      return this;
     }
   }
+
+  Object.defineProperty(Observable.prototype, "value", {
+    get: function() {
+      return this._value;
+    },
+    set: function(value) {
+      var self = this;
+      if (value != self._value) {
+        self._value = value;
+        notifyListeners(self.listeners, value);
+      }
+    }
+  });
 
   return Observable;
 });

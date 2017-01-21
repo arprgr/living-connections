@@ -1,11 +1,12 @@
 // component.js - component base
 
-define([ "jquery" ], function($) {
+define([ "jquery", "ui/observable" ], function($, Observable) {
 
   var serial = 0; 
 
   function Component(container, options) {
     var proto = Object.getPrototypeOf(this);
+    Observable.call(this);
     this._container = container || $(proto.DEFAULT_CONTAINER);
     this._visible = true;
     this._options = $.extend({}, proto.DEFAULT_OPTIONS, options);
@@ -14,7 +15,7 @@ define([ "jquery" ], function($) {
   }
 
   Component.prototype = (function(defineProperty) {
-    var proto = {
+    var proto = $.extend(Object.create(Observable.prototype), {
       DEFAULT_CONTAINER: "<div>",
       DEFAULT_OPTIONS: {},
 
@@ -55,7 +56,7 @@ define([ "jquery" ], function($) {
         }
         return this;
       }
-    };
+    });
 
     defineProperty(proto, "container", {
       get: function() {

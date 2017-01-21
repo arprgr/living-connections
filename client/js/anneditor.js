@@ -1,7 +1,7 @@
 // anneditor.js - Announcement Editor component
 
-define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
-  function($, Services, Editor, VideoRecorder, Button, SlideForm) {
+define([ "jquery", "services", "editor", "vidrec",      "ui/index" ],
+function($,        Services,   Editor,   VideoRecorder, ui) {
 
   var AnnouncementTypeForm = Editor.Form.defineClass(function(c) {
 
@@ -9,81 +9,48 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
       outputProperties: [ "type" ]
     });
 
-    function AnnouncementTypeForm_init(self) {
+    c.defineInitializer(function() {
+      var self = this;
 
-      var forwardButton = Button.create("Keep Going", function() {
-        self.data.type = self.value;
-        self.advance();
+      var radioGroup = new ui.RadioGroup($("<div>"), {
+        groupName: "annType",
+        choices: [
+          { value: 3, label: "To all users" },
+          { value: 4, label: "To new users" }
+        ]
       });
 
-      function updateValue() {
-        self.data.type = self.container.find("input:radio[name='annType']:checked").val();
-      }
-
-      self.container
+      self.container.append($("<div>")
+        .addClass("expanded")
         .append($("<div>")
-          .addClass("expanded")
           .text("Announce to all users, or only to new users?"))
+        .append(radioGroup.container)
         .append($("<div>")
-          .addClass("expanded")
-          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 3).on("change", updateValue))
-          .append($("<span>").text("To all users")))
-        .append($("<div>")
-          .addClass("expanded")
-          .append($("<input>").attr("type", "radio").attr("name", "annType").attr("value", 4).on("change", updateValue))
-          .append($("<span>").text("To new users")))
-        .append($("<div>")
-          .addClass("expanded")
-          .append(forwardButton.container))
-    }
+          .append(ui.Button.create("Keep Going", function() {
+            self.data.type = radioGroup.value;
+            self.advance();
+          }).container))
+      );
 
-    function AnnouncementTypeForm_renderRadios(self) {
-
-      function selectRadios() {
-        return $(self.container.find("input:radio[name='annType']"));
-      }
-
-      var value = self.data.type;
-      var indexToCheck = 0;
-      if (value != null) {
-        selectRadios().each(function(ix, radio) {
-          var equal = $(radio).val() == value;
-          if (equal) {
-            indexToCheck = ix;
-          }
-          else {
-            $(radio).attr("checked", equal);
-          }
-        });
-      }
-      $(selectRadios()[indexToCheck]).attr("checked", true);
-    }
-
-    function AnnouncementTypeForm_renderSummary(self) {
-      return "Announce to " + (self.data.type === 0 ? "all" : "new") + " users";
-    }
-
-    function AnnouncementTypeForm_render(self, expanded) {
-      Editor.Form.prototype.render.call(self, expanded);
-      AnnouncementTypeForm_renderRadios(self);
-      return self;
-    }
-
-    c.defineInitializer(function() {
-      AnnouncementTypeForm_init(this);
+      self.radioGroup = radioGroup;
     });
 
     c.extendPrototype({
       render: function(expanded) {
-        return AnnouncementTypeForm_render(this, expanded);
+        this.radioGroup.apparentValue = this.data && this.data.type;
+        return Editor.Form.prototype.render.call(this, expanded);
       },
       _renderSummary: function() {
-        return AnnouncementTypeForm_renderSummary(this);
+        var type = this.data && this.data.type;
+        if (type == null) {
+          return "(Audience not selected)";
+        }
+        return "Announce to " + (type == 4 ? "new" : "all") + " users";
       }
     });
   });
 
-  var AnnouncementPeriodForm = SlideForm.Form.defineClass(function(c) {
+  var AnnouncementPeriodForm = Editor.Form.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -93,7 +60,7 @@ define([ "jquery", "services", "editor", "vidrec", "ui/button", "slideform" ],
           .text("Future versions of this app will allow you to assign an active period for the announcement."))
         .append($("<div>")
           .addClass("expanded")
-          .append(Button.create("OK", function() {
+          .append(ui.Button.create("OK", function() {
             self.advance();
           }).container)
         )
