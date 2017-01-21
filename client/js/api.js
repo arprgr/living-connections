@@ -21,16 +21,16 @@ define([ "http" ], function(HttpMethod) {
     }
   }
 
-  var UpdateAnnouncementMethod = new HttpMethod.PutForm()
-    .addPathComponent("api/messages")
-    .addPathParameter("id")
-    .addQueryParameter("assetId")
-    .addQueryParameter("startDate")
-    .addQueryParameter("endDate")
-    .addQueryParameter("type")
-    .build();
-
   function makeUpdateAnnouncement() {
+    var UpdateAnnouncementMethod = new HttpMethod.PutForm()
+      .addPathComponent("api/messages")
+      .addPathParameter("id")
+      .addQueryParameter("assetId")
+      .addQueryParameter("startDate")
+      .addQueryParameter("endDate")
+      .addQueryParameter("type")
+      .build();
+
     return function(form) {
       return new UpdateAnnouncementMethod()
         .setId(form.id)
@@ -43,10 +43,13 @@ define([ "http" ], function(HttpMethod) {
   }
 
   function makeDeleteAnnouncement() {
+    var DeleteAnnouncementMethod = new HttpMethod.DeleteForm()
+      .addPathComponent("api/messages")
+      .addPathParameter("id");
+
     return function(form) {
       return new UpdateAnnouncementMethod()
         .setId(form.id)
-        .setEndDate(new Date(new Date().getTime() - 1000000))
         .execute();
     }
   }

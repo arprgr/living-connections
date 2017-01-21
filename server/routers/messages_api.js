@@ -19,17 +19,41 @@ router.use(function(req, res, next) {
 router.get("/:id", function(req, res) {
   res.jsonResultOf(Message.findById(req.params.id, { deep: true })
   .then(function(message) {
-    if (message) {
-      // A message can be viewed only by the sender, the receiver, or an admin.
-      if (req.user.id == message.fromUserId ||
-        req.user.id == message.toUserId ||
-        req.user.level <= 0) {
-        throw { status: 401 };
-      }
+    if (!message) {
+      throw { status: 404 };
+    }
+    // A message may be viewed only by the sender, the receiver, or an admin.
+    if (req.user.id != message.fromUserId &&
+      req.user.id != message.toUserId &&
+      !(req.user.level <= 0)) {
+      throw { status: 401 };
     }
     return message;
-  }))
+  }));
 });
+
+// Delete message by ID
+router.delete("/:id", function(req, res) {
+  res.jsonResultOf(Message.findById(req.params.id)
+  .then(function(message) {
+    if (!message) {
+      throw { status: 404 };
+    }
+    // A message may be deleted only by the sender.
+    if (req.user.id != message.fromUserId &&
+      !(req.user.level <= 0)) {
+      throw { status: 401 };
+    }
+    return Message.destroyById(req.params.id);
+  }));
+});
+
+if (process.env.NODE_ENV == "test") {
+  // Delete all messages
+  router.delete("/", function(req, res) {
+    res.jsonResultOf(Message.destroyAll());
+  });
+}
 
 const SCHEMA = {
   assetId: {
@@ -162,6 +186,8 @@ function postvalidateUpdate(schema, model, fields) {
 router.post("/", function(req, res) {
   var fields = validateNew(SCHEMA, req.body);
   fields.fromUserId = req.user.id;
+  
+  // TODO: validate asset.
 
   // Validate toUserId.
   var toUserId = fields.toUserId;
@@ -175,6 +201,8 @@ router.post("/", function(req, res) {
     res.jsonError({ body: { toUserId: toUserId || "?" }});
     return;
   }
+
+  // TODO: validate toUser.
 
   switch (fields.type) {
   case Message.ANNOUNCEMENT_TO_ALL_TYPE:

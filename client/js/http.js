@@ -5,6 +5,7 @@ define([ "jquery" ], function($) {
   var GET = "GET";
   var POST = "POST";
   var PUT = "PUT";
+  var DELETE = "DELETE";
 
   var CONTENT_TYPE_HDR = "Content-type";
   var FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
@@ -201,6 +202,11 @@ define([ "jquery" ], function($) {
     this.contentType = FORM_CONTENT_TYPE;
   };
   HttpMethod.PutForm.prototype = HttpMethodBuilder.prototype;
+
+  HttpMethod.DeleteForm = function() {
+    HttpMethodBuilder.call(this, DELETE);
+  };
+  HttpMethod.DeleteForm.prototype = HttpMethodBuilder.prototype;
 
   return HttpMethod;
 });

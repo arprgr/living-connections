@@ -10,6 +10,18 @@ describe("Messages API", function() {
     "X-Access-Key": rootKey
   }
 
+  // Clean up.
+  before(function(done) {
+    request({
+      method: "DELETE",
+      url: url,
+      headers: authHeaders
+    }, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      done();
+    });
+  });
+
   describe("get method", function() {
 
     it("is inaccessible without authorization", function(done) {
@@ -22,14 +34,39 @@ describe("Messages API", function() {
       });
     });
 
-    it("is accessible with root authorization", function(done) {
+    it("returns 404 for missing ID", function(done) {
       request({
         method: "GET",
         url: url + "/1",
         headers: authHeaders
       }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
+        expect(response.statusCode).to.equal(404);
         done();
+      });
+    })
+
+    it("retrieves message", function(done) {
+      request({
+        method: "POST",
+        url: url,
+        headers: authHeaders,
+        form: {
+          assetId: 1,
+          toUserId: 1
+        }
+      }, function(error, response, body) {
+        expect(response.statusCode).to.equal(200);
+        var id = JSON.parse(body).id;
+        request({
+          method: "GET",
+          url: url + "/" + id,
+          headers: authHeaders
+        }, function(error, response, body) {
+          expect(response.statusCode).to.equal(200);
+          expect(JSON.parse(body).assetId).to.equal(1);
+          expect(JSON.parse(body).toUserId).to.equal(1);
+          done();
+        });
       });
     })
   });
@@ -168,4 +205,58 @@ describe("Messages API", function() {
       });
     })
   })
+
+  describe("delete method", function() {
+
+    it("is inaccessible without authorization", function(done) {
+      request({
+        method: "DELETE",
+        url: url + "/1"
+      }, function(error, response, body) {
+        expect(response.statusCode).to.equal(401);
+        done();
+      });
+    });
+
+    it("returns 404 for missing ID", function(done) {
+      request({
+        method: "DELETE",
+        url: url + "/1",
+        headers: authHeaders
+      }, function(error, response, body) {
+        expect(response.statusCode).to.equal(404);
+        done();
+      });
+    })
+
+    it("deletes message", function(done) {
+      request({
+        method: "POST",
+        url: url,
+        headers: authHeaders,
+        form: {
+          assetId: 1,
+          toUserId: 1
+        }
+      }, function(error, response, body) {
+        expect(response.statusCode).to.equal(200);
+        var id = JSON.parse(body).id;
+        request({
+          method: "DELETE",
+          url: url + "/" + id,
+          headers: authHeaders
+        }, function(error, response, body) {
+          expect(response.statusCode).to.equal(200);
+          request({
+            method: "GET",
+            url: url + "/" + id,
+            headers: authHeaders
+          }, function(error, response, body) {
+            expect(response.statusCode).to.equal(404);
+            done();
+          });
+        });
+      });
+    })
+  });
 });
