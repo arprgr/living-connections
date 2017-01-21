@@ -3,7 +3,7 @@
 // Manages transitions between listing and activity views.
 
 define([ "jquery", "services", "listingui", "activities", "ui/index" ],
-  function($, Services, Listing, Activities, ui) {
+function($,        Services,   Listing,     Activities,   ui) {
 
   var sessionManager = Services.sessionManager;
 
@@ -18,7 +18,8 @@ define([ "jquery", "services", "listingui", "activities", "ui/index" ],
         self.currentBody = newBody;
         if (oldBody) {
           oldBody.close();
-          new ui.CrossFade(oldBody, newBody, { duration: 700 }).run()
+          self.fadeGoal.addGoal(newBody, 1);
+          self.fadeGoal.addGoal(oldBody, 0)
           .then(function() {
             oldBody.container.remove();
             self.inTransition = false;
@@ -84,6 +85,8 @@ define([ "jquery", "services", "listingui", "activities", "ui/index" ],
         var header = self.container.find(".header");
         header.find(".userName").text(user.name || "");
       });
+
+      self.fadeGoal = new ui.FadeGoal();
     });
 
     c.extendPrototype({

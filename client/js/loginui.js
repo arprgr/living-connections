@@ -1,61 +1,92 @@
 // loginui.js
 
-define([ "jquery", "ui/index", "fb", "services" ], function($, ui, FacebookLogin, Services) {
+define([ "jquery", "ui/index", "fb",          "waitanim", "services" ],
+function($,        ui,         FacebookLogin, WaitAnim,   Services) {
 
-  var Component = ui.Component;
-  var EmailInput = ui.EmailInput;
+  return ui.Component.defineClass(function(c) {
 
-  function showMessage(self, msg) {
-    self.container.find(".message").text(msg || "");
-  }
+    function submit(self, text) {
+      Services.sessionManager.requestEmailVerification(text)
+      .then(function() {
+        self.messageBox.text = "Login link sent to your email box.  You may close this window.";
+        self.goButton.enabled = false;
+        self.emailInput.enabled = false;
+      })
+      .catch(function(e) {
+        self.messageBox.text = "Can't reach the server. Please try again.";
+      })
+    }
 
-  function submit(self, text) {
-    Services.sessionManager.requestEmailVerification(text)
-    .then(function() {
-      showMessage(self, "Login link sent to your email box.  You may close this window.");
-      self.goButton.enabled = false;
-      self.emailInput.enabled = false;
-    })
-    .catch(function(e) {
-      showMessage(self, "Can't reach the server. Please try again.");
-    })
-  }
+    function showWaitingIndicator(self) {
+      self.waitAnim.setVisible(true).start();
+    }
 
-  return Component.defineClass(function(c) {
+    function removeWaitingIndicator(self) {
+      self.waitAnim.setVisible(false).stop();
+    }
 
     c.defineInitializer(function() {
       var self = this;
 
-      var emailInput = new EmailInput($("<span>"))
-      emailInput.addPlugin({
+      var emailInput = new ui.EmailInput().addPlugin({
         submit: function(text) {
           submit(self, text);
         },
         showInvalid: function() {
-          showMessage(self, "That doesn't look like an email address.  Please retype it and try again.");
+          self.messageBox.text = "That doesn't look like an email address.  Please retype it and try again.";
         }
       });
-      emailInput.valid.addChangeListener(function(valid) {
-        if (valid && emailInput.enabled) {
-          showMessage(self);
+      emailInput.addChangeListener(function() {
+        if (emailInput.valid && emailInput.enabled) {
+          self.messageBox.text = "";
         }
       });
 
-      var goButton = ui.Button.create("Go!", function() {
+      var fbButton = ui.Button.create("Use Facebook", function() {
+      });
+
+      var goButton = ui.Button.create("Send request", function() {
         emailInput.submit();
       });
 
       var fb = new FacebookLogin();
+      var waitAnim = new WaitAnim().setVisible(false);
+      var messageBox = new ui.Component();
 
       self.container
-        .append($("<div>")
-          .text("Log in with your email address:"))
-        .append($("<div>")
-          .append(emailInput.container)
-          .append(goButton.container))
-        .append($("<div>").addClass("message"))
-        .append(fb.container);
+        .append($("<div>").addClass("header"))
+        .append($("<div>").addClass("body")
+          .append($("<div>").addClass("big")
+            .text("Log in"))
+          .append($("<div>")
+            .append(fbButton.container.addClass("useFb")))
+          .append($("<div>").addClass("big")
+            .text("OR"))
+          .append($("<div>").text("Request an email ticket:"))
+          .append($("<div>")
+            .append($("<div>").addClass("prompt")
+              .text("EMAIL ADDRESS"))
+            .append($("<div>")
+              .append(emailInput.container))
+            .append($("<div>")
+              .append(goButton.container.addClass("sendEmail")))
+          )
+          .append($("<div>").addClass("message"))
+          .append(waitAnim.container.addClass("waiting"))
+          .append(messageBox.container.addClass("message"))
+        )
+        .append($("<div>").addClass("footer"))
 
+      Services.sessionManager.addStateChangeListener(function(sessionManager) {
+        sessionManager.waiting ? showWaitingIndicator(self) : removeWaitingIndicator(self);
+        self.messageBox.text = sessionManager.isUnresponsive()
+          ? ("We're not able to connect to Living Connections' server at this time.  " +
+            "We'll keep trying. In the meantime, please check your internet connection.")
+          : "";
+      });
+
+      self.waitAnim = waitAnim;
+      self.messageBox = messageBox;
       self.emailInput = emailInput;
       self.goButton = goButton;
     });

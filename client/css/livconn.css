@@ -17,45 +17,65 @@ div {
   margin: 0px auto;
 }
 #startup {
+  width: 520px;
+  margin: auto;
+  background-color: white;
+}
+#startup .logo {
+  margin-left: 45px;
+  width: 430px;
+  height: 400px;
+  background: url(/img/logo.png) center center no-repeat;
+}
+#startup .under {
+  text-align: center;
+  padding: 10px;
+}
+#login {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
-  width: 520px;
-  height: 500px;
-  overflow: hidden;
-  margin: auto;
+  width: 480px;
+  height: 100%;
+  overflow: scroll;
+  margin: 16px auto;
 }
-#startup .inner {
-  position: relative;
+#login .header {
+  background-image: url(/img/symbol.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 41px 32px;
+  height: 39px;
 }
-#startup .logo {
-  margin-left: 45px;
-  width: 430px;
-  height: 380px;
-  background: url(/img/logo.png) center center no-repeat;
+#login .body {
+  background-color: white;
+  padding: 10px;
+  border-radius: 5px;
 }
-#startup .fadedot {
-  margin: 5px 20px;
+#login .useFb {
+  text-align: center;
 }
-#startup .login {
-  position: relative;
-  margin-top: 16px;
-  margin-left: 113px;
+#login .big {
+  font-size: 20px;
   color: #670;
+  text-align: center;
 }
-#startup .login input {
+#login input {
   width: 240px;
   font-size: 20px;
+}
+#login .fadedot {
+  margin: 5px 20px;
 }
 .invalid {
   border: solid 3px red;
 }
-#startup .login button {
+#login button {
   font-size: 20px;
 }
-#startup .login .error {
+#login .error {
   font-size: 18px;
   color: red;
 }

@@ -1,34 +1,52 @@
 // appui.js
 
-define([ "jquery", "services", "startupui", "mainui", "ui/crossfade" ],
-  function($, Services, StartupComponent, MainComponent, CrossFade) {
+define([ "jquery", "services", "loginui",      "mainui",      "ui/index" ],
+function($,        Services,   LoginComponent, MainComponent, ui) {
+
+  var NO_VID = "Sorry, this browser is not capable of sending and receiving Living Connections videograms.";
 
   return function() {
 
-    var startupComponent = new StartupComponent($("#startup"));
-    var mainComponent = new MainComponent($("#app")).setVisible(false);
-    var mainShowing = false;
+    var components = [
+      new ui.Component($("#startup")),
+      new LoginComponent($("#login")).setVisible(false),
+      new MainComponent($("#app")).setVisible(false)
+    ];
+    var current = 0;
+    var fadeGoal = new ui.FadeGoal();
 
-    function handleSessionStateChange(sessionManager) {
-      if (sessionManager.isLoginRequired()) {
-        startupComponent.toLoginState();
-        if (mainShowing) {
-          mainComponent.close();
-          new CrossFade(mainComponent, startupComponent).run();
-          mainShowing = false;
-        }
-      }
-      else if (sessionManager.isActive() && !mainShowing) {
-        mainComponent.open();
-        new CrossFade(startupComponent, mainComponent).run();
-        mainShowing = true;
+    function show(componentIndex) {
+      if (componentIndex != current) {
+        components[current].close();
+        fadeGoal.addGoal(components[current], 0);
+        fadeGoal.addGoal(components[componentIndex], 1);
+        components[componentIndex].open();
+        current = componentIndex;
       }
     }
 
-    this.open = function() {
+    function handleSessionStateChange(sessionManager) {
+      if (sessionManager.isLoginRequired()) {
+        show(1);
+      }
+      else if (sessionManager.isActive()) {
+        show(2);
+      }
+    }
+
+    function startSession() {
       var sessionManager = Services.sessionManager;
       sessionManager.addStateChangeListener(handleSessionStateChange);
       sessionManager.init();
+    }
+
+    this.open = function() {
+      if (Services.videoService.isCapable()) {
+        startSession();
+      }
+      else {
+        $("#startup .under").text(NO_VID);
+      }
     }
   }
 });

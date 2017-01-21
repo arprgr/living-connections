@@ -20,15 +20,6 @@ define([ "ui/component" ], function(Component) {
         });
     });
 
-    c.defineProperty("text", {
-      get: function() {
-        return this.container.text();
-      },
-      set: function(text) {
-        this.container.text(text);
-      }
-    });
-
     c.defineProperty("enabled", {
       get: function() {
         return this._enabled;

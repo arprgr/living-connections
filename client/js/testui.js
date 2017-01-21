@@ -11,17 +11,29 @@ define([ "jquery", "ui/index", "waitanim"], function($, ui, WaitAnim) {
       var waitAnim = new WaitAnim();
       var radioGroup = new ui.RadioGroup($("<div>"), {
         choices: [
-          { label: "Do (a deer)", value: 1 },
-          { label: "Re", value: 2 },
-          { label: "Mi", value: 3, checked: 1 },
-          { label: "Fa", value: 4 }
+          { label: "Do (a deer)", value: 0 },
+          { label: "Re", value: 1 },
+          { label: "Mi", value: 2, checked: 1 },
+          { label: "Fa", value: 3 }
         ],
         groupName: "group1"
+      });
+
+      var label0 = new ui.Component().setText("LABEL 0");
+      var label1 = new ui.Component().setText("LABEL 1");
+      var fadeGoal = new ui.FadeGoal();
+
+      radioGroup.addChangeListener(function(value) {
+        waitAnim.start();
+        fadeGoal.addGoal(label0, value == 3 || value == 2);
+        fadeGoal.addGoal(label1, value == 1 || value == 3).then(function() { waitAnim.stop(); });
       });
 
       $("body")
         .empty()
         .append(waitAnim.container)
+        .append(label0.container)
+        .append(label1.container)
         .append($("<div>")
           .addClass("buttons")
           .append(ui.Button.create("Start", function() {
@@ -34,11 +46,6 @@ define([ "jquery", "ui/index", "waitanim"], function($, ui, WaitAnim) {
           }).container)
         )
         .append(radioGroup.container);
-
-      console.log(radioGroup.value);
-      radioGroup.addChangeListener(function(value) {
-        console.log('change', value);
-      });
 
       return self;
     }

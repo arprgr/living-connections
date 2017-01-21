@@ -26,25 +26,15 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
         })
         .on("change paste keyup", function() {
           self.clearStyles();
+          self.value = self.input.val();
           self.validate();
         }));
-      self.valid = new Observable(false);
+      self._value = "";
     });
 
     c.defineProperty("input", {
       get: function() {
         return this.container.find("input");
-      }
-    });
-
-    c.defineProperty("value", {
-      get: function() {
-        return this.input.val();
-      },
-      set: function(value) {
-        var self = this;
-        self.input.val(value);
-        self.validate();
       }
     });
 
@@ -66,13 +56,12 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
     c.extendPrototype({
       validate: function(style) {
         var self = this;
-        var isValid = self._isValueValid();
-        self.valid.setValue(isValid);
-        return isValid;
+        self.valid = self._isValueValid(self.value);
+        return self.valid;
       },
 
-      _isValueValid: function() {
-        return this.value.length > 0;
+      _isValueValid: function(value) {
+        return value.length > 0;
       },
 
       validateAndStyle: function(style) {

@@ -16,10 +16,10 @@ define([ "ui/component" ], function(Component) {
 
     c.defineProperty("label", {
       get: function() {
-        return this.container.text();
+        return this.text;
       },
       set: function(label) {
-        this.container.text(label);
+        this.text = label;
       }
     });
 

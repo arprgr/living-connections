@@ -11,8 +11,8 @@ define([ "jquery", "ui/textinput" ], function($, TextInput) {
   return TextInput.defineClass(function(c) {
 
     c.extendPrototype({
-      _isValueValid: function(style) {
-        return isValidEmail(this.value.toLowerCase());
+      _isValueValid: function(value) {
+        return isValidEmail(value.toLowerCase());
       }
     });
   });
