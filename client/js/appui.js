@@ -1,9 +1,18 @@
 // appui.js
 
-define([ "jquery", "services", "loginui",      "mainui",      "ui/index" ],
-function($,        Services,   LoginComponent, MainComponent, ui) {
+define([ "jquery", "services", "loginui",      "mainui",      "waitanim", "ui/index" ],
+function($,        Services,   LoginComponent, MainComponent, WaitAnim,   ui) {
 
-  var NO_VID = "Sorry, this browser is not capable of sending and receiving Living Connections videograms.";
+  var NO_VID =
+    "Sorry, this browser is not capable of sending and receiving Living Connections videograms.";
+
+  var CANT_CONNECT =
+    "We're not able to connect to Living Connections' server at this time.  " +
+    "We'll keep trying. In the meantime, please check your internet connection."
+
+  function selectUnder() {
+    return $("#startup .under");
+  }
 
   return function() {
 
@@ -14,8 +23,9 @@ function($,        Services,   LoginComponent, MainComponent, ui) {
     ];
     var current = 0;
     var fadeGoal = new ui.FadeGoal();
+    var waitAnim = new WaitAnim(selectUnder());
 
-    function show(componentIndex) {
+    function show(componentIndex, msg) {
       if (componentIndex != current) {
         components[current].close();
         fadeGoal.addGoal(components[current], 0);
@@ -23,14 +33,22 @@ function($,        Services,   LoginComponent, MainComponent, ui) {
         components[componentIndex].open();
         current = componentIndex;
       }
+      selectUnder().text(msg || "");
+      waitAnim.stop();
     }
 
     function handleSessionStateChange(sessionManager) {
-      if (sessionManager.isLoginRequired()) {
+      if (sessionManager.isUnresponsive()) {
+        show(0, CANT_CONNECT);
+      }
+      else if (sessionManager.isLoginRequired()) {
         show(1);
       }
       else if (sessionManager.isActive()) {
         show(2);
+      }
+      else if (sessionManager.waiting) {
+        waitAnim.start();
       }
     }
 
@@ -45,7 +63,7 @@ function($,        Services,   LoginComponent, MainComponent, ui) {
         startSession();
       }
       else {
-        $("#startup .under").text(NO_VID);
+        show(0, NO_VID);
       }
     }
   }

@@ -7,6 +7,7 @@
     "Component",
     "EmailInput",
     "FadeGoal",
+    "Image",
     "Link",
     "Observable",
     "RadioGroup",

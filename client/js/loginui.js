@@ -1,32 +1,20 @@
 // loginui.js
 
-define([ "jquery", "ui/index", "fb",          "waitanim", "services" ],
+define([ "jquery", "ui/index", "fblogin",     "waitanim", "services" ],
 function($,        ui,         FacebookLogin, WaitAnim,   Services) {
 
-  return ui.Component.defineClass(function(c) {
+  var EmailForm = ui.Component.defineClass(function(c) {
 
     function submit(self, text) {
       Services.sessionManager.requestEmailVerification(text)
       .then(function() {
         self.messageBox.text = "Login link sent to your email box.  You may close this window.";
-        self.goButton.enabled = false;
+        self.sendButton.enabled = false;
         self.emailInput.enabled = false;
       })
       .catch(function(e) {
         self.messageBox.text = "Can't reach the server. Please try again.";
       })
-    }
-
-    function showWaitingIndicator(self) {
-      self.waitAnim.setVisible(true).start();
-    }
-
-    function removeWaitingIndicator(self) {
-      self.waitAnim.setVisible(false).stop();
-    }
-
-    function useFacebook(self) {
-      var fb = new FacebookLogin();
     }
 
     c.defineInitializer(function() {
@@ -47,60 +35,123 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
       });
 
       var fbButton = ui.Button.create("Use Facebook", function() {
-        useFacebook(self);
+        self.invokePlugin("openFacebookForm");
       });
 
-      var goButton = ui.Button.create("Send request", function() {
+      var sendButton = ui.Button.create("Send request", function() {
         emailInput.submit();
       });
 
-      var waitAnim = new WaitAnim().setVisible(false);
       var messageBox = new ui.Component();
 
       self.container
-        .append($("<div>").addClass("header"))
-        .append($("<div>").addClass("body")
-          .append($("<div>").addClass("big").addClass("chunk")
-            .text("Log in to Living Connections"))
-          .append($("<div>").addClass("chunk")
-            .append(fbButton.container.addClass("useFb")))
-          .append($("<div>").addClass("big").addClass("chunk")
-            .text("OR"))
-          .append($("<div>").addClass("form")
-            .append($("<div>").text("Request an email ticket:"))
-            .append($("<div>").addClass("indent")
-              .append($("<div>").addClass("prompt")
-                .text("EMAIL ADDRESS"))
-              .append($("<div>")
-                .append(emailInput.container))
-              .append($("<div>")
-                .append(goButton.container.addClass("sendEmail")))
-              )
+        .append($("<div>").addClass("big").addClass("chunk")
+          .text("Log in to Living Connections"))
+        .append($("<div>").addClass("chunk")
+          .append(fbButton.container.addClass("useFb")))
+        .append($("<div>").addClass("big").addClass("chunk")
+          .text("OR"))
+        .append($("<div>").addClass("form")
+          .append($("<div>").text("Request an email ticket:"))
+          .append($("<div>").addClass("indent")
+            .append($("<div>").addClass("prompt")
+              .text("EMAIL ADDRESS"))
+            .append($("<div>")
+              .append(emailInput.container))
+            .append($("<div>")
+              .append(sendButton.container.addClass("sendEmail")))
           )
-          .append(waitAnim.container.addClass("waiting"))
-          .append(messageBox.container.addClass("message"))
-        );
+        )
+        .append(messageBox.container.addClass("message"));
 
-      Services.sessionManager.addStateChangeListener(function(sessionManager) {
-        sessionManager.waiting ? showWaitingIndicator(self) : removeWaitingIndicator(self);
-        self.messageBox.text = sessionManager.isUnresponsive()
-          ? ("We're not able to connect to Living Connections' server at this time.  " +
-            "We'll keep trying. In the meantime, please check your internet connection.")
-          : "";
-      });
-
-      self.waitAnim = waitAnim;
       self.messageBox = messageBox;
       self.emailInput = emailInput;
-      self.goButton = goButton;
+      self.sendButton = sendButton;
     });
 
     c.extendPrototype({
       open: function() {
         var self = this;
+        self.messageBox.text = "";
         setTimeout(function() {
           self.emailInput.focus();
         }, 100);
+      }
+    });
+  });
+
+  var FacebookForm = ui.Component.defineClass(function(c) {
+
+    c.defineInitializer(function() {
+      var self = this;
+
+      var photo = new ui.Image();
+      var loginButton = new ui.Button();
+      var fbButton = new FacebookLogin();
+      var goBackButton = ui.Button.create("Go Back", function() {
+        self.invokePlugin("goBack");
+      });
+
+      self.container
+        .append(photo.container)
+        .append(loginButton.container)
+        .append(fbButton.container)
+        .append(goBackButton.container);
+
+      self.photo = photo;
+      self.loginButton = loginButton;
+      self.fbButton = fbButton;
+      self.goBackButton = goBackButton;
+    });
+
+    c.extendPrototype({
+      open: function() {
+        var self = this;
+        if (!self.opened) {
+          self.opened = true;
+          var facebookService = Services.facebookService;
+          facebookService.userInfo.addChangeListener(function(userInfo) {
+            self.loginButton.enabled = !!userInfo;
+          });
+          facebookService.picture.addChangeListener(function(picture) {
+            self.photo.src = picture && picture.url;
+          });
+          facebookService.open();
+        }
+      }
+    });
+  });
+
+  return ui.Component.defineClass(function(c) {
+
+    c.defineInitializer(function() {
+      var emailForm = new EmailForm();
+      var fbForm = new FacebookForm().setVisible(false);
+      this.container
+        .append($("<div>").addClass("header"))
+        .append($("<div>").addClass("body")
+          .append(emailForm.container)
+          .append(fbForm.container));
+      this.emailForm = emailForm.addPlugin({
+        openFacebookForm: function() {
+          emailForm.visible = false;
+          fbForm.visible = true;
+          fbForm.open();
+        }
+      });
+      this.fbForm = fbForm.addPlugin({
+        goBack: function() {
+          emailForm.visible = true;
+          emailForm.open();
+          fbForm.visible = false;
+        }
+      });
+    });
+
+    c.extendPrototype({
+      open: function() {
+        this.emailForm.open();
+        return this;
       }
     });
   });

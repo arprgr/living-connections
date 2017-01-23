@@ -1,11 +1,16 @@
 // services.js - Services
 
-define([ "api", "session", "vid" ],
-  function(ApiService, SessionManager, VideoService) {
+define([ "api",      "fb",            "session",      "vid" ],
+function(ApiService, FacebookService, SessionManager, VideoService) {
 
   // Instantiation.
 
   var apiService = new ApiService({
+  });
+
+  var facebookService = new FacebookService({
+    appId: "1093072224140701",
+    version: "v2.8"
   });
 
   var sessionManager = new SessionManager({
@@ -27,6 +32,7 @@ define([ "api", "session", "vid" ],
 
   return {
     apiService: apiService,
+    facebookService: facebookService,
     sessionManager: sessionManager,
     videoService: videoService
   }
