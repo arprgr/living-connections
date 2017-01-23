@@ -22,17 +22,21 @@ define([ "ui/observable" ], function(Observable) {
 
       FB.Event.subscribe("auth.authResponseChange", function(response) {
 
+        console.log(response);
+
         self.status.value = response.status;
         self.userInfo.value = null;
         self.picture.value = null;
 
         if (response.status == "connected") {
           FB.api("/me?fields=id,name,email,birthday", function(response) {
+            console.log(response);
             self.userInfo.value = response;
           });
 
           FB.api('/me/picture?type=normal', function(response) {
-            self.picture = response.data;
+            console.log(response);
+            self.picture.value = response.data;
           });
         }
       });

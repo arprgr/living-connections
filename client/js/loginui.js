@@ -86,7 +86,7 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
       var self = this;
 
       var photo = new ui.Image();
-      var loginButton = new ui.Button();
+      var loginButton = new ui.Button().setLabel("Log in as...");
       var fbButton = new FacebookLogin();
       var goBackButton = ui.Button.create("Go Back", function() {
         self.invokePlugin("goBack");
@@ -102,6 +102,15 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
       self.loginButton = loginButton;
       self.fbButton = fbButton;
       self.goBackButton = goBackButton;
+
+      var facebookService = Services.facebookService;
+      facebookService.picture.addChangeListener(function(picture) {
+        self.photo.src = picture && picture.url;
+      });
+      facebookService.userInfo.addChangeListener(function(userInfo) {
+        self.loginButton.label = "Log in as " + (userInfo ? userInfo.name : "..."); 
+        self.loginButton.enabled = !!userInfo;
+      });
     });
 
     c.extendPrototype({
@@ -109,14 +118,7 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
         var self = this;
         if (!self.opened) {
           self.opened = true;
-          var facebookService = Services.facebookService;
-          facebookService.userInfo.addChangeListener(function(userInfo) {
-            self.loginButton.enabled = !!userInfo;
-          });
-          facebookService.picture.addChangeListener(function(picture) {
-            self.photo.src = picture && picture.url;
-          });
-          facebookService.open();
+          Services.facebookService.open();
         }
       }
     });
