@@ -25,6 +25,10 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
       self.waitAnim.setVisible(false).stop();
     }
 
+    function useFacebook(self) {
+      var fb = new FacebookLogin();
+    }
+
     c.defineInitializer(function() {
       var self = this;
 
@@ -43,39 +47,39 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
       });
 
       var fbButton = ui.Button.create("Use Facebook", function() {
+        useFacebook(self);
       });
 
       var goButton = ui.Button.create("Send request", function() {
         emailInput.submit();
       });
 
-      var fb = new FacebookLogin();
       var waitAnim = new WaitAnim().setVisible(false);
       var messageBox = new ui.Component();
 
       self.container
         .append($("<div>").addClass("header"))
         .append($("<div>").addClass("body")
-          .append($("<div>").addClass("big")
-            .text("Log in"))
-          .append($("<div>")
+          .append($("<div>").addClass("big").addClass("chunk")
+            .text("Log in to Living Connections"))
+          .append($("<div>").addClass("chunk")
             .append(fbButton.container.addClass("useFb")))
-          .append($("<div>").addClass("big")
+          .append($("<div>").addClass("big").addClass("chunk")
             .text("OR"))
-          .append($("<div>").text("Request an email ticket:"))
-          .append($("<div>")
-            .append($("<div>").addClass("prompt")
-              .text("EMAIL ADDRESS"))
-            .append($("<div>")
-              .append(emailInput.container))
-            .append($("<div>")
-              .append(goButton.container.addClass("sendEmail")))
+          .append($("<div>").addClass("form")
+            .append($("<div>").text("Request an email ticket:"))
+            .append($("<div>").addClass("indent")
+              .append($("<div>").addClass("prompt")
+                .text("EMAIL ADDRESS"))
+              .append($("<div>")
+                .append(emailInput.container))
+              .append($("<div>")
+                .append(goButton.container.addClass("sendEmail")))
+              )
           )
-          .append($("<div>").addClass("message"))
           .append(waitAnim.container.addClass("waiting"))
           .append(messageBox.container.addClass("message"))
-        )
-        .append($("<div>").addClass("footer"))
+        );
 
       Services.sessionManager.addStateChangeListener(function(sessionManager) {
         sessionManager.waiting ? showWaitingIndicator(self) : removeWaitingIndicator(self);

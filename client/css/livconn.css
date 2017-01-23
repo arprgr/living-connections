@@ -19,7 +19,6 @@ div {
 #startup {
   width: 520px;
   margin: auto;
-  background-color: white;
 }
 #startup .logo {
   margin-left: 45px;
@@ -53,17 +52,45 @@ div {
   background-color: white;
   padding: 10px;
   border-radius: 5px;
-}
-#login .useFb {
-  text-align: center;
+  position: relative;
 }
 #login .big {
-  font-size: 20px;
+  font-size: 24px;
   color: #670;
+}
+#login .chunk {
   text-align: center;
+  width: 100%;
+  margin: 15px 0px;
+}
+#login .form {
+  margin-left: 80px;
+  font-size: 20px;
+}
+#login .indent {
+  padding-top: 10px;
+  margin-left: 20px;
+}
+#login .prompt {
+  font-size: 12px;
+  color: #777;
+}
+#login .useFb {
+  color: #840;
+  background-color: white;
+  font-size: 18px;
+  border-style: ridge;
+  border-color: #670;
+  border-radius: 8px;
+  border-width: 5px;
+  padding: 4px;
+  margin: auto;
+}
+#login .useFb:hover {
+  background-color: #ffd;
 }
 #login input {
-  width: 240px;
+  width: 280px;
   font-size: 20px;
 }
 #login .fadedot {
@@ -71,13 +98,6 @@ div {
 }
 .invalid {
   border: solid 3px red;
-}
-#login button {
-  font-size: 20px;
-}
-#login .error {
-  font-size: 18px;
-  color: red;
 }
 #app {
   position: absolute;
