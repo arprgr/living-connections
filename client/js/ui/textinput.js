@@ -16,7 +16,7 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
       self.container.append($("<input>")
         .attr("type", "text")
         .on("blur", function() {
-          self.validateAndStyle();
+          self.validate();
         })
         .on("keydown", function(event) {
           if (event.originalEvent.keyCode == 13) {
@@ -26,8 +26,7 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
         })
         .on("change paste keyup", function() {
           self.clearStyles();
-          self.value = self.input.val();
-          self.validate();
+          self.notifyChangeListeners();
         }));
       self._value = "";
     });
@@ -35,6 +34,24 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
     c.defineProperty("input", {
       get: function() {
         return this.container.find("input");
+      }
+    });
+
+    c.defineProperty("value", {
+      get: function() {
+        return this.input.val();
+      },
+      set: function(val) {
+        if (val != this.value) {
+          this.input.val(val);
+          this.notifyChangeListeners();
+        }
+      }
+    });
+
+    c.defineProperty("valid", {
+      get: function() {
+        return this._isValueValid(this.value);
       }
     });
 
@@ -54,29 +71,25 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
     });
 
     c.extendPrototype({
-      validate: function(style) {
-        var self = this;
-        self.valid = self._isValueValid(self.value);
-        return self.valid;
-      },
-
       _isValueValid: function(value) {
         return value.length > 0;
       },
 
-      validateAndStyle: function(style) {
+      validate: function() {
         var self = this;
-        if (self.validate() || self.value == "") {
+        var valid = self.valid;
+        if (valid || self.value == "") {
           self.clearStyles();
         }
         else {
           self.input.addClass(self.options.invalidCssClass);
         }
+        return valid;
       },
 
       submit: function() {
         var self = this;
-        var isValid = self.validate(true);
+        var isValid = self.validate();
         if (isValid) {
           self.invokePlugin("submit", self.value);
         }

@@ -23,8 +23,8 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
         nameInput.submit();
       });
 
-      nameInput.valid.addChangeListener(function(isValid) {
-        okButton.enabled = isValid;
+      nameInput.addChangeListener(function() {
+        okButton.enabled = nameInput.valid;
       });
 
       self.container

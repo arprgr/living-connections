@@ -27,8 +27,8 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
         emailInput.submit();
       });
 
-      emailInput.valid.addChangeListener(function(isValid) {
-        okButton.enabled = isValid;
+      emailInput.addChangeListener(function() {
+        okButton.enabled = emailInput.valid;
       });
 
       self.container
