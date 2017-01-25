@@ -185,7 +185,7 @@ define([ "jquery" ], function($) {
   };
   HttpMethod.Get.prototype = HttpMethodBuilder.prototype;
 
-  HttpMethod.PostForm = function() {
+  HttpMethod.Post = HttpMethod.PostForm = function() {
     HttpMethodBuilder.call(this, POST);
     this.contentType = FORM_CONTENT_TYPE;
   };

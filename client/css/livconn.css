@@ -1,6 +1,6 @@
 body {
 	font-family: Tahoma, Arial;
-  background-color: #c6c8d0;
+  background-color: #e6f0e0;
 }
 div {
   margin: 0;
@@ -35,22 +35,21 @@ div {
   left: 0;
   right: 0;
   width: 480px;
-  height: 100%;
-  overflow: scroll;
   margin: 16px auto;
 }
 #login .header {
   background-image: url(/img/symbol.png);
   background-position: center center;
   background-repeat: no-repeat;
-  background-size: 41px 32px;
-  height: 39px;
+  background-size: 61px 48px;
+  height: 52px;
 }
 #login .body {
   background-color: white;
   padding: 10px;
   border-radius: 5px;
   position: relative;
+  box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
 }
 #login .big {
   font-size: 24px;
@@ -61,8 +60,11 @@ div {
   width: 100%;
   margin: 15px 0px;
 }
+#login .message {
+  color: red;
+}
 #login .form {
-  margin-left: 80px;
+  margin-left: 75px;
   font-size: 20px;
 }
 #login .indent {
@@ -77,20 +79,24 @@ div {
   color: #840;
   background-color: white;
   font-size: 18px;
+  border-radius: 8px;
 }
-#login button:hover {
+#login button:disabled {
+  background-color: #eee;
+  color: #951;
+}
+#login button:enabled:hover {
   background-color: #ffd;
 }
 #login .useFb {
   border-style: ridge;
   border-color: #670;
-  border-radius: 8px;
   border-width: 5px;
   padding: 4px;
   margin: auto;
 }
 #login input {
-  width: 280px;
+  width: 285px;
   font-size: 20px;
   margin: 4px 0px;
 }
@@ -187,7 +193,7 @@ div {
   margin: 6px;
 }
 #app .activity .panel {
-  border-top: dashed 1px #c6c8d0;
+  border-top: dashed 1px #e6f0e0;
   padding: 0 0 5px 20px;
 }
 #app .activity .panel > div {

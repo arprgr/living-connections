@@ -6,11 +6,12 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
   var EmailForm = ui.Component.defineClass(function(c) {
 
     function submit(self, text) {
-      Services.sessionManager.requestEmailVerification(text)
+      Services.sessionManager.requestEmailTicket(text)
       .then(function() {
         self.messageBox.text = "Login link sent to your email box.  You may close this window.";
         self.sendButton.enabled = false;
         self.emailInput.enabled = false;
+        self.fbButton.enabled = false;
       })
       .catch(function(e) {
         self.messageBox.text = "Can't reach the server. Please try again.";
@@ -34,7 +35,7 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
         }
       });
 
-      var fbButton = ui.Button.create("Use Facebook", function() {
+      var fbButton = ui.Button.create("Log in through Facebook", function() {
         self.invokePlugin("openFacebookForm");
       });
 
@@ -52,7 +53,7 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
         .append($("<div>").addClass("big").addClass("chunk")
           .text("OR"))
         .append($("<div>").addClass("form")
-          .append($("<div>").text("Request an email ticket:"))
+          .append($("<div>").text("Use your email address to log in:"))
           .append($("<div>").addClass("indent")
             .append($("<div>").addClass("prompt")
               .text("EMAIL ADDRESS"))
@@ -62,11 +63,12 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
               .append(sendButton.container.addClass("sendEmail")))
           )
         )
-        .append(messageBox.container.addClass("message"));
+        .append(messageBox.container.addClass("chunk").addClass("message"));
 
       self.messageBox = messageBox;
       self.emailInput = emailInput;
       self.sendButton = sendButton;
+      self.fbButton = fbButton;
     });
 
     c.extendPrototype({
@@ -80,80 +82,124 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
     });
   });
 
-  var FacebookForm = ui.Component.defineClass(function(c) {
+  var FacebookInfo = ui.Component.defineClass(function(c) {
+
+    var facebookService = Services.facebookService;
 
     c.defineInitializer(function() {
       var self = this;
-
-      var photo = new ui.Image();
-      var loginButton = new ui.Button().setLabel("Log in as...");
-      var fbButton = new FacebookLogin();
-      var goBackButton = ui.Button.create("Go Back", function() {
-        self.invokePlugin("goBack");
+      var userImage = new ui.Image($("<span>"));
+      var nameLabel = new ui.Component($("<span>"));
+      var emailLabel = new ui.Component($("<span>"));
+      var loginButton = new ui.Button("", function() {
+        loginButton.enabled = false;
+        Services.sessionManager.logInWithFacebook(facebookService.value);
       });
 
       self.container
-        .append(photo.container)
-        .append(loginButton.container)
-        .append(fbButton.container)
-        .append(goBackButton.container);
+        .append($("<span>").text("You:"))
+        .append(userImage.container)
+        .append(nameLabel.container)
+        .append(emailLabel.container)
+        .append(loginButton.container);
 
-      self.photo = photo;
-      self.loginButton = loginButton;
-      self.fbButton = fbButton;
-      self.goBackButton = goBackButton;
+      function updateState(fbInfo) {
+        if (fbInfo && fbInfo.state == facebookService.CONNECTED) {
+          userImage.src = (fbInfo.picture && fbInfo.picture.url) || "";
+          nameLabel.text = fbInfo.name || "";
+          emailLabel.text = fbInfo.email || "";
+          loginButton.label = "Log in" + (fbInfo.name ? (" as " + fbInfo.name) : ""); 
+          loginButton.enabled = true;
+        }
+        else {
+          loginButton.enabled = false;
+        }
+      }
 
-      var facebookService = Services.facebookService;
-      facebookService.picture.addChangeListener(function(picture) {
-        self.photo.src = picture && picture.url;
-      });
-      facebookService.userInfo.addChangeListener(function(userInfo) {
-        self.loginButton.label = "Log in as " + (userInfo ? userInfo.name : "..."); 
-        self.loginButton.enabled = !!userInfo;
-      });
+      updateState(facebookService.value);
+      facebookService.addChangeListener(updateState);
+    });
+  });
+
+  var FacebookReadout = ui.Carton.defineClass(function(c) {
+
+    var WAIT = "wait";
+    var INFO = "info";
+    var FBLOGIN = "fblogin";
+    var ERROR = "error";
+
+    var facebookService = Services.facebookService;
+
+    c.defineInitializer(function() {
+      var self = this;
+      self
+        .addCompartment(WAIT, new WaitAnim($("<div>"), { ndots: 8 }))
+        .addCompartment(INFO, new FacebookInfo())
+        .addCompartment(FBLOGIN, new FacebookLogin())
+        .addCompartment(ERROR, new ui.Component($("<div>"), { cssClasses: [ "message", "chunk" ] })
+          .setText("Sorry, we can't connect to Facebook now"))
+        .addState(INFO, [ INFO, FBLOGIN ]);
+
+      function updateState(fbInfo) {
+        self.show(fbInfo
+          ? (fbInfo.state == facebookService.CONNECTED && fbInfo.id ? INFO : ERROR)
+          : WAIT);
+      }
+
+      updateState(facebookService.value);
+      facebookService.addChangeListener(updateState);
     });
 
     c.extendPrototype({
       open: function() {
-        var self = this;
-        if (!self.opened) {
-          self.opened = true;
-          Services.facebookService.open();
-        }
+        ui.Carton.prototype.open.call(this);
+        facebookService.open();
       }
+    });
+  });
+
+  var FacebookForm = ui.Carton.defineClass(function(c) {
+
+    c.defineInitializer(function() {
+      var self = this;
+      self
+        .addCompartment(0, new ui.Component().setText("Log in through Facebook"))
+        .addCompartment(1, new FacebookReadout())
+        .addCompartment(2, ui.Button.create("Go Back", function() {
+          self.invokePlugin("openEmailForm");
+        }));
     });
   });
 
   return ui.Component.defineClass(function(c) {
 
+    var EMAIL = "email";
+    var FB = "facebook";
+
     c.defineInitializer(function() {
-      var emailForm = new EmailForm();
-      var fbForm = new FacebookForm().setVisible(false);
-      this.container
+      var self = this;
+      var carton = new ui.Carton($("<div>").addClass("body"), {
+          initialState: EMAIL
+      }).addCompartment(EMAIL, new EmailForm().addPlugin(self))
+        .addCompartment(FB, new FacebookForm().addPlugin(self));
+      self.container
         .append($("<div>").addClass("header"))
-        .append($("<div>").addClass("body")
-          .append(emailForm.container)
-          .append(fbForm.container));
-      this.emailForm = emailForm.addPlugin({
-        openFacebookForm: function() {
-          emailForm.visible = false;
-          fbForm.visible = true;
-          fbForm.open();
-        }
-      });
-      this.fbForm = fbForm.addPlugin({
-        goBack: function() {
-          emailForm.visible = true;
-          emailForm.open();
-          fbForm.visible = false;
-        }
-      });
+        .append(carton.container);
+      self.carton = carton;
     });
 
     c.extendPrototype({
       open: function() {
-        this.emailForm.open();
-        return this;
+        this.carton.open();
+      },
+      close: function() {
+        this.carton.close();
+      },
+      openFacebookForm: function() {
+        return this.carton.show(FB);
+      },
+      openEmailForm: function() {
+        return this.carton.show(EMAIL);
       }
     });
   });

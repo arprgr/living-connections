@@ -1,6 +1,6 @@
 // session.js
 
-define([ "jquery", "cookie", "http", "obs", "actionitem" ],
+define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
   function($, Cookie, HttpMethod, Observable, ActionItem) {
 
   function salt() {
@@ -15,6 +15,13 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     .addPathComponent("l")
     .addQueryParameter("_", "salt")
     .addQueryParameter("email")
+    .build();
+  var FACEBOOK_LOGIN = new HttpMethod.Post()
+    .addPathComponent("f")
+    .addQueryParameter("id")
+    .addQueryParameter("email")
+    .addQueryParameter("name")
+    .addQueryParameter("picture")
     .build();
   var LOGOUT = new HttpMethod.Get()
     .addPathComponent("o")
@@ -106,7 +113,7 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
     return self;
   }
 
-  function requestEmailVerification(self, email) {
+  function requestEmailTicket(self, email) {
     stopPolling(self);
     self.user = null;
     self.waiting = true;
@@ -117,6 +124,25 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
       .execute()
       .then(function(response) {
         handleAResults(self, response);
+      })
+      .catch(function(error) {
+        handleAError(self, error);
+      });
+  }
+
+  function logInWithFacebook(self, fbInfo) {
+    stopPolling(self);
+    self.user = null;
+    self.waiting = true;
+    notifyStateChangeListeners(self);
+    return new FACEBOOK_LOGIN()
+      .setId(id)
+      .setName(name)
+      .setEmail(email)
+      .setSalt(salt())
+      .execute()
+      .then(function() {
+        startPolling(self);
       })
       .catch(function(error) {
         handleAError(self, error);
@@ -180,8 +206,12 @@ define([ "jquery", "cookie", "http", "obs", "actionitem" ],
       return init(this);
     },
 
-    requestEmailVerification: function(email) {
-      return requestEmailVerification(this, email);
+    requestEmailTicket: function(email) {
+      return requestEmailTicket(this, email);
+    },
+
+    logInWithFacebook: function(fbInfo) {
+      return logInWithFacebook(this, fbInfo);
     },
 
     logOut: function() {

@@ -4,6 +4,7 @@
   var CLASS_LIST = [
     "Audio",
     "Button",
+    "Carton",
     "Component",
     "EmailInput",
     "FadeGoal",

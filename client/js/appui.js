@@ -16,36 +16,36 @@ function($,        Services,   LoginComponent, MainComponent, WaitAnim,   ui) {
 
   return function() {
 
-    var components = [
-      new ui.Component($("#startup")),
-      new LoginComponent($("#login")).setVisible(false),
-      new MainComponent($("#app")).setVisible(false)
-    ];
-    var current = 0;
-    var fadeGoal = new ui.FadeGoal();
+    var STARTUP = "startup";
+    var LOGIN = "login";
+    var APP = "app";
+
+    var carton = new ui.Carton($("#content"), {
+      noAppend: true,
+      goalType: ui.FadeGoal,
+      initialState: STARTUP
+    })
+    carton.addCompartment(STARTUP, new ui.Component($("#startup")));
+    carton.addCompartment(LOGIN, new LoginComponent($("#login")));
+    carton.addCompartment(APP, new MainComponent($("#app")));
+
     var waitAnim = new WaitAnim(selectUnder());
 
-    function show(componentIndex, msg) {
-      if (componentIndex != current) {
-        components[current].close();
-        fadeGoal.addGoal(components[current], 0);
-        fadeGoal.addGoal(components[componentIndex], 1);
-        components[componentIndex].open();
-        current = componentIndex;
-      }
+    function show(state, msg) {
+      carton.show(state);
       selectUnder().text(msg || "");
       waitAnim.stop();
     }
 
     function handleSessionStateChange(sessionManager) {
       if (sessionManager.isUnresponsive()) {
-        show(0, CANT_CONNECT);
+        show(STARTUP, CANT_CONNECT);
       }
       else if (sessionManager.isLoginRequired()) {
-        show(1);
+        show(LOGIN);
       }
       else if (sessionManager.isActive()) {
-        show(2);
+        show(APP);
       }
       else if (sessionManager.waiting) {
         waitAnim.start();
@@ -59,11 +59,12 @@ function($,        Services,   LoginComponent, MainComponent, WaitAnim,   ui) {
     }
 
     this.open = function() {
+      carton.open();
       if (Services.videoService.isCapable()) {
         startSession();
       }
       else {
-        show(0, NO_VID);
+        show(STARTUP, NO_VID);
       }
     }
   }

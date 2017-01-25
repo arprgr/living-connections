@@ -89,7 +89,8 @@ define([ "jquery", "ui/component" ], function($, Component) {
   return Component.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      ndots: 7
+      ndots: 7,
+      stepTime: 400
     });
 
     c.defineInitializer(function() {
@@ -97,8 +98,8 @@ define([ "jquery", "ui/component" ], function($, Component) {
       self.dots = [];
       for (var i = 0; i < self.options.ndots; ++i) {
         var fadedot = new FadeDot($("<span>"), {
-          period: self.options.ndots * 500,
-          delay: i * 500
+          period: self.options.ndots * self.options.stepTime,
+          delay: i * self.options.stepTime
         });
         self.dots.push(fadedot);
         self.container.append(fadedot.container);
@@ -120,6 +121,14 @@ define([ "jquery", "ui/component" ], function($, Component) {
           self.dots[i].stop();
         }
         return self;
+      },
+
+      open: function() {
+        return this.start();
+      },
+
+      close: function() {
+        return this.stop();
       }
     });
   });

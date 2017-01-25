@@ -2,41 +2,42 @@
 
 define([ "ui/observable" ], function(Observable) {
 
+  var CONNECTED = "connected";
+
   function FacebookService(options) {
     var self = this;
-
-    self.options = options;
-    self.status = new Observable();
-    self.userInfo = new Observable();
-    self.picture = new Observable();
+    Observable.call(self);
 
     window.fbAsyncInit = function() {
 
       FB.init({
-        appId  : self.options.appId,
+        appId  : options.appId,
         status : true,
         cookie : true,
         xfbml  : true,
-        version: self.options.version || "v2.8"
+        version: options.version || "v2.8"
       });
 
       FB.Event.subscribe("auth.authResponseChange", function(response) {
 
-        console.log(response);
+        if (self.timeout) {
+          clearTimeout(self.timeout);
+          self.timeout = null;
+        }
 
-        self.status.value = response.status;
-        self.userInfo.value = null;
-        self.picture.value = null;
+        self.value = { status: response.status };
+        if (response.status == CONNECTED) {
 
-        if (response.status == "connected") {
-          FB.api("/me?fields=id,name,email,birthday", function(response) {
-            console.log(response);
-            self.userInfo.value = response;
+          FB.api("/me?fields=id,name,email", function(response) {
+            self.value.id = response.id;
+            self.value.name = response.name;
+            self.value.email = response.email;
+            self.notifyChangeListeners();
           });
 
           FB.api('/me/picture?type=normal', function(response) {
-            console.log(response);
-            self.picture.value = response.data;
+            self.value.picture = response.data;
+            self.notifyChangeListeners();
           });
         }
       });
@@ -53,14 +54,24 @@ define([ "ui/observable" ], function(Observable) {
     })(document);
   }
 
-  FacebookService.prototype.open = function() {
-    var self = this;
-    if (!self._sdkLoaded) {
-      self._sdkLoaded = true;
-      loadSdkAsync();
-    }
-    return self;
-  };
+  function timedOut(self) {
+    self.value = { status: "timeout" };
+  }
+
+  FacebookService.prototype = (function() {
+    var proto = Object.create(Observable.prototype);
+    proto.open = function() {
+      var self = this;
+      if (!self._sdkLoaded) {
+        self._sdkLoaded = true;
+        self.timeout = setTimeout(function() { timedOut(self); }, 10000);
+        loadSdkAsync();
+      }
+      return self;
+    };
+    proto.CONNECTED = CONNECTED;
+    return proto;
+  })();
 
   return FacebookService;
 });

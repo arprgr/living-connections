@@ -39,6 +39,9 @@ define([], function() {
     removeChangeListener: function(listener) {
       removeListener(this.listeners, listener);
     },
+    notifyChangeListeners: function() {
+      notifyListeners(this.listeners, this._value);
+    },
     setValue: function(value) {
       this.value = value;
       return this;
@@ -53,7 +56,7 @@ define([], function() {
       var self = this;
       if (value != self._value) {
         self._value = value;
-        notifyListeners(self.listeners, value);
+        self.notifyChangeListeners();
       }
     }
   });
