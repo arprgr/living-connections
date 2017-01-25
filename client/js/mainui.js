@@ -45,7 +45,7 @@ function($,        Services,   Listing,     Activities,   ui) {
 
     function Main_newActivity(self, actionItem) {
       return function() {
-        return new (Activities.ClassForActionItem(actionItem))()
+        return new (Activities.ClassForActionItem(actionItem))($("<div>"), { actionItem: actionItem })
           .addPlugin({
             openOther: function(actionItem) {
               Main_open(self, Main_newActivity(self, actionItem));
@@ -54,7 +54,7 @@ function($,        Services,   Listing,     Activities,   ui) {
               Main_open(self, Main_newListing(self));
             }
           })
-          .open(actionItem);
+          .open();
       }
     }
 

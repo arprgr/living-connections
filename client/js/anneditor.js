@@ -3,7 +3,7 @@
 define([ "jquery", "services", "editor", "vidrec",      "ui/index" ],
 function($,        Services,   Editor,   VideoRecorder, ui) {
 
-  var AnnouncementTypeForm = Editor.Form.defineClass(function(c) {
+  var AnnouncementTypeCell = Editor.Cell.defineClass(function(c) {
 
     c.defineDefaultOptions({
       outputProperties: [ "type" ]
@@ -20,8 +20,7 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
         ]
       });
 
-      self.container.append($("<div>")
-        .addClass("expanded")
+      self.form.container
         .append($("<div>")
           .text("Announce to all users, or only to new users?"))
         .append(radioGroup.container)
@@ -29,18 +28,18 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
           .append(ui.Button.create("Keep Going", function() {
             self.data.type = radioGroup.value;
             self.advance();
-          }).container))
-      );
+          }).container)
+        );
 
       self.radioGroup = radioGroup;
     });
 
     c.extendPrototype({
-      render: function(expanded) {
+      open: function() {
         this.radioGroup.apparentValue = this.data && this.data.type;
-        return Editor.Form.prototype.render.call(this, expanded);
+        return Editor.Cell.prototype.open.call(this);
       },
-      _renderSummary: function() {
+      summarize: function() {
         var type = this.data && this.data.type;
         if (type == null) {
           return "(Audience not selected)";
@@ -50,7 +49,7 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
     });
   });
 
-  var AnnouncementPeriodForm = Editor.Form.defineClass(function(c) {
+  var AnnouncementPeriodCell = Editor.Cell.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
@@ -62,17 +61,14 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
       endDatePicker.addChangeListener(function(value) {
         self.data.endDate = value;
       });
-      self.container
+      self.form.container
         .append($("<div>")
-          .addClass("expanded")
           .append($("<span>").text("Start date: "))
           .append(startDatePicker.container))
         .append($("<div>")
-          .addClass("expanded")
           .append($("<span>").text("End date: "))
           .append(endDatePicker.container))
         .append($("<div>")
-          .addClass("expanded")
           .append(ui.Button.create("OK", function() {
             self.data.startDate = startDatePicker.value;
             self.data.endDate = endDatePicker.value;
@@ -84,17 +80,15 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
     });
 
     c.extendPrototype({
-      render: function(expanded) {
-        if (expanded) {
-          var startDate = this.data.startDate ? new Date(this.data.startDate) : new Date();
-          var endDate = this.data.endDate ? new Date(this.data.endDate) : 
-                new Date(startDate.getTime() + 7*24*60*60*1000);
-          this.startDatePicker.value = startDate;
-          this.endDatePicker.value = endDate;
-        }
-        return Editor.Form.prototype.render.call(this, expanded);
+      open: function() {
+        var startDate = this.data.startDate ? new Date(this.data.startDate) : new Date();
+        var endDate = this.data.endDate ? new Date(this.data.endDate) : 
+          new Date(startDate.getTime() + 7*24*60*60*1000);
+        this.startDatePicker.value = startDate;
+        this.endDatePicker.value = endDate;
+        return Editor.Cell.prototype.open.call(this);
       },
-      _renderSummary: function() {
+      summarize: function() {
         var startDate = this.data.startDate;
         var endDate = this.data.endDate;
         if (!startDate || !endDate) {
@@ -108,7 +102,7 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
   return Editor.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      forms: [ AnnouncementTypeForm, AnnouncementPeriodForm, VideoRecorder ]
+      cells: [ AnnouncementTypeCell, AnnouncementPeriodCell, VideoRecorder ]
     });
 
     c.extendPrototype({

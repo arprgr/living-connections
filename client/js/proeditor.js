@@ -1,9 +1,9 @@
 // proeditor.js - Profile Editor component
 
 define([ "jquery", "editor", "ui/index", "vidrec" ],
-  function($, Editor, ui, VideoRecorder) {
+function($,        Editor,   ui,         VideoRecorder) {
 
-  var ProfileNameForm = Editor.Form.defineClass(function(c) {
+  var ProfileNameCell = Editor.Cell.defineClass(function(c) {
 
     c.defineDefaultOptions({
       outputProperties: [ "name" ]
@@ -27,12 +27,10 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
         okButton.enabled = nameInput.valid;
       });
 
-      self.container
+      self.form.container
         .append($("<div>")
-          .addClass("expanded")
           .text("What name would you like to go by in Living Connections?"))
         .append($("<div>")
-          .addClass("expanded")
           .append(nameInput.container)
           .append(okButton.container));
 
@@ -40,18 +38,14 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
     });
 
     c.extendPrototype({
-      render: function(expanded) {
+      openForm: function() {
         var self = this;
-        Editor.Form.prototype.render.call(self, expanded);
-        if (expanded) {
-          self.nameInput.value = self.data.name;
-          setTimeout(function() {
-            self.nameInput.select().focus();
-          }, 100);
-        }
-        return self;
+        self.nameInput.value = self.data.name;
+        setTimeout(function() {
+          self.nameInput.select().focus();
+        }, 100);
       },
-      _renderSummary: function() {
+      summarize: function() {
         return "Your name is " + (this.data.name || "not set");
       }
     });
@@ -60,7 +54,7 @@ define([ "jquery", "editor", "ui/index", "vidrec" ],
   return Editor.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      forms: [ ProfileNameForm, VideoRecorder ]
+      cells: [ ProfileNameCell, VideoRecorder ]
     });
 
     c.extendPrototype({

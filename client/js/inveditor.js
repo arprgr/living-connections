@@ -7,7 +7,7 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
 
   var apiService = Services.apiService;
 
-  var InvitationEmailForm = Editor.Form.defineClass(function(c) {
+  var InvitationEmailCell = Editor.Cell.defineClass(function(c) {
 
     c.defineDefaultOptions({
       outputProperties: [ "email" ]
@@ -31,12 +31,10 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
         okButton.enabled = emailInput.valid;
       });
 
-      self.container
+      self.form.container
         .append($("<div>")
-          .addClass("expanded")
           .text("What is your friend's email address?"))
         .append($("<div>")
-          .addClass("expanded")
           .append(emailInput.container)
           .append(okButton.container))
 
@@ -44,19 +42,16 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
     });
 
     c.extendPrototype({
-      render: function(expanded) {
+      openForm: function() {
         var self = this;
-        Editor.Form.prototype.render.call(self, expanded);
-        if (expanded) {
-          self.emailInput.value = self.data.email;
-          setTimeout(function() {
-            self.emailInput.focus();
-          }, 100);
-        }
-        return self;
+        self.emailInput.value = self.data.email;
+        setTimeout(function() {
+          self.emailInput.focus();
+        }, 100);
       },
-      _renderSummary: function() {
-        return "Email to:" + this.data.email;
+      summarize: function() {
+        var email = this.data.email;
+        return email ? ("Email to:" + email) : "(recipient not yet selected)";
       }
     });
   });
@@ -64,7 +59,7 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
   return Editor.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      forms: [ InvitationEmailForm, VideoRecorder ]
+      cells: [ InvitationEmailCell, VideoRecorder ]
     });
 
     c.extendPrototype({

@@ -15,7 +15,7 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
   var STATE_REVIEW = 6;        // Playing a previously recorded video.
   var STATE_ERROR = 8;         // Something went wrong.
 
-  return Editor.Form.defineClass(function(c) {
+  return Editor.Cell.defineClass(function(c) {
 
     c.defineDefaultOptions({
       prompt: "Record a videogram",
@@ -88,16 +88,13 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
         return button;
       }
 
-      var videoComponent = new ui.Video($("<div>").addClass("vid").addClass("expanded"));
+      var videoComponent = new ui.Video($("<div>").addClass("vid"));
 
-      self.container
-        .addClass("panel")
+      self.form.container
         .append(videoComponent.container)
-        .append($("<div>").addClass("buttons").addClass("expanded"))
-        .append($("<div>")
-          .addClass("thumb")
-          .addClass("collapsed")
-          .append($("<img>")));
+        .append($("<div>").addClass("buttons"));
+      self.summary.container
+        .append($("<div>").addClass("thumb").append($("<img>")));
 
       var startButton = addButton("Start recording", function() {
         startRecording(self);
@@ -132,16 +129,16 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
 
     c.extendPrototype({
 
-      render: function(expanded) {
+      openForm: function() {
         var self = this;
         var asset = self.data.asset;
-        Editor.Form.prototype.render.call(self, expanded);
-        if (expanded) {
-          asset ? self.openAsset(asset) : self.openCamera();
-        }
-        else {
-          self.container.find(".thumb img").attr("src", asset && webmToJpg(asset.url));
-        }
+        asset ? self.openAsset(asset) : self.openCamera();
+      },
+
+      openSummary: function() {
+        var self = this;
+        var asset = self.data.asset;
+        self.container.find(".thumb img").attr("src", asset && webmToJpg(asset.url));
         return self;
       },
 
@@ -157,9 +154,8 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       },
 
       openAsset: function(asset) {
-        var self = this;
-        showVideo(self, asset.url, STATE_REVIEW);
-        return self;
+        showVideo(this, asset.url, STATE_REVIEW);
+        return this;
       },
 
       close: function() {
@@ -167,7 +163,7 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
         return this;
       },
 
-      _renderSummary: function() {
+      summarize: function() {
         var self = this;
         return self.isLacking ? self.options.prompt : self.options.summary;
       }

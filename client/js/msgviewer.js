@@ -13,7 +13,7 @@ function($,        Activity,     ui,         ActionItem,   Services) {
       var videoPlayer = new VideoPlayer(); 
 
       self.container
-        .append($("<div>")
+        .append($("<div>").addClass("body")
           .addClass("panel")
           .append(videoPlayer.container)
           .append($("<div>").addClass("formsect").addClass("buttons")))
@@ -56,8 +56,7 @@ function($,        Activity,     ui,         ActionItem,   Services) {
     c.extendPrototype({
       open: function(actionItem) {
         var self = this;
-        Activity.prototype.open.call(self, actionItem);
-        self.title = actionItem.title;
+        var actionItem = self.options.actionItem;
         var message = actionItem.message || actionItem.user;
         self.videoPlayer.load(message.asset.url, { autoplay: true });
         var fromUser = message.fromUser;
@@ -67,7 +66,7 @@ function($,        Activity,     ui,         ActionItem,   Services) {
           }
           addButtons(self, fromUser);
         }
-        return self;
+        return Activity.prototype.open.call(self);
       }
     });
   });

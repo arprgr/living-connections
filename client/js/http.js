@@ -92,7 +92,12 @@ define([ "jquery" ], function($) {
     if (self.contentType) {
       req.setRequestHeader(CONTENT_TYPE_HDR, self.contentType);
     }
-    req.send(self.getBody());
+    try {
+      req.send(self.getBody());
+    }
+    catch (e) {
+      promise.reject(e);
+    }
     return promise;
   }
 

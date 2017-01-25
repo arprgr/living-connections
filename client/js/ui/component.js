@@ -55,17 +55,22 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
       var plugins = this._plugins;
       var args = Array.prototype.slice.call(arguments);
       var method = args.shift();
+      var retval;
       for (var i = 0; i < plugins.length; ++i) {
         var plugin = plugins[i];
         if (method in plugin) {
-          plugin[method].apply(plugin, args);
+          retval = plugin[method].apply(plugin, args);
         }
       }
-      return this;
+      return retval;
     },
 
-    open: function() {},
-    close: function() {}
+    open: function() {
+      return this;
+    },
+    close: function() {
+      return this;
+    }
   });
 
   function defineProperty(proto, propName, propDesc) {

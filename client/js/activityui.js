@@ -6,17 +6,19 @@ define([ "jquery", "ui/component" ], function($, Component) {
   return Component.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      exitLinkText: "Exit"
+      exitLinkText: "Exit",
+      actionItem: {}
     });
 
     c.defineInitializer(function() {
       var self = this;
+      var actionItem = self.options.actionItem;
       self.container
         .addClass("activity")
         .append($("<div>")
           .addClass("header")
-          .append($("<div>").addClass("icon").append($("<img>")))
-          .append($("<div>").addClass("title").append($("<span>")))
+          .append($("<div>").addClass("icon").append($("<img>").attr("src", actionItem.iconUri)))
+          .append($("<div>").addClass("title").append($("<span>").text(actionItem.title || "")))
           .append($("<div>").addClass("cancel")
             .append($("<a>")
               .text(self.options.exitLinkText)
@@ -26,21 +28,10 @@ define([ "jquery", "ui/component" ], function($, Component) {
               })
             )
           )
-        )
-        .append($("<div>").addClass("body"));
+        );
     });
 
     c.extendPrototype({
-      open: function(actionItem) {
-        var self = this;
-        self.container.find(".icon img").attr("src", actionItem.iconUri || "");
-        self.container.find(".title span").text(actionItem.title || "");
-        self.actionItem = actionItem;
-      },
-
-      close: function() {
-      },
-
       openOther: function(actionItem) {
         this.invokePlugin("openOther", actionItem);
       },
