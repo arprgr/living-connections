@@ -63,20 +63,10 @@ function addActionItem(compiler, msg, action, data) {
   }, data));
 }
 
-function addAdminAnnouncementItems(compiler) {
-  addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_CREATE);
-
-  var announcements = compiler.announcements;
-  for (var i = 0; i < announcements.length; ++i) {
-    var ann = announcements[i];
-    addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_UPDATE, ann.id, {
-      announcement: ann
-    });
-  }
-}
-
 function addInvitationItems(compiler) {
-  addActionItem(compiler, MSG_INVITATION, ACTION_CREATE);
+  if (compiler.user.level <= 1) {
+    addActionItem(compiler, MSG_INVITATION, ACTION_CREATE);
+  }
 }
 
 function addGreetingItems(compiler) {
@@ -94,15 +84,16 @@ function addProfileItems(compiler) {
 }
 
 function addAnnouncementItems(compiler) {
+  var isAdmin = compiler.user.level <= 0;
+  if (isAdmin) {
+    addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_CREATE);
+  }
   var announcements = compiler.announcements;
   for (var i = 0; i < announcements.length; ++i) {
     var ann = announcements[i];
-    if (ann.creatorId != compiler.user.id) {
-      addActionItem(compiler, MSG_ANNOUNCEMENT, ACTION_RECEIVE, ann.id, {
-        message: {
-          fromUser: ann.fromUser,
-          asset: ann.asset
-        }
+    if (ann.creatorId != compiler.user.id || !isAdmin) {
+      addActionItem(compiler, MSG_ANNOUNCEMENT, isAdmin ? ACTION_UPDATE : ACTION_RECEIVE, ann.id, {
+        message: ann
       });
     }
   }
@@ -132,18 +123,11 @@ function addIncomingMessageItems(compiler) {
 }
 
 function createActionItems(compiler) {
-  var userLevel = compiler.user.level;
-  switch (userLevel) {
-  case 0:
-    addAdminAnnouncementItems(compiler);
-  case 1:
-    addInvitationItems(compiler);
-  default:
-    addGreetingItems(compiler);
-    addProfileItems(compiler);
-    addAnnouncementItems(compiler);
-    addIncomingMessageItems(compiler);
-  }
+  addInvitationItems(compiler);
+  addGreetingItems(compiler);
+  addProfileItems(compiler);
+  addAnnouncementItems(compiler);
+  addIncomingMessageItems(compiler);
 }
 
 function finalizeActionItems(compiler) {

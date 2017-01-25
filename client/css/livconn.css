@@ -1,6 +1,6 @@
 body {
 	font-family: Tahoma, Arial;
-  background: linear-gradient(to bottom, #e6f0e0, #f0e6d0);
+  background: linear-gradient(to bottom right, #e6f0e0, #9ca890);
 }
 div {
   margin: 0;
@@ -95,7 +95,7 @@ div {
   padding: 4px;
   margin: auto;
 }
-#login input {
+#login input[type=text] {
   width: 285px;
   font-size: 20px;
   margin: 4px 0px;
@@ -148,8 +148,8 @@ div {
   color: #004;
   box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
 }
-#app .listing .item.new {
-  background-color: yellow;
+#app .listing .item:hover {
+  background-color: #fff8e8;
 }
 #app .listing .item .title {
   float: right;
@@ -220,9 +220,9 @@ video {
   border: solid 2px #aaa;
 }
 #app button:enabled:hover {
-  background-color: #cc8;
+  background-color: #ec9;
 }
-#app input {
+#app input[type=text] {
   background-color: white;
   color: #004;
   border: solid 2px #004;

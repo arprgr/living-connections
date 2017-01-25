@@ -1,4 +1,5 @@
-// activityui.js - ActivityComponent
+// activityui.js - ActivityComponent.  A base component class.
+// All activity views have a header containing an icon, a title, and a cancel/exit link.
 
 define([ "jquery", "ui/component" ], function($, Component) {
 
@@ -40,8 +41,8 @@ define([ "jquery", "ui/component" ], function($, Component) {
       close: function() {
       },
 
-      openActionItem: function(actionItem) {
-        this.invokePlugin("openActionItem", actionItem);
+      openOther: function(actionItem) {
+        this.invokePlugin("openOther", actionItem);
       },
 
       exit: function() {

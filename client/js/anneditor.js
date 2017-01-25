@@ -54,16 +54,54 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
 
     c.defineInitializer(function() {
       var self = this;
+      var startDatePicker = new ui.DateTimeInput($("<span>"));
+      startDatePicker.addChangeListener(function(value) {
+        self.data.startDate = value;
+      });
+      var endDatePicker = new ui.DateTimeInput($("<span>"));
+      endDatePicker.addChangeListener(function(value) {
+        self.data.endDate = value;
+      });
       self.container
         .append($("<div>")
           .addClass("expanded")
-          .text("Future versions of this app will allow you to assign an active period for the announcement."))
+          .append($("<span>").text("Start date: "))
+          .append(startDatePicker.container))
+        .append($("<div>")
+          .addClass("expanded")
+          .append($("<span>").text("End date: "))
+          .append(endDatePicker.container))
         .append($("<div>")
           .addClass("expanded")
           .append(ui.Button.create("OK", function() {
+            self.data.startDate = startDatePicker.value;
+            self.data.endDate = endDatePicker.value;
             self.advance();
           }).container)
         )
+      self.startDatePicker = startDatePicker;
+      self.endDatePicker = endDatePicker;
+    });
+
+    c.extendPrototype({
+      render: function(expanded) {
+        if (expanded) {
+          var startDate = this.data.startDate ? new Date(this.data.startDate) : new Date();
+          var endDate = this.data.endDate ? new Date(this.data.endDate) : 
+                new Date(startDate.getTime() + 7*24*60*60*1000);
+          this.startDatePicker.value = startDate;
+          this.endDatePicker.value = endDate;
+        }
+        return Editor.Form.prototype.render.call(this, expanded);
+      },
+      _renderSummary: function() {
+        var startDate = this.data.startDate;
+        var endDate = this.data.endDate;
+        if (!startDate || !endDate) {
+          return "(Active period not selected)";
+        }
+        return "Announcement active from " + startDate  + " to " + endDate;
+      }
     });
   });
 
@@ -75,7 +113,7 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
 
     c.extendPrototype({
       _initData: function() {
-        return this.actionItem.announcement;
+        return this.actionItem.message;
       }
     });
   })

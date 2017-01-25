@@ -57,6 +57,7 @@ function($,        Services,   Activity,     SlideForm,   ui) {
   function submit(form, action) {
     var actionItem = form.actionItem;
     Services.apiService.saveForm(actionItem.what, action || actionItem.action, form.data).then(function() {
+console.log('should exit');
       form.exit();
     }).catch(function(err) {
       console.log(err);

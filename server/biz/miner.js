@@ -36,7 +36,7 @@ function getOutgoingMessages(miner) {
 function getAnnouncements(miner) {
   return models.Message.findAnnouncements({
     deep: true,
-    current: true
+    current: !(miner.user.level <= 0)
   })
   .then(function(announcements) {
     miner.announcements = announcements || [];

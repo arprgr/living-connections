@@ -44,11 +44,11 @@ function($,        Activity,     ui,         ActionItem,   Services) {
 
     function addButtons(self, fromUser) {
       addButton(self, "Reply to " + fromUser.name, function() {
-        self.openActionItem(new ActionItem({ id: "gre-cre", user: fromUser, isReply: 1 }));
+        self.openOther(new ActionItem({ id: "gre-cre", user: fromUser, isReply: 1 }));
       });
       if (fromUser.asset) {
         addButton(self, "See " + fromUser.name + "'s Profile", function() {
-          self.openActionItem(new ActionItem({ id: "pro-rec", user: fromUser }));
+          self.openOther(new ActionItem({ id: "pro-rec", user: fromUser }));
         });
       }
     }

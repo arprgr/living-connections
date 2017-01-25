@@ -95,6 +95,7 @@ define([ "jquery", "ui/component" ], function($, Component) {
         return SlideForm_advance(this, incr);
       },
       exit: function() {
+console.log('exiting more');
         this.invokePlugin("exit");
       }
     });
@@ -124,9 +125,8 @@ define([ "jquery", "ui/component" ], function($, Component) {
         self.container.find(".collapsed").setVisible(!expanded);
         return self;
       },
-      close: function() {
-      },
       exit: function() {
+console.log('exiting');
         this.invokePlugin("exit");
       },
       requestOpen: function() {

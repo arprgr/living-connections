@@ -45,10 +45,11 @@ define([ "http" ], function(HttpMethod) {
   function makeDeleteAnnouncement() {
     var DeleteAnnouncementMethod = new HttpMethod.DeleteForm()
       .addPathComponent("api/messages")
-      .addPathParameter("id");
+      .addPathParameter("id")
+      .build();
 
     return function(form) {
-      return new UpdateAnnouncementMethod()
+      return new DeleteAnnouncementMethod()
         .setId(form.id)
         .execute();
     }

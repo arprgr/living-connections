@@ -33,19 +33,28 @@ function($,        Services,   Listing,     Activities,   ui) {
 
     function Main_newListing(self) {
       return function() {
-        var listing = new Listing();
-        listing.addPlugin(self.callback);
-        listing.open();
-        return listing;
+        return new Listing()
+          .addPlugin({
+            openActionItem: function(actionItem) {
+              Main_open(self, Main_newActivity(self, actionItem));
+            }
+          })
+          .open();
       }
     }
 
     function Main_newActivity(self, actionItem) {
       return function() {
-        var activity = new (Activities.ClassForActionItem(actionItem))();
-        activity.addPlugin(self.callback);
-        activity.open(actionItem);
-        return activity;
+        return new (Activities.ClassForActionItem(actionItem))()
+          .addPlugin({
+            openOther: function(actionItem) {
+              Main_open(self, Main_newActivity(self, actionItem));
+            },
+            exit: function() {
+              Main_open(self, Main_newListing(self));
+            }
+          })
+          .open(actionItem);
       }
     }
 
@@ -70,15 +79,6 @@ function($,        Services,   Listing,     Activities,   ui) {
               }))))
         .append($("<div>").addClass("body")
         );
-
-      self.callback = {
-        openActionItem: function(actionItem) {
-          Main_open(self, Main_newActivity(self, actionItem));
-        },
-        exit: function() {
-          Main_open(self, Main_newListing(self));
-        }
-      }
 
       sessionManager.addStateChangeListener(function() {
         var user = sessionManager.user || {}
