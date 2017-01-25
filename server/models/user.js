@@ -52,9 +52,13 @@ module.exports = function(sequelize, DataTypes) {
     return User.findOne({ where: { id: id }});
   }
 
-  function superuser() {
+  function destroyById(id) {
+    return User.destroy({ where: { id: id }});
+  }
+
+  function superuser(id) {
     return {
-      id: 0,
+      id: id || 0,
       name: "Root",
       level: 0
     }
@@ -64,6 +68,7 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: associate,
       builder: builder,
+      destroyById: destroyById,
       findById: findById,
       includeMe: includeMe,
       superuser: superuser

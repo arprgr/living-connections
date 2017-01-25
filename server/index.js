@@ -58,13 +58,12 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
 
 // Routers.
 server.use("/", require("./routers/alpha"));
-server.use("/api/messages", require("./routers/messages_api"));
+server.use("/api", require("./routers/api"));
 server.use("/admin", require("./routers/admin"));
 for (var type in {
   "assets": 1,
   "connections": 1,
-  "invites": 1,
-  "sessions": 1,
+  "invites": 1
 }) {
   server.use("/" + type, require("./routers/" + type));
 }

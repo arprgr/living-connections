@@ -114,15 +114,15 @@ define([ "http" ], function(HttpMethod) {
     }
   }
 
-  function makeUpdateUser() {
-    var UpdateUserMethod = new HttpMethod.PutForm()
-      .addPathComponent("/users/-")
+  function makeUpdateProfile() {
+    var UpdateProfileMethod = new HttpMethod.PutForm()
+      .addPathComponent("/api/profile")
       .addQueryParameter("assetId")
       .addQueryParameter("name")
       .build();
 
-    return function updateUser(form) {
-      return new UpdateUserMethod()
+    return function updateProfile(form) {
+      return new UpdateProfileMethod()
         .setAssetId(form.assetId)
         .setName(form.name)
         .execute();
@@ -146,8 +146,8 @@ define([ "http" ], function(HttpMethod) {
         "upd": makeUpdateInvite()
       },
       "pro": {
-        "cre": makeUpdateUser(),
-        "upd": makeUpdateUser()
+        "cre": makeUpdateProfile(),
+        "upd": makeUpdateProfile()
       }
     }
   }

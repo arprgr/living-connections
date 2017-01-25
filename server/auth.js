@@ -170,9 +170,7 @@ function AuthMgr_resolveSeed(self) {
 function hasSecretAccessKey(req) {
   var accessKey = req.headers["x-access-key"];
   if (accessKey) {
-    var equal = accessKey === CONFIG.adminKey;
-    console.log(accessKey, CONFIG.adminKey, equal);
-    return equal;
+    return accessKey === CONFIG.adminKey;
   }
   return false;
 }
@@ -187,9 +185,12 @@ function isLocalRequest(req) {
   return false;
 }
 
-// Should we grant this request access to superuser functions?
-function AuthMgr_isSuperUser(self) {
-  return hasSecretAccessKey(self.req) || isLocalRequest(self.req);
+// TODO: lock down this potential security hole.
+function AuthMgr_becomeUser(self) {
+  // Should we grant this request superuser power?
+  if (hasSecretAccessKey(self.req) || isLocalRequest(self.req)) {
+    return models.User.superuser(self.req.headers["x-effective-user"]);
+  }
 }
 
 AuthMgr.prototype = {
@@ -202,8 +203,8 @@ AuthMgr.prototype = {
   resolveSeed: function() {
     return AuthMgr_resolveSeed(this);
   },
-  isSuperUser: function() {
-    return AuthMgr_isSuperUser(this);
+  becomeUser: function() {
+    return AuthMgr_becomeUser(this);
   }
 }
 
@@ -224,9 +225,8 @@ module.exports = function(req, res, next) {
       req.session = tx.session;
       req.user = tx.session.user;
     }
-    else if (tx.isSuperUser()) {
-      // TODO: lock down this potential security hole.
-      req.user = models.User.superuser();
+    else {
+      req.user = tx.becomeUser();
     }
     next();
   })
