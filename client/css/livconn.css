@@ -1,6 +1,6 @@
 body {
 	font-family: Tahoma, Arial;
-  background-color: #e6f0e0;
+  background: linear-gradient(to bottom, #e6f0e0, #f0e6d0);
 }
 div {
   margin: 0;
