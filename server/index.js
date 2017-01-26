@@ -2,6 +2,7 @@
 
 const pug = require("pug");
 const CONFIG = require("./conf");
+const AuthMgr = require("./auth");
 
 // Create server.
 var express = require("express");
@@ -27,8 +28,12 @@ server.use(bodyParser.raw({
 
 // Add middleware.
 server.use(require("cookie-parser")());
-server.use(require("./auth"));
 server.use(require("./jsonish"));
+server.use(function(req, res, next) {
+  new AuthMgr(req, res).establishSessionAndUser()
+  .then(next)
+  .catch(next);
+});
 
 // One page template serves all.
 function servePage(pageConfig, response) {
@@ -39,13 +44,19 @@ function servePage(pageConfig, response) {
 }
 
 // Index page.
-server.get("/", function(request, response) {
-  if (request.query && request.query.e) {
-    // Don't keep trying the session seed.
-    response.redirect("/");
+server.get("/", function(req, res) {
+  if (req.query && req.query.e) {
+    new AuthMgr(req, res).resolveEmailSessionSeed(req.query.e)
+    .then(function() {
+      // Strip away the session seed.
+      res.redirect("/");
+    })
+    .catch(function() {
+      res.redirect("/");
+    });
   }
   else {
-    servePage(CONFIG.pages.livconn, response);
+    servePage(CONFIG.pages.livconn, res);
   }
 });
 

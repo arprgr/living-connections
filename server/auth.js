@@ -12,8 +12,14 @@ function findSession(externalId) {
 }
 
 // Look up a session seed, given an email address.
-function findEmailSessionSeed(externalId) {
-  return models.EmailSessionSeed.findCurrentByExternalId(externalId);
+function findEmailSessionSeed(eseed) {
+  if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
+    // Development backdoor.
+    if (eseed.match(/u_\d+/)) {
+      return Promise.resolve({ userId: eseed.substring(2) });
+    }
+  }
+  return models.EmailSessionSeed.findCurrentByExternalId(eseed);
 }
 
 // Look up an email profile, given a email address.
@@ -59,113 +65,6 @@ function findOrCreateUserByEmail(email) {
   })
 }
 
-//
-// Class AuthMgr - an implementation class for management of user/session state.
-//
-function AuthMgr(req, res, next) {
-  // Express thingies.
-  this.req = req;
-  this.res = res;
-  this.next = next;
-
-  // Sessions are persisted via cookie.
-  var sessionCookie = req.cookies.s && req.cookies.s;
-  this.sessionCookie = sessionCookie;
-
-  // Email session seeds appear in the query string, usually in a link to the index page.
-  this.eseed = req.query && req.query.e;
-}
-
-// If the request includes session identification, fetch the session and user objects.
-function AuthMgr_lookupSession(self) {
-  if (self.sessionCookie) {
-    return findSession(self.sessionCookie).then(function(session) {
-      self.session = session;
-      return self;
-    });
-  }
-  return Promise.resolve(self);
-}
-
-// If the request refers to an email session seed, fetch the EmailSessionSeed object.
-function AuthMgr_lookupEmailSessionSeed(self) {
-  if (self.eseed) {
-    if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
-      if (self.eseed.match(/u_\d+/)) {
-        self.emailSessionSeed = { userId: self.eseed.substring(2) }
-        return self;
-      }
-    }
-    return findEmailSessionSeed(self.eseed).then(function(emailSessionSeed) {
-      self.emailSessionSeed = emailSessionSeed;
-      return self;
-    });
-  }
-  return Promise.resolve(self);
-}
-
-// Transmit session ID to client.
-function sendSessionCookie(res, sessionId) {
-  res.cookie("s", sessionId, {
-    maxAge: 2147483647,
-    path: "/",
-  });
-}
-
-// If the user is logged in, log out.
-function AuthMgr_logOut(self) {
-  if (self.session) {
-    models.Session.destroyByExternalId(self.session.id);
-    self.session = null;
-  }
-}
-
-// Follow up with newly created session.
-function AuthMgr_initiateSession(self, session) {
-  self.session = session;
-  sendSessionCookie(self.res, session.externalId);
-
-  // If user was invited, send the invitation message and create a tentative
-  // connection.
-  // TODO: move this into a biz logic module.
-  var emailSessionSeed = self.emailSessionSeed;
-  if (emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
-    // Fire and forget.
-    models.Message.builder()
-      .seed(emailSessionSeed)
-      .toUser(session.user)
-      .type(models.Message.INVITE_TYPE)
-      .build();
-    // Fire and forget.
-    models.Connection.builder()
-      .userId(emailSessionSeed.fromUserId)
-      .peerId(session.user.id)
-      .build();
-  }
-}
-
-function AuthMgr_resolveSeed(self) {
-  // If a user has clicked on an invitation/ticket email:
-  var sessionSeed = self.emailSessionSeed;
-  if (sessionSeed) {
-    AuthMgr_logOut(self);
-    return (
-      // Find the user by ID or by the given email address, or create one.
-      ("userId" in sessionSeed) ? findUser(sessionSeed.userId) : findOrCreateUserByEmail(sessionSeed.email)
-    )
-    // Log in.
-    .then(createSessionForUser)
-    // Carry out any necessary side effects.
-    .then(function(session) {
-      AuthMgr_initiateSession(self, session);
-    }).then(function() {
-      return self;
-    });
-  }
-  // Nothing to do.
-  return Promise.resolve(self);
-}
-
 // Got secret access key?
 function hasSecretAccessKey(req) {
   var accessKey = req.headers["x-access-key"];
@@ -185,50 +84,115 @@ function isLocalRequest(req) {
   return false;
 }
 
-// TODO: lock down this potential security hole.
-function AuthMgr_becomeUser(self) {
-  // Should we grant this request superuser power?
-  if (hasSecretAccessKey(self.req) || isLocalRequest(self.req)) {
-    return models.User.superuser(self.req.headers["x-effective-user"]);
+// Transmit session ID to client.
+function sendSessionCookie(res, sessionId) {
+  res.cookie("s", sessionId, {
+    maxAge: 2147483647,
+    path: "/",
+  });
+}
+
+// If the user is logged in, log out.
+function logOut(request) {
+  if (request.session) {
+    models.Session.destroyByExternalId(request.session.id);
   }
+  request.session = null;
+  request.user = null;
+}
+
+//
+// Class AuthMgr - a manager of user/session state.
+//
+function AuthMgr(req, res) {
+  // Express thingies.
+  this.req = req;
+  this.res = res;
+}
+
+// If the request includes session identification, fetch the session and user objects.
+function AuthMgr_establishSessionAndUser(self) {
+  var req = self.req;
+
+  // Sessions are persisted via cookie.
+  var sessionCookie = req.cookies.s && req.cookies.s;
+
+  return (sessionCookie ? findSession(sessionCookie) : Promise.resolve())
+  .then(function(session) {
+    if (session) {
+      req.session = session;
+      req.user = session.user;
+    }
+    else {
+      // Should we grant this request superuser power?
+      if (hasSecretAccessKey(self.req) || isLocalRequest(self.req)) {
+        req.user = models.User.superuser(self.req.headers["x-effective-user"]);
+      }
+    }
+  });
+}
+
+// Follow up with newly created session.
+function snapEmailSessionSeed(emailSessionSeed) {
+  // If this session seed represents an invitation...
+  if (emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
+    // All of the following updates are "fire and forget".
+
+    // Send the invitation message.
+    models.Message.builder()
+      .seed(emailSessionSeed)
+      .toUser(session.user)
+      .type(models.Message.INVITE_TYPE)
+      .build();
+
+    // Make a tentative connection (TODO: work out how connections work)
+    models.Connection.builder()
+      .userId(emailSessionSeed.fromUserId)
+      .peerId(session.user.id)
+      .build();
+
+    // Don't invite twice.
+    emailSession.updateAttributes({ assetId: null, fromUserId: null });
+  }
+}
+
+// A user has clicked on an invitation/ticket email.
+function AuthMgr_resolveEmailSessionSeed(self, eseed) {
+
+  return findEmailSessionSeed(eseed).then(function(emailSessionSeed) {
+    if (emailSessionSeed) {
+      logOut(self.req);
+      return (
+        // Find the user by ID or by the given email address, or create one.
+        ("userId" in emailSessionSeed)
+          ? findUser(emailSessionSeed.userId)
+          : findOrCreateUserByEmail(emailSessionSeed.email)
+      )
+      // Log in.
+      .then(createSessionForUser)
+      .then(function(session) {
+        sendSessionCookie(self.res, session.externalId);
+        snapEmailSessionSeed(emailSessionSeed, session.user);
+      });
+    }
+  })
+}
+
+// I want to identify myself through Facebook.
+function AuthMgr_handleFacebookLogin(self, facebookId, otherFacebookInfo) {
+  return Promise.resolve(otherFacebookInfo);
 }
 
 AuthMgr.prototype = {
-  lookupSession: function() {
-    return AuthMgr_lookupSession(this);
+  establishSessionAndUser: function() {
+    return AuthMgr_establishSessionAndUser(this);
   },
-  lookupEmailSessionSeed: function() {
-    return AuthMgr_lookupEmailSessionSeed(this);
+  resolveEmailSessionSeed: function(eseed) {
+    return AuthMgr_resolveEmailSessionSeed(this, eseed);
   },
-  resolveSeed: function() {
-    return AuthMgr_resolveSeed(this);
-  },
-  becomeUser: function() {
-    return AuthMgr_becomeUser(this);
+  handleFacebookLogin: function(facebookId, otherFacebookInfo) {
+    return AuthMgr_handleFacebookLogin(this, facebookId, otherFacebookInfo);
   }
 }
 
-//
-// Authentication middeware function
-// Based on request attributes, attach a user and session to the request object.
-//
-module.exports = function(req, res, next) {
-  new AuthMgr(req, res, next).lookupSession()
-  .then(function(tx) {
-    return tx.lookupEmailSessionSeed();
-  })
-  .then(function(tx) {
-    return tx.resolveSeed();
-  })
-  .then(function(tx) {
-    if (tx.session) {
-      req.session = tx.session;
-      req.user = tx.session.user;
-    }
-    else {
-      req.user = tx.becomeUser();
-    }
-    next();
-  })
-  .catch(next);
-}
+module.exports = AuthMgr;

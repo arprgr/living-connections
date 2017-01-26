@@ -4,7 +4,9 @@ const express = require("express");
 const Promise = require("promise");
 const ActionCompiler = require("../biz/actions");
 const admittance = require("../biz/admittance");
+const facebook = require("../biz/facebook");
 const models = require("../models/index");
+const AuthMgr = require("../auth");
 
 var router = express.Router();
 
@@ -16,6 +18,15 @@ router.get("/a", function(req, res) {
   else {
     res.json({});
   }
+});
+
+// Log in with Facebook.
+router.post("/f", function(req, res) {
+  res.jsonResultOf(new AuthMgr(req, res).handleFacebookLogin(req.body.id, {
+    name: req.body.name,
+    email: req.body.email,
+    picture: req.body.picture
+  }));
 });
 
 // Request a login ticket via email.
