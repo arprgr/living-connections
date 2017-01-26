@@ -91,6 +91,7 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       var videoComponent = new ui.Video($("<div>").addClass("vid"));
 
       self.form.container
+        .addClass("vidrec")
         .append(videoComponent.container)
         .append($("<div>").addClass("buttons"));
       self.summary.container

@@ -127,7 +127,7 @@ div {
   float: right;
 }
 #app a {
-  color: #682;
+  color: #670;
 }
 #app > .body {
   position: relative;
@@ -188,12 +188,16 @@ div {
   right: 0;
   padding: 9px 6px;
 }
-#app .activity .vid {
-  clear: both;
-  margin: 6px;
+#app .activity .vidrec {
+  position: relative;
+}
+#app .activity .vidrec .buttons {
+  position: absolute;
+  top: 10px;
+  left: 25px;
 }
 #app .activity .panel {
-  border-top: dashed 1px #e6f0e0;
+  border-top: dashed 1px #96a090;
   padding: 0 0 5px 20px;
 }
 #app .activity .panel > div {
