@@ -54,7 +54,10 @@ function($,        Editor,   ui,         VideoRecorder) {
   return Editor.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      cells: [ ProfileNameCell, VideoRecorder ]
+      cells: [
+        ProfileNameCell,
+        { cons: VideoRecorder, options: { prompt: "Add a videogram to your profile" } }
+      ]
     });
 
     c.extendPrototype({
