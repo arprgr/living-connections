@@ -20,7 +20,9 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
     c.defineDefaultOptions({
       prompt: "Record a videogram",
       summary: "Your videogram",
-      outputProperties: [ "asset" ]
+      outputProperties: [ "asset" ],
+      maxSeconds: 20,
+      countdownStartsAt: 5
     });
 
     function toErrorState(self) {
@@ -40,15 +42,40 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       });
     }
 
+    function now() {
+      return new Date().getTime();
+    }
+
+    function scheduleCountdown(self) {
+      self.countdown = setTimeout(function() {
+        var millisRemaining = self.autoStopTime - now();
+        if (millisRemaining <= 0) {
+          stopRecording(self);
+        }
+        else {
+          var secondsRemaining = Math.floor(millisRemaining/1000 + 1);
+          if (secondsRemaining <= self.options.countdownStartsAt) {
+            self.counter.visible = true;
+            self.counter.text = secondsRemaining;
+            self.counter.container.css("opacity", (millisRemaining % 1000) / 1000);
+          }
+          scheduleCountdown(self);
+        }
+      }, 20);
+    }
+
     function startRecording(self) {
       videoService.startRecording();
       self.state.setValue(STATE_RECORDING);
+      self.autoStopTime = now() + (self.options.maxSeconds * 1000);
+      scheduleCountdown(self);
       return self;
     }
 
     function stopRecording(self) {
       self.videoComponent.pause();
       self.state.setValue(STATE_LOADING);
+      clearTimeout(self.countdown);
       videoService.stopRecording(function(blob, url) {
         self.videoBlob = blob;
         videoService.close();
@@ -90,13 +117,6 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
 
       var videoComponent = new ui.Video($("<div>").addClass("vid"));
 
-      self.form.container
-        .addClass("vidrec")
-        .append(videoComponent.container)
-        .append($("<div>").addClass("buttons"));
-      self.summary.container
-        .append($("<div>").addClass("thumb").append($("<img>")));
-
       var startButton = addButton("Start recording", function() {
         startRecording(self);
       });
@@ -109,17 +129,34 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       var discardButton = addButton("Discard and re-record", function() {
         self.openCamera();
       });
-      var state = new ui.Observable(STATE_INIT);
+      var counter = new ui.Component($("<span>").addClass("counter"));
+      counter.container.appendTo(self.container.find(".buttons"));
 
+      self.form.container
+        .addClass("vidrec")
+        .append(videoComponent.container)
+        .append($("<div>").addClass("buttons")
+          .append(startButton.container)
+          .append(stopButton.container)
+          .append(counter.container)
+          .append(acceptButton.container)
+          .append(discardButton.container));
+      self.summary.container
+        .append($("<div>").addClass("thumb").append($("<img>")));
+
+      var state = new ui.Observable();
       state.addChangeListener(function(value) {
         startButton.visible = value == STATE_LIVE;
         stopButton.visible = value == STATE_RECORDING;
         acceptButton.visible = value == STATE_REVIEW || value == STATE_PLAYBACK;
+        counter.visible = false;
         discardButton.visible = value == STATE_REVIEW || value == STATE_PLAYBACK;
       });
+      state.value = STATE_INIT;
 
       self.videoComponent = videoComponent;
       self.state = state;
+      self.counter = counter;
     });
 
     function webmToJpg(url) {
