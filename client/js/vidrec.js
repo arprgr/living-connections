@@ -159,9 +159,8 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
         return this;
       },
 
-      close: function() {
+      formClosing: function() {
         videoService.close();
-        return this;
       },
 
       summarize: function() {

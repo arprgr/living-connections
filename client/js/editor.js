@@ -148,6 +148,7 @@ function($,        Services,   Activity,     ui) {
     function Editor_openByIndex(self, newIndex) {
       if (newIndex != self.cellIndex) {
         if (self.cellIndex >= 0) {
+console.log('summarize', self.cellIndex);
           self.cells[self.cellIndex].show(SUMMARY);
         }
         if (newIndex >= 0 && newIndex < self.cells.length) {

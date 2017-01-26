@@ -10,6 +10,7 @@ define([ "ui/component" ], function(Component) {
       self.states = {};
       self.current = {};
       self.goal = self.options.goalType && (new self.options.goalType());
+      self.currentState = self.options.initialState;
     });
 
     function inState(self, state, compartmentKey) {
@@ -62,21 +63,24 @@ define([ "ui/component" ], function(Component) {
     }
 
     function show(self, state) {
-      var newCurrent = {};
-      for (var key in self.compartments) {
-        var currentlyShown = key in self.current;
-        var shouldBeShown = inState(self, state, key);
-        if (shouldBeShown) {
-          if (!currentlyShown) {
-            showComponent(self, key);
+      if (state != self.currentState) {
+        var newCurrent = {};
+        for (var key in self.compartments) {
+          var currentlyShown = key in self.current;
+          var shouldBeShown = inState(self, state, key);
+          if (shouldBeShown) {
+            if (!currentlyShown) {
+              showComponent(self, key);
+            }
+            newCurrent[key] = self.compartments[key];
           }
-          newCurrent[key] = self.compartments[key];
+          else if (currentlyShown) {
+            hideComponent(self, key);
+          }
         }
-        else if (currentlyShown) {
-          hideComponent(self, key);
-        }
+        self.current = newCurrent;
+        self.currentState = state;
       }
-      self.current = newCurrent;
       return self;
     }
 
