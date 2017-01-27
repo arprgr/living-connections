@@ -10,6 +10,7 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
   var InvitationEmailCell = Editor.Cell.defineClass(function(c) {
 
     c.defineDefaultOptions({
+      writeOnce: true,
       outputProperties: [ "email" ]
     });
 

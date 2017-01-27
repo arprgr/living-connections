@@ -60,7 +60,7 @@ module.exports = function(sequelize, DataTypes) {
     return {
       id: id || 0,
       name: "Root",
-      level: 0
+      level: !id ? 0 : 1
     }
   }
 

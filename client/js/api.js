@@ -86,7 +86,7 @@ define([ "http" ], function(HttpMethod) {
 
   function makePostInvite() {
     var PostInviteMethod = new HttpMethod.PostForm()
-      .addPathComponent("invites")
+      .addPathComponent("api/invites")
       .addQueryParameter("assetId")
       .addQueryParameter("email")
       .build();
@@ -101,16 +101,27 @@ define([ "http" ], function(HttpMethod) {
 
   function makeUpdateInvite() {
     var UpdateInviteMethod = new HttpMethod.PutForm()
-      .addPathComponent("invites")
+      .addPathComponent("api/invites")
       .addPathParameter("id")
       .addQueryParameter("assetId")
-      .addQueryParameter("email")
       .build();
 
     return function(form) {
       return new UpdateInviteMethod()
         .setAssetId(form.assetId)
-        .setEmail(form.email)
+        .execute();
+    }
+  }
+
+  function makeDeleteInvite() {
+    var DeleteInviteMethod = new HttpMethod.DeleteForm()
+      .addPathComponent("api/invites")
+      .addPathParameter("id")
+      .build();
+
+    return function(form) {
+      return new DeleteInviteMethod()
+        .setId(form.id)
         .execute();
     }
   }
@@ -144,7 +155,8 @@ define([ "http" ], function(HttpMethod) {
       },
       "inv": {
         "cre": makePostInvite(),
-        "upd": makeUpdateInvite()
+        "upd": makeUpdateInvite(),
+        "del": makeDeleteInvite()
       },
       "pro": {
         "cre": makeUpdateProfile(),

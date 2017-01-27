@@ -12,6 +12,7 @@ router.use(function(req, res, next) {
   }
 });
 
+router.use("/invites", require("./invites_api"));
 router.use("/messages", require("./messages_api"));
 router.use("/profile", require("./profile_api"));
 

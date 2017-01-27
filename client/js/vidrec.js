@@ -196,8 +196,10 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
         return this;
       },
 
+      // TODO: this is crazy.  Enable subclassing of Summary and Form.
       formClosing: function() {
         videoService.close();
+        Editor.Cell.prototype.formClosing.call(this);
       },
 
       summarize: function() {

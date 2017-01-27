@@ -19,7 +19,7 @@ function findEmailSessionSeed(eseed) {
       return Promise.resolve({ userId: eseed.substring(2) });
     }
   }
-  return models.EmailSessionSeed.findCurrentByExternalId(eseed);
+  return models.EmailSessionSeed.findByExternalId(eseed, { current: 1, deep: 1 });
 }
 
 // Look up an email profile, given a email address.
@@ -133,27 +133,31 @@ function AuthMgr_establishSessionAndUser(self) {
 }
 
 // Follow up with newly created session.
-function snapEmailSessionSeed(emailSessionSeed) {
-  // If this session seed represents an invitation...
-  if (emailSessionSeed.assetId && emailSessionSeed.fromUserId) {
-    // All of the following updates are "fire and forget".
+function AuthMgr_snapEmailSessionSeed(emailSessionSeed, toUser) {
+  // All of the following updates are "fire and forget"...
 
-    // Send the invitation message.
-    models.Message.builder()
-      .seed(emailSessionSeed)
-      .toUser(session.user)
-      .type(models.Message.INVITE_TYPE)
-      .build();
-
+  // If this session seed has a message attached...
+  if (emailSessionSeed.messageId) {
+    // ...deliver it.
+    models.Message.findById(emailSessionSeed.messageId)
+    .then(function(message) {
+      if (message) {
+        message.toUserId = toUser.id;
+      }
+    });
+  }
+  
+  // If this session seed has a source user...
+  if (emailSessionSeed.fromUserId) {
     // Make a tentative connection (TODO: work out how connections work)
     models.Connection.builder()
       .userId(emailSessionSeed.fromUserId)
-      .peerId(session.user.id)
+      .peerId(toUser.id)
       .build();
-
-    // Don't invite twice.
-    emailSession.updateAttributes({ assetId: null, fromUserId: null });
   }
+
+  // Don't repeat.
+  emailSession.updateAttributes({ messageId: null, fromUserId: null });
 }
 
 // A user has clicked on an invitation/ticket email.

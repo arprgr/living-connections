@@ -14,7 +14,6 @@ function Miner(user) {
   self.announcements = [];
   self.incomingMessages = [];
   self.outgoingMessages = [];
-  self.incomingInvitations = [];
   self.outgoingInvitations = [];
   self.connections = [];
 }
@@ -50,13 +49,21 @@ function getConnections(miner) {
   })
 }
 
+function getOutgoingInvitations(miner) {
+  return models.EmailSessionSeed.findByFromUserId(miner.user.id)
+  .then(function(invites) {
+    miner.outgoingInvitations = invites || [];
+  })
+}
+
 Miner.prototype.run = function() {
   var miner = this;
   return exec.executeGroup(miner, [
     getIncomingMessages,
     getOutgoingMessages,
     getAnnouncements,
-    getConnections
+    getConnections,
+    getOutgoingInvitations
   ])
 }
 

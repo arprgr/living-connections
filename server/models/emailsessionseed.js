@@ -3,6 +3,7 @@ module.exports = function(sequelize, DataTypes) {
   const random = require("../util/random");
 
   var EmailSessionSeed;
+  var models;
 
   function schema() {
     return {
@@ -12,9 +13,10 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function associate(models) {
+  function associate(_models) {
+    models = _models;
     EmailSessionSeed.belongsTo(models.User, { as: "fromUser" });
-    EmailSessionSeed.belongsTo(models.Asset, { as: "asset" });
+    EmailSessionSeed.belongsTo(models.Message, { as: "message" });
   }
 
   function builder() {
@@ -38,8 +40,8 @@ module.exports = function(sequelize, DataTypes) {
         values.fromUserId = fromUser.id;
         return this;
       },
-      assetId: function(assetId) {
-        values.assetId = assetId;
+      messageId: function(messageId) {
+        values.messageId = messageId;
         return this;
       },
       build: function() {
@@ -48,22 +50,81 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function findCurrentByExternalId(externalId) {
-    return EmailSessionSeed.find({
-      where: {
-        externalId: externalId,
-        expiresAt: {
-          "$gt": new Date()
-        }
-      }
-    });
+  function destroyWhere(where) {
+    return EmailSessionSeed.destroy({ where: where });
+  }
+
+  function destroyAll(id) {
+    return destroyWhere({});
+  }
+
+  function destroyById(id) {
+    return destroyWhere({ id: id });
+  }
+
+  function deepIncludes() {
+    return [{
+      model: models.Message,
+      as: "message",
+      attributes: [ "id", "assetId", "type" ],
+      include: [{
+        model: models.Asset,
+        as: "asset",
+        attributes: [ "id", "url" ]
+      }]
+    }, {
+      model: models.User,
+      as: "fromUser",
+      attributes: [ "id", "name" ]
+    }]
+  }
+
+  function findOne(where, options) {
+    var query = {
+      where: where,
+      attributes: [ "id", "email", "fromUserId" ]
+    };
+    if (options && options.deep) {
+      query.include = deepIncludes()
+    }
+    if (options && options.current) {
+      query.where.expiresAt = { "$gt": new Date() };
+    }
+    return EmailSessionSeed.findOne(query);
+  }
+
+  function findById(id, options) {
+    return findOne({ id: id }, options);
+  }
+
+  function findByExternalId(externalId, options) {
+    return findOne({ externalId: externalId }, options);
+  }
+
+  function findByFromUserId(fromUserId, options) {
+    options = options || {};
+    var query = {
+      where: { fromUserId: fromUserId },
+      attributes: [ "id", "email", "fromUserId" ]
+    };
+    if (options.deep) {
+      query.include = deepIncludes()
+    }
+    if (options && options.current) {
+      query.where.expiresAt = { "$gt": date };
+    }
+    return EmailSessionSeed.findAll(query);
   }
 
   EmailSessionSeed = sequelize.define("EmailSessionSeed", schema(), {
     classMethods: {
       associate: associate,
       builder: builder,
-      findCurrentByExternalId: findCurrentByExternalId
+      destroyAll: destroyAll,
+      destroyById: destroyById,
+      findById: findById,
+      findByExternalId: findByExternalId,
+      findByFromUserId: findByFromUserId
     }
   })
 

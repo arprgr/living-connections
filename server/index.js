@@ -73,8 +73,7 @@ server.use("/api", require("./routers/api"));
 server.use("/admin", require("./routers/admin"));
 for (var type in {
   "assets": 1,
-  "connections": 1,
-  "invites": 1
+  "connections": 1
 }) {
   server.use("/" + type, require("./routers/" + type));
 }

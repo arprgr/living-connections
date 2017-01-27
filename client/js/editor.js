@@ -9,21 +9,25 @@ function($,        Services,   Activity,     ui) {
     c.defineInitializer(function() {
       var self = this;
       var label = new ui.Component($("<span>").addClass("summary"));
+      var changeLink = ui.Link.create("Change", function() {
+        self.requestOpen();
+      });
       self.container
         .addClass("panel")
         .append(label.container)
         .append($("<span>").text(" "))
-        .append(ui.Link.create("Change", function() {
-          self.requestOpen();
-        }).container);
+        .append(changeLink.container)
       self.label = label;
+      self.changeLink = changeLink;
     });
 
     c.extendPrototype({
       open: function() {
-        this.label.text = this.invokePlugin("summarize");
-        this.invokePlugin("openSummary");
-        return this;
+        var self = this;
+        self.label.text = this.invokePlugin("summarize");
+        self.invokePlugin("openSummary");
+        self.changeLink.visible = !self.invokePlugin("readonly");
+        return self;
       },
       requestOpen: function() {
         this.invokePlugin("requestOpen");
@@ -82,6 +86,7 @@ function($,        Services,   Activity,     ui) {
     c.defineProperty("isLacking", {
       get: function() {
         var self = this;
+        if (self.readonly()) return false;
         if (!self.data) return true;
         var outputProperties = self.options.outputProperties;
         for (var i = 0; i < outputProperties.length; ++i) {
@@ -106,6 +111,12 @@ function($,        Services,   Activity,     ui) {
       summarize: function() {},
       formClosing: function() {
         this.invokePlugin("formClosing");
+      },
+      readonly: function() {
+        return this.actionItem.action == "upd" && this.options.writeOnce;
+      },
+      show: function(newState) {
+        ui.Carton.prototype.show.call(this, this.readonly() ? SUMMARY : newState);
       }
     });
   });
@@ -135,14 +146,39 @@ function($,        Services,   Activity,     ui) {
       return cell;
     }
 
-    function submit(self, action) {
+    function submit(self) {
       var actionItem = self.actionItem;
       var data = self.data;
-      Services.apiService.saveForm(actionItem.what, action || actionItem.action, data).then(function() {
+      // TODO: pop up a results window.  TODO: add a timeout.
+      Services.apiService.saveForm(actionItem.what, actionItem.action, data).then(function() {
         self.exit();
       }).catch(function(err) {
         console.log(err);
       });
+    }
+
+    function createDeleteButton(self) {
+      var LABEL = "Delete!";
+      var deleteCount = 0;
+      var deleteTimeout;
+      var deleteButton = ui.Button.create(LABEL, function() {
+        clearTimeout(deleteTimeout);
+        switch (++deleteCount) {
+        case 1:
+          deleteButton.text = "Press again to confirm delete";
+          deleteTimeout = setTimeout(function() {
+            deleteButton.text = LABEL;
+            deleteCount = 0;
+          }, 3000);
+          break;
+        case 2:
+          deleteButton.enabled = false;
+          self.doneButton.enabled = false;
+          Services.apiService.saveForm(self.actionItem.what, "del", self.data);
+          self.exit();
+        }
+      }).setVisible(self.actionItem.action == "upd" && self.actionItem.what != "pro");
+      return deleteButton;
     }
 
     function Editor_openByIndex(self, newIndex) {
@@ -193,10 +229,6 @@ console.log('summarize', self.cellIndex);
         self.container.append(cell.container);
       }
 
-      var deleteButton = ui.Button.create("Delete!", function() {
-        submit(self, "del");
-      }).setVisible(self.actionItem.type == "ann-upd");
-
       var doneButton = ui.Button.create("Done", function() {
         submit(self);
       });
@@ -205,14 +237,18 @@ console.log('summarize', self.cellIndex);
         self.exit();
       });
 
+      var deleteButton = createDeleteButton(self);
+
       self.container.append($("<div>")
         .addClass("panel")
-        .append(deleteButton.container)
         .append(doneButton.container)
-        .append(cancelButton.container));
+        .append(cancelButton.container)
+        .append(deleteButton.container)
+      );
 
       self.cells = cells;
       self.cellIndex = -1;
+      self.deleteButton = deleteButton;
       self.doneButton = doneButton;
     });
 

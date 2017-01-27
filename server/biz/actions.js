@@ -67,6 +67,13 @@ function addInvitationItems(compiler) {
   if (compiler.user.level <= 1) {
     addActionItem(compiler, MSG_INVITATION, ACTION_CREATE);
   }
+  var outgoingInvitations = compiler.outgoingInvitations;
+  for (var i = 0; i < outgoingInvitations.length; ++i) {
+    var inv = outgoingInvitations[i];
+    addActionItem(compiler, MSG_INVITATION, ACTION_UPDATE, inv.id, {
+      invite: inv
+    });
+  }
 }
 
 function addGreetingItems(compiler) {

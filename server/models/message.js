@@ -53,6 +53,15 @@ module.exports = function(sequelize, DataTypes) {
         }
         return this;
       },
+      assetId: function(assetId) {
+        values.assetId = assetId;
+        return this;
+      },
+      fromUser: function(fromUser) {
+        values.fromUserId = fromUser.id;
+        associations.fromUser = fromUser;
+        return this;
+      },
       toUser: function(toUser) {
         values.toUserId = toUser.id;
         associations.toUser = toUser;

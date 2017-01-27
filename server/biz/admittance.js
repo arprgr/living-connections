@@ -8,6 +8,7 @@ const emailer = require("../connectors/email");
 const models = require("../models/index");
 const EmailProfile = models.EmailProfile;
 const random = require("../util/random");
+const Promise = require("promise");
 
 function dateFromNow(days) {
   return new Date(new Date().getTime() + (days * 24 * 60 * 60 * 1000));
@@ -51,15 +52,26 @@ function Invitation(req, toEmail, fromUser, assetId) {
 // Create an EmailSessionSeed model object.
 // Return a promise.
 function createEmailSessionSeed(self) {
-  var builder = models.EmailSessionSeed.builder()
-    .externalId(self.externalId)
-    .email(self.toEmail)
-    .expiresAt(self.expiresAt);
-  if (self.fromUser) {
-    builder.fromUser(self.fromUser)
-    builder.assetId(self.assetId)
-  }
-  return builder.build();
+  return (self.assetId && self.fromUser
+    ? models.Message.builder()
+      .assetId(self.assetId)
+      .fromUser(self.fromUser)
+      .type(models.Message.INVITE_TYPE)
+      .build()
+    : Promise.resolve()
+  ).then(function(message) {
+    var emailSessionSeedBuilder = models.EmailSessionSeed.builder()
+      .externalId(self.externalId)
+      .email(self.toEmail)
+      .expiresAt(self.expiresAt);
+    if (self.fromUser) {
+      emailSessionSeedBuilder.fromUser(self.fromUser);
+    }
+    if (message) {
+      emailSessionSeedBuilder.messageId(message.id);
+    }
+    return emailSessionSeedBuilder.build();
+  });
 }
 
 // Generate the email message and send it.
