@@ -123,7 +123,7 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
       var stopButton = addButton("Stop recording", function() {
         stopRecording(self);
       });
-      var acceptButton = addButton("Looks good!", function() {
+      var acceptButton = addButton("Looks good! Save it", function() {
         acceptRecording(self);
       });
       var discardButton = addButton("Discard and re-record", function() {
