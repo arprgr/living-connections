@@ -25,8 +25,7 @@ define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
       if (actionItems) {
         for (var i = 0; i < actionItems.length; ++i) {
           var actionItem = actionItems[i];
-          var itemView = renderItem(self, actionItem);
-          container.append(itemView);
+          var itemView = renderItem(self, actionItem).appendTo(container);
           if (lastBatch && !(actionItem.id in lastBatch)) {
             itemView.addClass("new");
             if (self.chime) {
