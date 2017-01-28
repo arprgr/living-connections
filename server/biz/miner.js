@@ -2,7 +2,6 @@
 
 // Get everything relevant about a user at the moment.
 
-const Promise = require("promise");
 const models = require("../models/index");
 const exec = require("../util/exec");
 
@@ -12,41 +11,18 @@ function Miner(user) {
   var self = this;
   self.user = user;
   self.announcements = [];
-  self.incomingMessages = [];
-  self.outgoingMessages = [];
   self.outgoingInvitations = [];
   self.connections = [];
 }
 
-function getIncomingMessages(miner) {
-  return models.Message.findByToUserId(miner.user.id)
-  .then(function(incomingMessages) {
-    miner.incomingMessages = incomingMessages || [];
-  })
-}
-
-function getOutgoingMessages(miner) {
-  return models.Message.findByFromUserId(miner.user.id)
-  .then(function(outgoingMessages) {
-    miner.outgoingMessages = outgoingMessages || [];
-  })
-}
-
 function getAnnouncements(miner) {
-  return models.Message.findAnnouncements({
-    deep: true,
-    current: !(miner.user.level <= 0)
-  })
+  return ((miner.user.level <= 0)
+    ? models.Message.findAnnouncements()
+    : models.Message.findCurrentAnnouncementsForUser(miner.user.id)
+  )
   .then(function(announcements) {
     miner.announcements = announcements || [];
-  })
-}
-
-function getConnections(miner) {
-  return models.Connection.findByUserId(miner.user.id)
-  .then(function(connections) {
-    miner.connections = connections || [];
-  })
+  });
 }
 
 function getOutgoingInvitations(miner) {
@@ -56,11 +32,48 @@ function getOutgoingInvitations(miner) {
   })
 }
 
+function makeMessageQuery(connection) {
+  return function() {
+    return models.Message.findByUserIds(connection.peerId, connection.userId, { limit: 1 })
+    .then(function(messages) {
+      if (messages && messages.length) {
+        connection.latestMessage = messages[0];
+      }
+    });
+  }
+}
+
+function makeReciprocalConnectionQuery(connection) {
+  return function() {
+    return models.Connection.findByUserAndPeerIds(connection.peerId, connection.userId)
+    .then(function(recip) {
+      if (recip) {
+        connection.reciprocal = true;
+      }
+    });
+  };
+}
+
+function makePerConnectionQueries(connections) {
+  var group = [];
+  for (var i in connections) {
+    group.push(makeReciprocalConnectionQuery(connections[i]));
+    group.push(makeMessageQuery(connections[i]));
+  }
+  return group;
+}
+
+function getConnections(miner) {
+  return models.Connection.findByUserId(miner.user.id)
+  .then(function(connections) {
+    miner.connections = connections || [];
+    return exec.executeGroup(miner, makePerConnectionQueries(miner.connections));
+  })
+}
+
 Miner.prototype.run = function() {
   var miner = this;
   return exec.executeGroup(miner, [
-    getIncomingMessages,
-    getOutgoingMessages,
     getAnnouncements,
     getConnections,
     getOutgoingInvitations

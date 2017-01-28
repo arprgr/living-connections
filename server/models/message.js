@@ -5,6 +5,13 @@ module.exports = function(sequelize, DataTypes) {
   var Message;
   var models;
 
+  const GREETING_TYPE = 0;
+  const INVITE_TYPE = 1;
+  const PROFILE_TYPE = 2;
+  const ANNOUNCEMENT_TO_ALL_TYPE = 3;
+  const ANNOUNCEMENT_TO_NEW_TYPE = 4;
+  const MAX_TYPE = 4;
+
   function schema() {
     return {
       endDate: DataTypes.DATE,
@@ -81,61 +88,75 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function findById(id, options) {
-    var query = {
-      where: { id: id }
-    };
+  function includes(options) {
+    var includes = [ includeAsset() ];
     if (options && options.deep) {
-      query.include = [
-        includeAsset(), 
-        includeUser("toUser"),
-        includeUser("fromUser")
-      ]
+      includes.push(includeUser("toUser"));
+      includes.push(includeUser("fromUser"));
     }
-    return Message.find(query);
+    return includes;
+  }
+
+  function findById(id, options) {
+    return Message.find({
+      where: { id: id },
+      include: includes(options)
+    });
   }
 
   function findAllWhere(where, options) {
     var query = {
       where: where,
-      order: [ [ "startDate", "DESC" ] ]
+      include: includes(options),
+      order: [ [ "updatedAt", "DESC" ] ]
     };
-    options = options || {};
-    if (options.current) {
+    if (options && options.current) {
       var date = new Date();
       query.where.startDate = { "$lte": date };
       query.where.endDate = { "$gt": date };
     }
-    if (options.limit) {
+    if (options && options.limit) {
       query.limit = options.limit;
-    }
-    if (options.deep) {
-      query.include = [
-        includeAsset(), 
-        includeUser("fromUser"),
-        includeUser("toUser")
-      ];
     }
     return Message.findAll(query);
   }
 
-  function findAnnouncements(options) {
+  function findAnnouncements() {
     return findAllWhere({
       "toUserId": null,
       "$or": [{
-        "type": 3,
+        "type": ANNOUNCEMENT_TO_ALL_TYPE
       }, {
-        "type": 4,
+        "type": ANNOUNCEMENT_TO_NEW_TYPE
+      }],
+    }, {
+      deep: 1
+    });
+  }
+
+  function findCurrentAnnouncementsForUser(userId) {
+    return findAllWhere({
+      "$or": [{
+        "type": ANNOUNCEMENT_TO_ALL_TYPE
+      }, {
+        "type": ANNOUNCEMENT_TO_NEW_TYPE,
+        "toUserId": null
+      }],
+    }, {
+      deep: 1
+    });
+  }
+
+  function findByUserIds(u1, u2, options) {
+    return findAllWhere({
+      "$or": [{
+        "fromUserId": u1,
+        "toUserId": u2
+      }, {
+        "toUserId": u1,
+        "fromUserId": u2
       }],
     }, options);
-  }
-
-  function findByFromUserId(fromUserId, options) {
-    return findAllWhere({ fromUserId: fromUserId }, options);
-  }
-
-  function findByToUserId(toUserId, options) {
-    return findAllWhere({ toUserId: toUserId }, options);
   }
 
   function destroyWhere(where) {
@@ -157,18 +178,18 @@ module.exports = function(sequelize, DataTypes) {
       destroyAll: destroyAll,
       destroyById: destroyById,
       findAnnouncements: findAnnouncements,
+      findCurrentAnnouncementsForUser: findCurrentAnnouncementsForUser,
       findById: findById,
-      findByFromUserId: findByFromUserId,
-      findByToUserId: findByToUserId
+      findByUserIds: findByUserIds
     }
   });
 
-  Message.GREETING_TYPE = 0;
-  Message.INVITE_TYPE = 1;
-  Message.PROFILE_TYPE = 2;
-  Message.ANNOUNCEMENT_TO_ALL_TYPE = 3;
-  Message.ANNOUNCEMENT_TO_NEW_TYPE = 4;
-  Message.MAX_TYPE = 4;
+  Message.GREETING_TYPE = GREETING_TYPE;
+  Message.INVITE_TYPE = INVITE_TYPE;
+  Message.PROFILE_TYPE = PROFILE_TYPE;
+  Message.ANNOUNCEMENT_TO_ALL_TYPE = ANNOUNCEMENT_TO_ALL_TYPE;
+  Message.ANNOUNCEMENT_TO_NEW_TYPE = ANNOUNCEMENT_TO_NEW_TYPE;
+  Message.MAX_TYPE = MAX_TYPE;
 
   return Message;
 };

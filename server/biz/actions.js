@@ -51,16 +51,53 @@ function ActionCompiler(user) {
   this.actionItems = [];
 }
 
+function findObjectId(data) {
+  if (data) {
+    for (var i in data) {
+      if ("id" in data[i]) {
+        return data[i].id;
+      }
+    }
+  }
+}
+
 function addActionItem(compiler, msg, action, data) {
   var id = msg + "-" + action;
-  if (arguments.length > 4) {
-    id += "-" + arguments[3];
+  var objectId = findObjectId(data);
+  if (objectId) {
+    id += "-" + objectId;
   }
-  var data = arguments.length > 3 ? arguments[arguments.length - 1] : undefined;
   compiler.actionItems.push(extend({
     id: id,
     priority: priorityOfMsgAction(msg, action)
   }, data));
+}
+
+function addConnectionItems(compiler) {
+  var connections = compiler.connections;
+  for (var i = 0; i < connections.length; ++i) {
+    var conn = connections[i];
+    var latestMessage = conn.latestMessage;
+    if (latestMessage && latestMessage.toUserId == compiler.user.id) {
+      latestMessage.fromUser = conn.peer;
+      addActionItem(compiler,
+        (latestMessage.type == Message.INVITE_TYPE && !conn.reciprocal) ? MSG_INVITATION : MSG_GREETING,
+        ACTION_RECEIVE, {
+          // Apparently sequelize model objects are immutable.  Didn't know that!
+          message: {
+            id: latestMessage.id,
+            assetId: latestMessage.assetId,
+            asset: latestMessage.asset,
+            fromUser: conn.peer
+          }
+        });
+    }
+    else {
+      addActionItem(compiler, MSG_GREETING, ACTION_CREATE, {
+        user: conn.peer
+      });
+    }
+  }
 }
 
 function addInvitationItems(compiler) {
@@ -70,17 +107,9 @@ function addInvitationItems(compiler) {
   var outgoingInvitations = compiler.outgoingInvitations;
   for (var i = 0; i < outgoingInvitations.length; ++i) {
     var inv = outgoingInvitations[i];
-    addActionItem(compiler, MSG_INVITATION, ACTION_UPDATE, inv.id, {
+    addActionItem(compiler, MSG_INVITATION, ACTION_UPDATE, {
       invite: inv
     });
-  }
-}
-
-function addGreetingItems(compiler) {
-  var connections = compiler.connections;
-  for (var i = 0; i < connections.length; ++i) {
-    var conn = connections[i];
-    addActionItem(compiler, MSG_GREETING, ACTION_CREATE);
   }
 }
 
@@ -99,42 +128,18 @@ function addAnnouncementItems(compiler) {
   for (var i = 0; i < announcements.length; ++i) {
     var ann = announcements[i];
     if (ann.creatorId != compiler.user.id || !isAdmin) {
-      addActionItem(compiler, MSG_ANNOUNCEMENT, isAdmin ? ACTION_UPDATE : ACTION_RECEIVE, ann.id, {
+      addActionItem(compiler, MSG_ANNOUNCEMENT, isAdmin ? ACTION_UPDATE : ACTION_RECEIVE, {
         message: ann
       });
     }
   }
 }
 
-function userIsConnection(compiler, user) {
-  var connections = compiler.connections;
-  for (var i = 0; i < connections.length; ++i) {
-    var conn = connections[i];
-    if (conn.peer.id == user.id) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function addIncomingMessageItems(compiler) {
-  var messages = compiler.incomingMessages;
-  for (var i = 0; i < messages.length; ++i) {
-    var message = messages[i];
-    var what = MSG_GREETING;
-    if (message.type == Message.INVITE_TYPE && !userIsConnection(compiler, message.fromUser)) {
-      what = MSG_INVITATION;
-    }
-    addActionItem(compiler, what, ACTION_RECEIVE, message.id, { message: message });
-  }
-}
-
 function createActionItems(compiler) {
+  addConnectionItems(compiler);
   addInvitationItems(compiler);
-  addGreetingItems(compiler);
-  addProfileItems(compiler);
   addAnnouncementItems(compiler);
-  addIncomingMessageItems(compiler);
+  addProfileItems(compiler);
 }
 
 function finalizeActionItems(compiler) {

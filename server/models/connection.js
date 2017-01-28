@@ -55,15 +55,12 @@ module.exports = function(sequelize, DataTypes) {
     })
   }
 
-  function findByPeerId(peerId) {
-    return Connection.findAll({
-      where: { peerId: peerId },
-      include: [{
-        model: models.User,
-        as: "user",
-        required: true
-      }],
-      order: [ [ "grade", "DESC" ] ]
+  function findByUserAndPeerIds(userId, peerId) {
+    return Connection.findOne({
+      where: {
+        userId: userId,
+        peerId: peerId
+      },
     })
   }
 
@@ -71,7 +68,8 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: associate,
       builder: builder,
-      findByUserId: findByUserId
+      findByUserId: findByUserId,
+      findByUserAndPeerIds: findByUserAndPeerIds
     }
   })
 
