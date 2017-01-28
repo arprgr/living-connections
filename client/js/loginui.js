@@ -162,10 +162,12 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
 
     c.defineInitializer(function() {
       var self = this;
+      self.container
+        .addClass("fbForm")
+        .append($("<div>").text("Log in through Facebook"));
       self
-        .addCompartment(0, new ui.Component().setText("Log in through Facebook"))
-        .addCompartment(1, new FacebookReadout())
-        .addCompartment(2, ui.Button.create("Go Back", function() {
+        .addCompartment(0, new FacebookReadout())
+        .addCompartment(1, ui.Button.create("Go Back", function() {
           self.invokePlugin("openEmailForm");
         }));
     });

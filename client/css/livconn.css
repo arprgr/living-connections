@@ -89,16 +89,28 @@ div {
   background-color: #ffd;
 }
 #login .useFb {
+  color: #004488;
   border-style: ridge;
   border-color: #670;
   border-width: 5px;
-  padding: 4px;
+  padding: 4px 4px 4px 32px;
   margin: auto;
+  background-image: url(/img/datfb.png);
+  background-position: 4px center;
+  background-size: 25px 25px;
+  background-repeat: no-repeat;
 }
 #login input[type=text] {
   width: 285px;
   font-size: 20px;
   margin: 4px 0px;
+}
+#login .fbForm {
+  padding: 4px 4px 4px 30px;
+  background-image: url(/img/datfb.png);
+  background-position: 0px 0px;
+  background-size: 25px 25px;
+  background-repeat: no-repeat;
 }
 #login .fadedot {
   margin: 5px 20px;
