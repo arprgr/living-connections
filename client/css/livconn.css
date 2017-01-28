@@ -209,7 +209,7 @@ div {
 }
 #app .activity .panel {
   border-top: dashed 1px #96a090;
-  padding: 0 0 5px 20px;
+  padding: 5px 0 5px 20px;
 }
 #app .activity .panel > div {
   margin-top: 5px;
