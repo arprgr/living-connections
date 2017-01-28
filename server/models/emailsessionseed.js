@@ -66,23 +66,19 @@ module.exports = function(sequelize, DataTypes) {
     return [{
       model: models.Message,
       as: "message",
-      attributes: [ "id", "assetId", "type" ],
       include: [{
         model: models.Asset,
-        as: "asset",
-        attributes: [ "id", "url" ]
+        as: "asset"
       }]
     }, {
       model: models.User,
-      as: "fromUser",
-      attributes: [ "id", "name" ]
+      as: "fromUser"
     }]
   }
 
   function findOne(where, options) {
     var query = {
-      where: where,
-      attributes: [ "id", "email", "fromUserId" ]
+      where: where
     };
     if (options && options.deep) {
       query.include = deepIncludes()
@@ -104,8 +100,7 @@ module.exports = function(sequelize, DataTypes) {
   function findByFromUserId(fromUserId, options) {
     options = options || {};
     var query = {
-      where: { fromUserId: fromUserId },
-      attributes: [ "id", "email", "fromUserId" ]
+      where: { fromUserId: fromUserId }
     };
     if (options.deep) {
       query.include = deepIncludes()

@@ -25,16 +25,16 @@ module.exports = (function() {
 
       console.log("email", options.to, options.subject);
 
-      nodemailer.createTransport(mailgun(auth)).sendMail(extend({
-        from: emailFrom
-      }, options), function(error, info) {
-        if (error) {
-          reject(error);
-        }
-        else {
-          resolve(info);
-        }
-      });
+      if (process.env.NODE_ENV == "test") {
+        resolve({});
+      }
+      else {
+        nodemailer.createTransport(mailgun(auth)).sendMail(extend({
+          from: emailFrom
+        }, options), function(error, info) {
+          error ? reject(error) : resolve(info);
+        });
+      }
     });
   }
 

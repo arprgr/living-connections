@@ -71,6 +71,10 @@ module.exports = function(sequelize, DataTypes) {
     return destroyWhere({});
   }
 
+  function destroyById(id) {
+    return destroyWhere({ id: id });
+  }
+
   function destroyByExternalId(externalId) {
     return destroyWhere({ externalId: externalId });
   }
@@ -81,6 +85,7 @@ module.exports = function(sequelize, DataTypes) {
       builder: builder,
       findByExternalId: findByExternalId,
       destroyAll: destroyAll,
+      destroyById: destroyById,
       destroyByExternalId: destroyByExternalId
     }
   })

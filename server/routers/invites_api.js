@@ -25,7 +25,7 @@ const VALIDATOR = new ApiValidator({
 
 // Retrieve invite by ID
 router.get("/:id", function(req, res) {
-  res.jsonResultOf(EmailSessionSeed.findById(req.params.id, { deep: true })
+  res.jsonResultOf(EmailSessionSeed.findById(req.params.id)
   .then(function(invite) {
     if (!invite) {
       throw { status: 404 };
@@ -55,7 +55,7 @@ router.put("/:id", function(req, res) {
     if (!invite) {
       throw { status: 404 };
     }
-    if (!(req.user.level <= 0) && req.user.id != invite.fromUserId) {
+    if (!(req.user.level <= 0) && (!invite.fromUser || req.user.id != invite.fromUser.id)) {
       throw { status: 401 };
     }
     fields = VALIDATOR.postvalidateUpdate(invite.message, fields);

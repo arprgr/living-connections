@@ -5,6 +5,7 @@
 const CONFIG = require("./conf");
 const models = require("./models/index");
 const Promise = require("promise");
+const exec = require("./util/exec");
 
 // Look up a session given its external ID, maybe from a cookie.
 function findSession(externalId) {
@@ -95,7 +96,7 @@ function sendSessionCookie(res, sessionId) {
 // If the user is logged in, log out.
 function logOut(request) {
   if (request.session) {
-    models.Session.destroyByExternalId(request.session.id);
+    models.Session.destroyById(request.session.id);
   }
   request.session = null;
   request.user = null;
@@ -132,38 +133,49 @@ function AuthMgr_establishSessionAndUser(self) {
   });
 }
 
-// Follow up with newly created session.
-function AuthMgr_snapEmailSessionSeed(emailSessionSeed, toUser) {
-  // All of the following updates are "fire and forget"...
+// Follow up with a just-activiated ticket (emailSessionSeed).
+function closeTicket(ticket, toUser) {
+  var group = [];
 
   // If this session seed has a message attached...
-  if (emailSessionSeed.messageId) {
+  if (ticket.message) {
     // ...deliver it.
-    models.Message.findById(emailSessionSeed.messageId)
-    .then(function(message) {
-      if (message) {
-        message.toUserId = toUser.id;
-      }
-    });
+    group.push(ticket.message.updateAttributes({
+        toUserId: toUser.id
+      }).catch(function(error) {
+        console.error("invitation message delivery error", error);
+      })
+    );
   }
   
   // If this session seed has a source user...
-  if (emailSessionSeed.fromUserId) {
+  if (ticket.fromUser) {
     // Make a tentative connection (TODO: work out how connections work)
-    models.Connection.builder()
-      .userId(emailSessionSeed.fromUserId)
+    group.push(models.Connection.builder()
+      .userId(ticket.fromUser.id)
       .peerId(toUser.id)
-      .build();
+      .build()
+      .catch(function(error) {
+        console.error("invitation connection error", error);
+      })
+    );
   }
 
   // Don't repeat.
-  emailSession.updateAttributes({ messageId: null, fromUserId: null });
+  group.push(ticket.updateAttributes({ messageId: null, fromUserId: null })
+    .catch(function(error) {
+      console.error("close ticket error", error);
+    })
+  );
+
+  return exec.executeGroup(group);
 }
 
 // A user has clicked on an invitation/ticket email.
 function AuthMgr_resolveEmailSessionSeed(self, eseed) {
 
-  return findEmailSessionSeed(eseed).then(function(emailSessionSeed) {
+  return findEmailSessionSeed(eseed)
+  .then(function(emailSessionSeed) {
     if (emailSessionSeed) {
       logOut(self.req);
       return (
@@ -176,7 +188,7 @@ function AuthMgr_resolveEmailSessionSeed(self, eseed) {
       .then(createSessionForUser)
       .then(function(session) {
         sendSessionCookie(self.res, session.externalId);
-        snapEmailSessionSeed(emailSessionSeed, session.user);
+        return closeTicket(emailSessionSeed, session.user);
       });
     }
   })

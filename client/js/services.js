@@ -14,7 +14,7 @@ function(ApiService, FacebookService, SessionManager, VideoService) {
   });
 
   var sessionManager = new SessionManager({
-    pollingPeriod: 8000,
+    pollingPeriod: 80000,
     retryTolerance: 3
   });
 

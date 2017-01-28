@@ -188,10 +188,10 @@ describe("Invites API", function() {
       request({
         method: "PUT",
         url: url + "/" + inviteId,
-        headers: authHeaders(userId),
         form: {
           email: "fred"
-        }
+        },
+        headers: authHeaders(userId)
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(500);
         done();
@@ -202,10 +202,10 @@ describe("Invites API", function() {
       request({
         method: "PUT",
         url: url + "/" + inviteId,
-        headers: authHeaders(userId),
         form: {
           assetId: 2
-        }
+        },
+        headers: authHeaders(userId)
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(200);
         expect(JSON.parse(body).message.assetId).to.equal(2);
