@@ -5,7 +5,7 @@ function(Editor,   VideoRecorder) {
 
   return Editor.defineClass(function(c) {
     c.defineDefaultOptions({
-      forms: [ VideoRecorder ]
+      cells: [ VideoRecorder ]
     });
     c.extendPrototype({
       _initData: function() {
