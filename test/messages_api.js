@@ -6,19 +6,44 @@ describe("Messages API", function() {
   var url = "http://localhost:4545/api/messages";
 
   var rootKey = fs.readFileSync("tmp/adminKey");
-  var authHeaders = {
+
+  var rootHeaders = {
     "X-Access-Key": rootKey
+  };
+
+  function authHeaders(userId) {
+    return {
+      "X-Access-Key": rootKey,
+      "X-Effective-User": userId
+    }
   }
 
-  // Clean up.
-  before(function(done) {
+  var fromUserId = 3;
+  var seedProperties = {
+    assetId: 5,
+    toUserId: 4,
+    type: 1
+  };
+  var goodMessageId;
+
+  // Start fresh each time, with a single message in the table.
+  beforeEach(function(done) {
     request({
       method: "DELETE",
       url: url,
-      headers: authHeaders
+      headers: rootHeaders
     }, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
-      done();
+      request({
+        method: "POST",
+        url: url,
+        headers: authHeaders(fromUserId),
+        form: seedProperties,
+      }, function(error, response, body) {
+        expect(response.statusCode).to.equal(200);
+        goodMessageId = JSON.parse(body).id;
+        done();
+      });
     });
   });
 
@@ -27,48 +52,60 @@ describe("Messages API", function() {
     it("is inaccessible without authorization", function(done) {
       request({
         method: "GET",
-        url: url + "/1"
+        url: url + "/" + goodMessageId,
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(401);
         done();
       });
     });
 
+    it("allows root to retrieve message", function(done) {
+      request({
+        method: "GET",
+        url: url + "/" + goodMessageId,
+        headers: rootHeaders
+      }, function(error, response, body) {
+        expect(response.statusCode).to.equal(200);
+        expect(JSON.parse(body).assetId).to.equal(seedProperties.assetId);
+        expect(JSON.parse(body).toUserId).to.equal(seedProperties.toUserId);
+        done();
+      });
+    })
+
     it("returns 404 for missing ID", function(done) {
       request({
         method: "GET",
-        url: url + "/1",
-        headers: authHeaders
+        url: url + "/" + (goodMessageId - 1),
+        headers: rootHeaders
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(404);
         done();
       });
     })
 
-    it("retrieves message", function(done) {
+    it("does not permit just anyone to retrieve message", function(done) {
       request({
-        method: "POST",
-        url: url,
-        headers: authHeaders,
-        form: {
-          assetId: 1,
-          toUserId: 1
-        }
+        method: "GET",
+        url: url + "/" + goodMessageId,
+        headers: authHeaders(fromUserId + seedProperties.toUserId + 1)
       }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        var id = JSON.parse(body).id;
-        request({
-          method: "GET",
-          url: url + "/" + id,
-          headers: authHeaders
-        }, function(error, response, body) {
-          expect(response.statusCode).to.equal(200);
-          expect(JSON.parse(body).assetId).to.equal(1);
-          expect(JSON.parse(body).toUserId).to.equal(1);
-          done();
-        });
+        expect(response.statusCode).to.equal(401);
+        done();
       });
     })
+
+    it("allows sender to retrieve message", function(done) {
+      request({
+        method: "GET",
+        url: url + "/" + goodMessageId,
+        headers: rootHeaders
+      }, function(error, response, body) {
+        expect(response.statusCode).to.equal(200);
+        expect(JSON.parse(body).assetId).to.equal(seedProperties.assetId);
+        expect(JSON.parse(body).toUserId).to.equal(seedProperties.toUserId);
+        done();
+      });
+    });
   });
 
   describe("post method", function() {
@@ -87,7 +124,7 @@ describe("Messages API", function() {
       request({
         method: "POST",
         url: url,
-        headers: authHeaders,
+        headers: rootHeaders,
         form: {
           type: 0,
           assetId: 1,
@@ -103,7 +140,7 @@ describe("Messages API", function() {
       request({
         method: "POST",
         url: url,
-        headers: authHeaders,
+        headers: rootHeaders,
         form: {
           assetId: 1,
           toUserId: 1
@@ -118,7 +155,7 @@ describe("Messages API", function() {
       request({
         method: "POST",
         url: url,
-        headers: authHeaders,
+        headers: rootHeaders,
         form: {
           type: 0,
           assetId: 1
@@ -134,7 +171,7 @@ describe("Messages API", function() {
       request({
         method: "POST",
         url: url,
-        headers: authHeaders,
+        headers: rootHeaders,
         form: {
           type: 3,
           assetId: 1
@@ -152,23 +189,6 @@ describe("Messages API", function() {
 
     var messageId;
 
-    before(function(done) {
-      request({
-        method: "POST",
-        url: url,
-        headers: authHeaders,
-        form: {
-          assetId: 1,
-          toUserId: 1
-        }
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        expect(JSON.parse(body).assetId).to.equal(1);
-        messageId = JSON.parse(body).id;
-        done();
-      });
-    });
-
     it("is inaccessible without authorization", function(done) {
       request({
         method: "PUT",
@@ -182,8 +202,8 @@ describe("Messages API", function() {
     it("returns 404 for bad id", function(done) {
       request({
         method: "PUT",
-        url: url + "/1111111111",
-        headers: authHeaders
+        url: url + "/" + (goodMessageId - 1),
+        headers: rootHeaders
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(404);
         done();
@@ -193,14 +213,14 @@ describe("Messages API", function() {
     it("permits change in assetId", function(done) {
       request({
         method: "PUT",
-        url: url + "/" + messageId,
-        headers: authHeaders,
+        url: url + "/" + goodMessageId,
+        headers: rootHeaders,
         form: {
-          assetId: 2
+          assetId: seedProperties.assetId + 1
         }
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(200);
-        expect(JSON.parse(body).assetId).to.equal(2);
+        expect(JSON.parse(body).assetId).to.equal(seedProperties.assetId + 1);
         done();
       });
     })
@@ -211,7 +231,7 @@ describe("Messages API", function() {
     it("is inaccessible without authorization", function(done) {
       request({
         method: "DELETE",
-        url: url + "/1"
+        url: url + "/" + goodMessageId
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(401);
         done();
@@ -221,8 +241,8 @@ describe("Messages API", function() {
     it("returns 404 for missing ID", function(done) {
       request({
         method: "DELETE",
-        url: url + "/1",
-        headers: authHeaders
+        url: url + "/" + (goodMessageId - 1),
+        headers: rootHeaders
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(404);
         done();
@@ -231,30 +251,18 @@ describe("Messages API", function() {
 
     it("deletes message", function(done) {
       request({
-        method: "POST",
-        url: url,
-        headers: authHeaders,
-        form: {
-          assetId: 1,
-          toUserId: 1
-        }
+        method: "DELETE",
+        url: url + "/" + goodMessageId,
+        headers: rootHeaders
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(200);
-        var id = JSON.parse(body).id;
         request({
-          method: "DELETE",
-          url: url + "/" + id,
-          headers: authHeaders
+          method: "GET",
+          url: url + "/" + goodMessageId,
+          headers: rootHeaders
         }, function(error, response, body) {
-          expect(response.statusCode).to.equal(200);
-          request({
-            method: "GET",
-            url: url + "/" + id,
-            headers: authHeaders
-          }, function(error, response, body) {
-            expect(response.statusCode).to.equal(404);
-            done();
-          });
+          expect(response.statusCode).to.equal(404);
+          done();
         });
       });
     })

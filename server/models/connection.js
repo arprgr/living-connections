@@ -7,7 +7,15 @@ module.exports = function(sequelize, DataTypes) {
   function schema() {
     return {
       grade: DataTypes.REAL,
-      status: DataTypes.INTEGER
+      peerId: {
+        type: DataTypes.INTEGER,
+        unique: "indexConnectionsUserAndPeer"
+      },
+      status: DataTypes.INTEGER,
+      userId: {
+        type: DataTypes.INTEGER,
+        unique: "indexConnectionsUserAndPeer"
+      }
     }
   }
 
@@ -43,6 +51,15 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
+  function destroyByUserAndPeerIds(userId, peerId) {
+    return Connection.destroy({
+      where: {
+        userId: userId,
+        peerId: peerId
+      },
+    })
+  }
+
   function findByUserId(userId) {
     return Connection.findAll({
       where: { userId: userId },
@@ -64,12 +81,22 @@ module.exports = function(sequelize, DataTypes) {
     })
   }
 
+  function regrade(userId, peerId, grade) {
+    return Connection.upsert({
+      userId: userId,
+      peerId: peerId,
+      grade: grade
+    })
+  }
+
   Connection = sequelize.define("Connection", schema(), {
     classMethods: {
       associate: associate,
       builder: builder,
+      destroyByUserAndPeerIds: destroyByUserAndPeerIds,
       findByUserId: findByUserId,
-      findByUserAndPeerIds: findByUserAndPeerIds
+      findByUserAndPeerIds: findByUserAndPeerIds,
+      regrade: regrade
     }
   })
 

@@ -26,7 +26,7 @@ function getAnnouncements(miner) {
 }
 
 function getOutgoingInvitations(miner) {
-  return models.EmailSessionSeed.findByFromUserId(miner.user.id)
+  return models.EmailSessionSeed.findByFromUserId(miner.user.id, { deep: 1 })
   .then(function(invites) {
     miner.outgoingInvitations = invites || [];
   })

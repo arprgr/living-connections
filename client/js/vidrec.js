@@ -127,6 +127,8 @@ define([ "jquery", "services", "ui/index", "editor" ], function($, Services, ui,
         acceptRecording(self);
       });
       var discardButton = addButton("Discard and re-record", function() {
+        delete self.data.asset;
+        delete self.data.assetId;
         self.openCamera();
       });
       var counter = new ui.Component($("<span>").addClass("counter"));

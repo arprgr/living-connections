@@ -108,6 +108,7 @@ define([ "http" ], function(HttpMethod) {
 
     return function(form) {
       return new UpdateInviteMethod()
+        .setId(form.id)
         .setAssetId(form.assetId)
         .execute();
     }
@@ -164,6 +165,12 @@ define([ "http" ], function(HttpMethod) {
       }
     }
   }
+  
+  var ActOnInviteMethod = new HttpMethod.Get()
+    .addPathComponent("messages")
+    .addPathParameter("id")
+    .addQueryParameter("act")
+    .build();
 
   ApiService.prototype = {
 
@@ -183,16 +190,12 @@ define([ "http" ], function(HttpMethod) {
       return this.saveMethods[what][action](form);
     },
 
-    addConnection: function(peerId) {
-      var PostConnectionMethod = new HttpMethod.PostForm()
-        .addPathComponent("connections")
-        .addQueryParameter("peerId")
-        .addQueryParameter("status")
-        .build();
+    acceptInvite: function(id) {
+      return new ActOnInviteMethd().setId(id).setAct("accept").execute();
+    },
 
-      return new PostConnectionMethod()
-        .setPeerId(peerId)
-        .execute();
+    rejectInvite: function(id) {
+      return new ActOnInviteMethd().setId(id).setAct("reject").execute();
     }
   }
 

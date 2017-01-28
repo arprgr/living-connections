@@ -13,13 +13,17 @@ function jsonError(err) {
   self.json(err.body || {});
 }
 
+var count = 0;
+
 function jsonResultOf(promise) {
   var self = this;
-  promise.then(function(model) {
-    self.json(model);
-  }).catch(function(err) {
-    self.jsonError(err);
-  });
+  promise
+    .catch(function(err) {
+      self.jsonError(err);
+    })
+    .then(function(model) {
+      self.json(model);
+    });
 }
 
 module.exports = function(req, res, next) {

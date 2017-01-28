@@ -14,6 +14,19 @@ module.exports = (function() {
     }
   });
 
+  // Get a connection.
+  router.get("/:userId/:peerId", function(req, res) {
+    res.jsonResultOf(
+      Connection.findByUserAndPeerIds(req.params.userId, req.params.peerId)
+      .then(function(connection) {
+        if (!connection) {
+          throw { status: 404 }
+        }
+        return connection;
+      })
+    );
+  });
+
   // Create a connection.
   router.post("/", function(req, res) {
     res.jsonResultOf(Connection.builder()

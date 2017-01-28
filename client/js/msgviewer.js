@@ -26,18 +26,13 @@ function($,        Activity,     ui,         ActionItem,   Services) {
       button.container.appendTo(self.container.find(".buttons"));
     }
 
-    function addInvitationButtons(self, fromUser) {
+    function addInvitationButtons(self, messageId) {
       addButton(self, "Accept " + fromUser.name + "'s invitation to connect", function() {
-        Services.apiService.addConnection(fromUser.id)
-        .then(function() {
-          self.exit();
-        })
-        .catch(function(err) {
-          console.log(err);
-          self.exit();
-        })
+        Services.apiService.acceptInvite(messageId);
+        self.exit();
       });
       addButton(self, "No, thanks", function() {
+        Services.apiService.rejectInvite(messageId);
         self.exit();
       });
     }
@@ -62,7 +57,7 @@ function($,        Activity,     ui,         ActionItem,   Services) {
         var fromUser = message.fromUser;
         if (fromUser) {
           if (actionItem.type.match(/inv-/)) {
-            addInvitationButtons(self, fromUser);
+            addInvitationButtons(self, message.id);
           }
           addButtons(self, fromUser);
         }

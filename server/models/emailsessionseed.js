@@ -62,26 +62,22 @@ module.exports = function(sequelize, DataTypes) {
     return destroyWhere({ id: id });
   }
 
-  function deepIncludes() {
-    return [{
-      model: models.Message,
-      as: "message",
-      include: [{
-        model: models.Asset,
-        as: "asset"
-      }]
-    }, {
-      model: models.User,
-      as: "fromUser"
-    }]
-  }
-
   function findOne(where, options) {
     var query = {
       where: where
     };
     if (options && options.deep) {
-      query.include = deepIncludes()
+      query.include = [{
+        model: models.Message,
+        as: "message",
+        include: [{
+          model: models.Asset,
+          as: "asset"
+        }]
+      }, {
+        model: models.User,
+        as: "fromUser"
+      }]
     }
     if (options && options.current) {
       query.where.expiresAt = { "$gt": new Date() };
@@ -103,7 +99,14 @@ module.exports = function(sequelize, DataTypes) {
       where: { fromUserId: fromUserId }
     };
     if (options.deep) {
-      query.include = deepIncludes()
+      query.include = [{
+        model: models.Message,
+        as: "message",
+        include: [{
+          model: models.Asset,
+          as: "asset"
+        }]
+      }]
     }
     if (options && options.current) {
       query.where.expiresAt = { "$gt": date };

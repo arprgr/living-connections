@@ -108,7 +108,12 @@ function addInvitationItems(compiler) {
   for (var i = 0; i < outgoingInvitations.length; ++i) {
     var inv = outgoingInvitations[i];
     addActionItem(compiler, MSG_INVITATION, ACTION_UPDATE, {
-      invite: inv
+      invite: {
+        id: inv.id,
+        email: inv.email,
+        assetId: inv.message && inv.message.assetId,
+        asset: inv.message && inv.message.asset
+      }
     });
   }
 }
