@@ -8,6 +8,9 @@ var env       = process.env.NODE_ENV || 'development';
 var config    = require(__dirname + '/../config.json')[env];
 var db        = {};
 
+// TODO: log SQL to file
+config.logging = function(str) {}
+
 if (config.use_env_variable) {
   var sequelize = new Sequelize(process.env[config.use_env_variable]);
 } else {

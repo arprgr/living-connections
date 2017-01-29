@@ -1,10 +1,12 @@
 var expect = require("chai").expect;
 var request = require("request");
 
+var URL = "http://localhost:4546";
+
 describe("App Server", function() {
 
   describe("index page", function() {
-    var url = "http://localhost:4545";
+    var url = URL;
 
     it("returns status 200", function(done) {
       request(url, function(error, response, body) {
@@ -22,7 +24,7 @@ describe("App Server", function() {
   });
 
   describe("index page with e param", function() {
-    var url = "http://localhost:4545/?e=123";
+    var url = URL + "/?e=123";
 
     it("returns redirect status", function(done) {
       request(url, { followRedirect: false }, function(error, response, body) {

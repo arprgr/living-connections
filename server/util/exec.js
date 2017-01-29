@@ -38,6 +38,9 @@ module.exports = (function() {
           reject(error);
         });
       }
+      if (!pendingCount) {
+        resolve(context);
+      }
     });
   }
   

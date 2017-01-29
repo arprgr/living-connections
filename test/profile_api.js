@@ -2,8 +2,10 @@ var expect = require("chai").expect;
 var request = require("request");
 var fs = require("fs");
 
+var URL = "http://localhost:4546";
+
 describe("Profile API", function() {
-  var url = "http://localhost:4545/api/profile";
+  var url = URL + "/api/profile";
 
   var rootKey = fs.readFileSync("tmp/adminKey");
 

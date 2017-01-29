@@ -2,8 +2,9 @@ var expect = require("chai").expect;
 var request = require("request");
 var fs = require("fs");
 
+var url = "http://localhost:4546/";
+
 describe("invitation process", function() {
-  var url = "http://localhost:4545/";
   var invitesUrl = url + "api/invites";
   var messagesUrl = url + "api/messages";
   var alphaUrl = url + "a";

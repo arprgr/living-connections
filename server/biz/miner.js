@@ -47,16 +47,14 @@ function makeReciprocalConnectionQuery(connection) {
   return function() {
     return models.Connection.findByUserAndPeerIds(connection.peerId, connection.userId)
     .then(function(recip) {
-      if (recip) {
-        connection.reciprocal = true;
-      }
+      connection.reciprocal = !!recip;
     });
   };
 }
 
 function makePerConnectionQueries(connections) {
   var group = [];
-  for (var i in connections) {
+  for (var i = 0; i < connections.length; ++i) {
     group.push(makeReciprocalConnectionQuery(connections[i]));
     group.push(makeMessageQuery(connections[i]));
   }
@@ -67,7 +65,7 @@ function getConnections(miner) {
   return models.Connection.findByUserId(miner.user.id)
   .then(function(connections) {
     miner.connections = connections || [];
-    return exec.executeGroup(miner, makePerConnectionQueries(miner.connections));
+    return exec.executeGroup(null, makePerConnectionQueries(miner.connections));
   })
 }
 
