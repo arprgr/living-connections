@@ -10,6 +10,8 @@ define([ "ui/observable" ], function(Observable) {
 
     window.fbAsyncInit = function() {
 
+      console.log("running fbAsyncInit");
+
       FB.init({
         appId  : options.appId,
         status : true,
