@@ -20,15 +20,16 @@ define([ "ui/observable" ], function(Observable) {
 
       FB.Event.subscribe("auth.authResponseChange", function(response) {
 
-        if (self.timeout) {
-          clearTimeout(self.timeout);
-          self.timeout = null;
-        }
+        console.log("fb response", response);
+
+        clearTimeout(self.timeout);
+        self.timeout = 0;
 
         self.value = { status: response.status };
         if (response.status == CONNECTED) {
 
           FB.api("/me?fields=id,name,email", function(response) {
+            console.log("fb response", response);
             self.value.id = response.id;
             self.value.name = response.name;
             self.value.email = response.email;
@@ -36,6 +37,7 @@ define([ "ui/observable" ], function(Observable) {
           });
 
           FB.api('/me/picture?type=normal', function(response) {
+            console.log("fb response", response);
             self.value.picture = response.data;
             self.notifyChangeListeners();
           });
@@ -56,6 +58,7 @@ define([ "ui/observable" ], function(Observable) {
 
   function timedOut(self) {
     self.value = { status: "timeout" };
+    self.timeout = 0;
   }
 
   FacebookService.prototype = (function() {
