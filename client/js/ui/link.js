@@ -13,7 +13,7 @@ define([ "ui/component" ], function(Component) {
     c.defineInitializer(function() {
       var self = this;
       self._enabled = true;
-      self._container
+      self.ele
         .attr("href", "#")
         .click(function() {
           self.invokePlugin("click");

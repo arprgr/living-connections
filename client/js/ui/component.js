@@ -4,32 +4,32 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
 
   var serial = 0; 
 
-  function addCssClasses(container, cssClass) {
+  function addCssClasses(ele, cssClass) {
     switch (typeof cssClass) {
     case "string":
-      container.addClass(cssClass);
+      ele.addClass(cssClass);
       break;
     case "object":
       for (var i in cssClass) {
-        container.addClass(cssClass[i]);
+        ele.addClass(cssClass[i]);
       }
     }
   }
 
-  function Component(container, options) {
+  function Component(ele, options) {
     var proto = Object.getPrototypeOf(this);
-    container = container || $(proto.DEFAULT_CONTAINER);
+    ele = ele || $(proto.DEFAULT_CONTAINER);
     options = $.extend({}, proto.DEFAULT_OPTIONS, options);
 
     Observable.call(this);
-    this._container = container;
+    this._ele = ele;
     this._visible = true;
     this._options = options;
     this._plugins = [];
     this._serial = serial++;
 
-    addCssClasses(container, options.cssClass);
-    addCssClasses(container, options.cssClasses);
+    addCssClasses(ele, options.cssClass);
+    addCssClasses(ele, options.cssClasses);
   }
 
   Component.prototype = $.extend(Object.create(Observable.prototype), {
@@ -89,7 +89,12 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
 
   defineComponentProperty("container", {
     get: function() {
-      return this._container;
+      return this._ele;
+    }
+  });
+  defineComponentProperty("ele", {
+    get: function() {
+      return this._ele;
     }
   });
   defineComponentProperty("options", {
@@ -99,10 +104,10 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
   });
   defineComponentProperty("text", {
     get: function() {
-      return this.container.text();
+      return this.ele.text();
     },
     set: function(text) {
-      this.container.text(text);
+      this.ele.text(text);
     }
   });
   defineComponentProperty("visible", {
@@ -114,7 +119,7 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
       visible = !!visible;
       if (self._visible != visible) {
         self._visible = visible;
-        visible ? self.container.show() : self.container.hide();
+        visible ? self.ele.show() : self.ele.hide();
       }
       return self;
     }

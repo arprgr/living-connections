@@ -9,7 +9,7 @@ define([ "ui/component" ], function(Component) {
     c.defineInitializer(function() {
       var self = this;
       self._enabled = true;
-      self._container.click(function() {
+      self.ele.click(function() {
         self.invokePlugin("click");
       });
     });

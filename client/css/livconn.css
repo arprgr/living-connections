@@ -37,7 +37,7 @@ div {
   width: 480px;
   margin: 16px auto;
 }
-#login .header {
+#login > .header {
   background-image: url(/img/symbol.png);
   background-position: center center;
   background-repeat: no-repeat;
@@ -111,6 +111,22 @@ div {
   background-position: 0px 0px;
   background-size: 25px 25px;
   background-repeat: no-repeat;
+}
+#login .fbForm .header {
+  border-bottom: dashed 1px #96a090;
+}
+#login .fbForm .block {
+  margin-top: 5px;
+  margin-bottom: 2px;
+  position: relative;
+}
+#login .fbForm .right {
+  position: absolute;
+  top: 0px;
+  padding-left: 120px;
+}
+#login .fbForm .right > div {
+  margin-bottom: 5px;
 }
 #login .fadedot {
   margin: 5px 20px;

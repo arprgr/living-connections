@@ -1,7 +1,7 @@
 // loginui.js
 
-define([ "jquery", "ui/index", "fblogin",     "waitanim", "services" ],
-function($,        ui,         FacebookLogin, WaitAnim,   Services) {
+define([ "jquery", "ui/index", "fbbutton",     "waitanim", "services" ],
+function($,        ui,         FacebookButton, WaitAnim,   Services) {
 
   var EmailForm = ui.Component.defineClass(function(c) {
 
@@ -45,11 +45,11 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
 
       var messageBox = new ui.Component();
 
-      self.container
+      self.ele
         .append($("<div>").addClass("big").addClass("chunk")
           .text("Log in to Living Connections"))
         .append($("<div>").addClass("chunk")
-          .append(fbButton.container.addClass("useFb")))
+          .append(fbButton.ele.addClass("useFb")))
         .append($("<div>").addClass("big").addClass("chunk")
           .text("OR"))
         .append($("<div>").addClass("form")
@@ -58,12 +58,12 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
             .append($("<div>").addClass("prompt")
               .text("EMAIL ADDRESS"))
             .append($("<div>")
-              .append(emailInput.container))
+              .append(emailInput.ele))
             .append($("<div>")
-              .append(sendButton.container.addClass("sendEmail")))
+              .append(sendButton.ele.addClass("sendEmail")))
           )
         )
-        .append(messageBox.container.addClass("chunk").addClass("message"));
+        .append(messageBox.ele.addClass("chunk").addClass("message"));
 
       self.messageBox = messageBox;
       self.emailInput = emailInput;
@@ -82,94 +82,97 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
     });
   });
 
+  var FacebookLogin = ui.Component.defineClass(function(c) {
+  });
+
   var FacebookInfo = ui.Component.defineClass(function(c) {
 
-    var facebookService = Services.facebookService;
+    var fbService = Services.facebookService;
 
     c.defineInitializer(function() {
       var self = this;
-      var userImage = new ui.Image($("<span>"));
+      var userImage = new ui.Image($("<div>"));
       var nameLabel = new ui.Component($("<span>"));
       var emailLabel = new ui.Component($("<span>"));
       var loginButton = new ui.Button("", function() {
         loginButton.enabled = false;
-        Services.sessionManager.logInWithFacebook(facebookService.value);
+        Services.sessionManager.logInWithFacebook(fbService.value);
       });
+      var fbButton = new FacebookButton($("<span>"));
 
-      self.container
-        .append($("<span>").text("You:"))
-        .append(userImage.container)
-        .append(nameLabel.container)
-        .append(emailLabel.container)
-        .append(loginButton.container);
-
-      function updateState(fbInfo) {
-        if (fbInfo && fbInfo.state == facebookService.CONNECTED) {
-          userImage.src = (fbInfo.picture && fbInfo.picture.url) || "";
-          nameLabel.text = fbInfo.name || "";
-          emailLabel.text = fbInfo.email || "";
-          loginButton.label = "Log in" + (fbInfo.name ? (" as " + fbInfo.name) : ""); 
-          loginButton.enabled = true;
-        }
-        else {
-          loginButton.enabled = false;
-        }
-      }
-
-      updateState(facebookService.value);
-      facebookService.addChangeListener(updateState);
-    });
-  });
-
-  var FacebookReadout = ui.Carton.defineClass(function(c) {
-
-    var WAIT = "wait";
-    var INFO = "info";
-    var FBLOGIN = "fblogin";
-    var ERROR = "error";
-
-    var facebookService = Services.facebookService;
-
-    c.defineInitializer(function() {
-      var self = this;
-      self
-        .addCompartment(WAIT, new WaitAnim($("<div>"), { ndots: 8 }))
-        .addCompartment(INFO, new FacebookInfo())
-        .addCompartment(FBLOGIN, new FacebookLogin())
-        .addCompartment(ERROR, new ui.Component($("<div>"), { cssClasses: [ "message", "chunk" ] })
-          .setText("Sorry, we can't connect to Facebook now"))
-        .addState(INFO, [ INFO, FBLOGIN ]);
+      self.ele
+        .addClass("fbInfo")
+        .append($("<div>").addClass("block").text("You are:"))
+        .append($("<div>").addClass("block")
+          .append(userImage.ele)
+          .append($("<div>").addClass("right")
+            .append($("<div>").append(nameLabel.ele))
+            .append($("<div>").append(emailLabel.ele))
+            .append($("<div>").append(loginButton.ele))
+          ))
+        .append($("<div>").addClass("block")
+          .append($("<span>").text("or... "))
+          .append(fbButton.ele))
 
       function updateState(fbInfo) {
-        self.show(fbInfo
-          ? (fbInfo.state == facebookService.CONNECTED && fbInfo.id ? INFO : ERROR)
-          : WAIT);
+        userImage.src = (fbInfo.picture && fbInfo.picture.url) || "";
+        nameLabel.text = fbInfo.name || "";
+        emailLabel.text = fbInfo.email || "";
+        loginButton.label = "That's correct - log in";
+        loginButton.enabled = fbInfo.status == fbService.CONNECTED;
       }
 
-      updateState(facebookService.value);
-      facebookService.addChangeListener(updateState);
-    });
-
-    c.extendPrototype({
-      open: function() {
-        ui.Carton.prototype.open.call(this);
-        facebookService.open();
-      }
+      updateState(fbService.value);
+      fbService.addChangeListener(updateState);
     });
   });
 
   var FacebookForm = ui.Carton.defineClass(function(c) {
 
+    var fbService = Services.facebookService;
+
+    var WAITING = fbService.WAITING;
+    var INFO = "info";
+    var FBLOGIN = "fblogin";
+    var UNKNOWN = fbService.UNKNOWN;
+    var TIMEOUT = fbService.TIMEOUT;
+
+    c.defineDefaultOptions({
+      initialState: WAITING
+    });
+
     c.defineInitializer(function() {
       var self = this;
-      self.container
+      self.ele
         .addClass("fbForm")
-        .append($("<div>").text("Log in through Facebook"));
+        .append($("<div>").addClass("header").text("Log in through Facebook"));
       self
-        .addCompartment(0, new FacebookReadout())
-        .addCompartment(1, ui.Button.create("Go Back", function() {
-          self.invokePlugin("openEmailForm");
-        }));
+        .addCompartment(WAITING, new WaitAnim($("<div>"), { ndots: 8 }))
+        .addCompartment(INFO, new FacebookInfo())
+        .addCompartment(UNKNOWN, new FacebookLogin())
+        .addCompartment(TIMEOUT, new ui.Component($("<div>"), { cssClasses: [ "message", "chunk" ] })
+          .setText("Sorry, we can't connect to Facebook now"))
+        .addState(fbService.CONNECTED, [ INFO, FBLOGIN ]);
+      self.ele
+        .append($("<div>")
+          .addClass("block")
+          .append(ui.Button.create("Go Back", function() {
+            self.invokePlugin("openEmailForm");
+          }).ele));
+
+      function updateState(fbInfo) {
+        self.show(fbInfo.status || fbService.WAITING);
+      }
+
+      updateState(fbService.value);
+      fbService.addChangeListener(updateState);
+    });
+
+    c.extendPrototype({
+      open: function() {
+        fbService.open();
+        return ui.Carton.prototype.open.call(this);
+      }
     });
   });
 
@@ -184,9 +187,9 @@ function($,        ui,         FacebookLogin, WaitAnim,   Services) {
           initialState: EMAIL
       }).addCompartment(EMAIL, new EmailForm().addPlugin(self))
         .addCompartment(FB, new FacebookForm().addPlugin(self));
-      self.container
+      self.ele
         .append($("<div>").addClass("header"))
-        .append(carton.container);
+        .append(carton.ele);
       self.carton = carton;
     });
 

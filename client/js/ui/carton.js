@@ -20,7 +20,7 @@ define([ "ui/component" ], function(Component) {
           return stateSet == compartmentKey;
         }
         if (stateSet.length != null) {
-          return stateSet.contains(compartmentKey);
+          return stateSet.includes(compartmentKey);
         }
         return compartmentKey in stateSet;
       }
