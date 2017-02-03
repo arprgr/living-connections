@@ -72,8 +72,8 @@ const OVERRIDES = {
           dummy: {
             name: "James Echmalian",
             email: "ech@ech.net",
-            id: "fbid",
-            picture: { url: "https://scontent.xx.fbcdn.net/v/t1.0-1/p100x100/11209473_10153089662479492_5130115091816741964_n.jpg?oh=f2079615854fdb6ab9850a35a3e299b4&oe=58FFC615" }
+            id: 100,
+            picture: "https://scontent.xx.fbcdn.net/v/t1.0-1/p100x100/11209473_10153089662479492_5130115091816741964_n.jpg?oh=f2079615854fdb6ab9850a35a3e299b4&oe=58FFC615"
           }
         }
       }

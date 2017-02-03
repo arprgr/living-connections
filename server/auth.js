@@ -196,7 +196,13 @@ function AuthMgr_resolveEmailSessionSeed(self, eseed) {
 
 // I want to identify myself through Facebook.
 function AuthMgr_handleFacebookLogin(self, facebookId, otherFacebookInfo) {
-  return Promise.resolve(otherFacebookInfo);
+console.log('fb', facebookId, otherFacebookInfo);
+  return models.FacebookProfile.upsert({
+    facebookId: facebookId,
+    name: otherFacebookInfo.name,
+    email: otherFacebookInfo.email,
+    picture: otherFacebookInfo.picture
+  });
 }
 
 AuthMgr.prototype = {

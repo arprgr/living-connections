@@ -20,6 +20,7 @@ module.exports = function(sequelize, DataTypes) {
   function associate(_models) {
     models = _models;
     User.belongsTo(models.Asset, { as: "asset" });
+    User.hasOne(models.FacebookProfile, { foreignKey: "userId" });
   }
 
   function builder() {
