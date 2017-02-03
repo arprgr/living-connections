@@ -20,7 +20,7 @@ module.exports = function(sequelize, DataTypes) {
   function associate(_models) {
     models = _models;
     User.belongsTo(models.Asset, { as: "asset" });
-    User.hasOne(models.FacebookProfile, { foreignKey: "userId" });
+    User.hasOne(models.FacebookProfile, { as: "facebookProfile", foreignKey: "userId" });
   }
 
   function builder() {
@@ -49,8 +49,17 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function findById(id) {
-    return User.findOne({ where: { id: id }});
+  function findById(id, options) {
+    var query = {
+      where: { id: id }
+    };
+    if (options && options.includeFacebook) {
+      query.include = [{
+        as: "facebookProfile",
+        model: models.FacebookProfile
+      }]
+    }
+    return User.findOne(query);
   }
 
   function destroyById(id) {

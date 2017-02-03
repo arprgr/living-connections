@@ -46,8 +46,7 @@ module.exports = function(sequelize, DataTypes) {
 
   function findWhere(where) {
     return FacebookProfile.find({
-      where: where,
-      include: includes()
+      where: where
     });
   }
 
@@ -79,6 +78,7 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       builder: builder,
       findById: findById,
+      findByFacebookId: findByFacebookId,
       findByUser: findByUser,
       destroyAll: destroyAll,
       destroyById: destroyById

@@ -30,7 +30,7 @@ function findEmailProfile(email) {
 
 // Find user by ID
 function findUser(userId) {
-  return models.User.findById(userId);
+  return models.User.findById(userId, { includeFacebook: true });
 }
 
 // Create a new user.
@@ -41,11 +41,6 @@ function createNewUser(name, level) {
 // Create a new email profile.
 function createNewEmailProfile(user, email) {
   return models.EmailProfile.builder().email(email).user(user).build();
-}
-
-// Create a session.
-function createSessionForUser(user) {
-  return models.Session.builder().user(user).build();
 }
 
 // If there is no user having the given email address, create both the new Users
@@ -171,6 +166,18 @@ function closeTicket(ticket, toUser) {
   return exec.executeGroup(group);
 }
 
+// Log in, asynchronously.
+function AuthMgr_logIn(self, user) {
+  // Create a session.
+  return models.Session.builder().user(user).build()
+  .then(function(session) {
+    self.req.session = session;
+    self.req.user = session.user;
+    sendSessionCookie(self.res, session.externalId);
+    return session;
+  });
+}
+
 // A user has clicked on an invitation/ticket email.
 function AuthMgr_resolveEmailSessionSeed(self, eseed) {
 
@@ -185,9 +192,10 @@ function AuthMgr_resolveEmailSessionSeed(self, eseed) {
           : findOrCreateUserByEmail(emailSessionSeed.email)
       )
       // Log in.
-      .then(createSessionForUser)
+      .then(function(user) {
+        return AuthMgr_logIn(self, user);
+      })
       .then(function(session) {
-        sendSessionCookie(self.res, session.externalId);
         return closeTicket(emailSessionSeed, session.user);
       });
     }
@@ -196,12 +204,56 @@ function AuthMgr_resolveEmailSessionSeed(self, eseed) {
 
 // I want to identify myself through Facebook.
 function AuthMgr_handleFacebookLogin(self, facebookId, otherFacebookInfo) {
-console.log('fb', facebookId, otherFacebookInfo);
   return models.FacebookProfile.upsert({
     facebookId: facebookId,
     name: otherFacebookInfo.name,
     email: otherFacebookInfo.email,
     picture: otherFacebookInfo.picture
+  })
+  .then(function() {
+    return models.FacebookProfile.findByFacebookId(facebookId);
+  })
+  .then(function(facebookProfile) {
+    var currentUser = self.req.session && self.req.session.user;
+
+    // Is there a user associated with this profile?
+    if (facebookProfile.userId != null) {
+      // If so, and it matches the already logged-in user, carry on.
+      if (!currentUser || facebookProfile.userId != currentUser.id) {
+        // Otherwise, start a new session with the user identified by the profile.
+        return findUser(facebookProfile.userId)
+        .then(function(user) {
+          return AuthMgr_logIn(self, user);
+        });
+      }
+    }
+    else {
+      // This is a new profile.  If there is a user logged in...
+      if (currentUser) {
+        // If the user already has a facebook profile, log them out.
+        if (currentUser.facebookProfile) {
+          logOut(self.req);
+          currentUser = null;
+        }
+        // Otherwise, associate the new profile with the current user.
+        else {
+          return facebookProfile.updateAttributes({
+            userId: currentUser.id
+          });
+        }
+      }
+      // Create a new user with the given profile and log them in.
+      return createNewUser(facebookProfile.name || facebookProfile.email || "New User", 1)
+      .then(function(user) {
+        currentUser = user;
+        return facebookProfile.updateAttributes({
+          userId: user.id
+        })
+      })
+      .then(function() {
+        return AuthMgr_logIn(self, currentUser);
+      });
+    }
   });
 }
 
