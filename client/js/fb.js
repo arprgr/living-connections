@@ -7,16 +7,12 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
   var WAITING = "waiting";
   var UNKNOWN = "unknown";
 
-  //var fakePortrait = "https://scontent.xx.fbcdn.net/v/t1.0-1/p100x100/11209473_10153089662479492_5130115091816741964_n.jpg?oh=f2079615854fdb6ab9850a35a3e299b4&oe=58FFC615";
-  //var fakeName = "James Echmalian";
-  //var fakeEmail = "ech@ech.net";
-
   function FacebookService(options) {
     var self = this;
     Observable.call(self);
 
     self.options = $.extend({
-      timeout: 10000,
+      timeoutPeriod: 10000,
       version: "v2.8"
     }, options);
 
@@ -83,14 +79,14 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
       self.value.status = WAITING;
 
       self.timeout = setTimeout(function() {
-        self.value.status = TIMEOUT;
         self.timeout = 0;
-//self.value.status = CONNECTED;
-//self.value.name = fakeName;
-//self.value.email = fakeEmail;
-//self.value.picture = { url: fakePortrait };
+        self.value.status = TIMEOUT;
+        if (self.options.dummy) {
+          self.value.status = CONNECTED;
+          $.extend(self.value, self.options.dummy);
+        }
         self.notifyChangeListeners();
-      }, self.options.timeout);
+      }, self.options.timeoutPeriod);
 
       (function(d){
          var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];

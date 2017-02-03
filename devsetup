@@ -2,6 +2,7 @@ export LIVCONN_HOME=$PWD
 export SERVER=http://localhost:4545
 export PGPASSWORD=postgres
 export CLOUDINARY_URL=cloudinary://425898524282428:7pPjCUilLoTETVKv9yRfrh-TwIo@living-connections
+export NODE_ENV=development
 alias sequelize="./node_modules/.bin/sequelize"
 alias mocha="./node_modules/.bin/mocha"
 alias psql="/usr/local/bin/psql -U postgres -d livconn"

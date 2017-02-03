@@ -60,8 +60,35 @@ server.get("/", function(req, res) {
   }
 });
 
+// Client configuration JS.
+server.get("/js/services.js", function(req, res) {
+  res.set("Content-Type", "application/javascript");
+  res.send(compileClientServiceConfiguration());
+});
+
+function compileClientServiceConfiguration() {
+
+  function clist(func) {
+    var csc = CONFIG.clientServiceConfigurations;
+    var array = [];
+    for (var key in csc) {
+      array.push(func(key, csc[key]));
+    }
+    return array.join(",");
+  }
+
+  return "" +
+    "define([" +
+    clist(function(k, v) { return '"' + v.path + '"'; }) +
+    "], function(" +
+    clist(function(k, v) { return k }) +
+    "){ return { " +
+    clist(function(k, v) { return k + ": new " + k + "(" + JSON.stringify(v.config) + ")"; }) + 
+    "} });";
+}
+
 // For testing
-if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
+if (CONFIG.env == "development") {
   server.get("/test", function(request, response) {
     servePage(CONFIG.pages.test, response);
   });
@@ -94,5 +121,6 @@ var port = process.env.PORT || CONFIG.server.port;
 server.set("port", port);
 server.listen(port, function () {
   setAdminKey();
+  console.log("Server running in", CONFIG.env, "mode");
   console.log("Listening on port", port);
 });
