@@ -94,7 +94,7 @@ function($,        ui,         FacebookButton, WaitAnim,   Services) {
       var userImage = new ui.Image($("<div>"));
       var nameLabel = new ui.Component($("<span>"));
       var emailLabel = new ui.Component($("<span>"));
-      var loginButton = new ui.Button("", function() {
+      var loginButton = ui.Button.create("That's correct - log in", function() {
         loginButton.enabled = false;
         Services.sessionManager.logInWithFacebook(fbService.value);
       });
@@ -115,10 +115,9 @@ function($,        ui,         FacebookButton, WaitAnim,   Services) {
           .append(fbButton.ele))
 
       function updateState(fbInfo) {
-        userImage.src = (fbInfo.picture && fbInfo.picture.url) || "";
+        userImage.src = fbInfo.picture || "";
         nameLabel.text = fbInfo.name || "";
         emailLabel.text = fbInfo.email || "";
-        loginButton.label = "That's correct - log in";
         loginButton.enabled = fbInfo.status == fbService.CONNECTED;
       }
 

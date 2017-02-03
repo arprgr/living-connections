@@ -53,7 +53,7 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
 
         FB.api('/me/picture?type=normal', function(response) {
           console.log("fb response", response);
-          self.value.picture = response.data;
+          self.value.picture = response.data.url;
           self.notifyChangeListeners();
         });
       }

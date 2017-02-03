@@ -136,10 +136,10 @@ define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
     self.waiting = true;
     notifyStateChangeListeners(self);
     return new FACEBOOK_LOGIN()
-      .setId(id)
-      .setName(name)
-      .setEmail(email)
-      .setSalt(salt())
+      .setId(fbInfo.id)
+      .setName(fbInfo.name)
+      .setEmail(fbInfo.email)
+      .setPicture(fbInfo.picture)
       .execute()
       .then(function() {
         startPolling(self);
