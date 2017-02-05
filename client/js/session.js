@@ -3,6 +3,10 @@
 define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
   function($, Cookie, HttpMethod, Observable, ActionItem) {
 
+  var DEFAULT_OPTIONS = {
+    pollingPeriod: 3000
+  };
+
   function salt() {
     return String(Math.floor(0xffffffff * Math.random()));
   }
@@ -159,9 +163,9 @@ define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
     notifyStateChangeListeners(self);
   }
 
-  function Manager(options) {
+  function SessionManager(options) {
     var self = this;
-    $.extend(self, options);
+    $.extend(self, DEFAULT_OPTIONS, options);
 
     self.pollCount = 0;
     self.responseCount = 0;
@@ -176,7 +180,7 @@ define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
     self.actionItems = new Observable([]);
   }
 
-  Manager.prototype = {
+  SessionManager.prototype = {
 
     addStateChangeListener: function(listener) {
       return this.state.addChangeListener(listener);
@@ -219,5 +223,5 @@ define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
     }
   }
 
-  return Manager;
+  return SessionManager;
 });

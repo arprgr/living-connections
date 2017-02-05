@@ -37,7 +37,6 @@ const DEFAULTS = {
     sessionManager: {
       path: "session",
       config: {
-        pollingPeriod: 80000,
         retryTolerance: 3
       }
     },
@@ -66,6 +65,11 @@ const OVERRIDES = {
       }
     },
     clientServiceConfigurations: {
+      sessionManager: {
+        config: {
+          pollingPeriod: 80000
+        }
+      },
       facebookService: {
         config: {
           timeoutPeriod: 1000,
