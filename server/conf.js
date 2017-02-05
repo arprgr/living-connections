@@ -52,6 +52,12 @@ const DEFAULTS = {
         bufferLimit: 100
       }
     }
+  },
+  email: {
+    type: "mailgun",
+    domain: "mg.livingcx.com",
+    apiKey: "key-1a42bcc21a15252b0de1fc4ab0540863",
+    from: "Rob Saltzman <rob@mg.livingcx.com>"
   }
 }
 
@@ -86,6 +92,10 @@ const OVERRIDES = {
   production: {
     server: {
       port: 4544,
+    },
+    email: {
+      __allowedRecipients: [ "ech@ech.net", "rob777@comcast.net", "james.echmalian@gmail.com" ],
+      defaultRecipient: "ech@ech.net"
     }
   },
   test: {
@@ -95,6 +105,9 @@ const OVERRIDES = {
         "/mocha": "./node_modules/grunt-blanket-mocha/node_modules/mocha",
         "/chai": "./node_modules/chai"
       }
+    },
+    email: {
+      disabled: true
     }
   }
 }
