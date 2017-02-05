@@ -6,7 +6,7 @@ module.exports = function(sequelize, DataTypes) {
   function schema() {
     return {
       facebookId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         unique: true
       },
       name: DataTypes.STRING,
