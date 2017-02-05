@@ -1,6 +1,6 @@
 body {
 	font-family: Tahoma, Arial;
-  background: linear-gradient(to bottom right, #e6f0e0, #9ca890);
+  background: linear-gradient(to bottom right, #e6f0e0, #ccb098);
 }
 div {
   margin: 0;
@@ -156,6 +156,12 @@ div {
   padding-right: 4px;
 }
 #app a {
+  color: #670;
+}
+#app a.logout {
+  color: #ccb098;
+}
+#app a.logout:hover {
   color: #670;
 }
 #app > .body {
