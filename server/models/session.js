@@ -22,6 +22,9 @@ module.exports = function(sequelize, DataTypes) {
       include: [{
         model: models.Asset,
         as: "asset"
+      }, {
+        model: models.FacebookProfile,
+        as: "facebookProfile"
       }]
     }]
   }

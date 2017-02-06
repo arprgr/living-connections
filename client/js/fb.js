@@ -38,10 +38,8 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
       clearTimeout(self.timeout);
       self.timeout = 0;
 
-      self.value.status = response.status;
-      self.notifyChangeListeners();
-
       if (response.status == CONNECTED) {
+        self.value.status = response.status;
 
         FB.api("/me?fields=id,name,email", function(response) {
           console.log("fb response", response);
@@ -58,15 +56,13 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
         });
       }
       else {
-        delete self.value.id;
-        delete self.value.name;
-        delete self.value.email;
-        delete self.value.picture;
+        self.value = { status: response.status };
       }
     }
 
     // When Facebook script is loaded, it executes the following.
     window.fbAsyncInit = function() {
+      console.log("fb init");
       FB.init(fbInitOptions);
       FB.Event.subscribe("auth.statusChange", onStatusChange);
       FB.Event.subscribe("auth.authResponseChange", onAuthResponseChange);
@@ -82,6 +78,7 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
         self.timeout = 0;
         self.value.status = TIMEOUT;
         if (self.options.dummy) {
+          console.log("fb dummy");
           self.value.status = CONNECTED;
           $.extend(self.value, self.options.dummy);
         }

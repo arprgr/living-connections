@@ -112,15 +112,15 @@ div {
   background-size: 25px 25px;
   background-repeat: no-repeat;
 }
-#login .fbForm .header {
+.fbForm .header {
   border-bottom: dashed 1px #96a090;
 }
-#login .fbForm .block {
+.fbForm .block {
   margin-top: 5px;
   margin-bottom: 2px;
   position: relative;
 }
-#login .fbForm .right {
+.fbForm .right {
   position: absolute;
   top: 0px;
   padding-left: 120px;
