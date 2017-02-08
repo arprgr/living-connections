@@ -181,6 +181,8 @@ function AuthMgr_logIn(self, user) {
 // A user has clicked on an invitation/ticket email.
 function AuthMgr_resolveEmailSessionSeed(self, eseed) {
 
+console.log('resolving email session seed', eseed);
+
   return findEmailSessionSeed(eseed)
   .then(function(emailSessionSeed) {
     if (emailSessionSeed) {

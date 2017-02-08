@@ -38,12 +38,30 @@ module.exports = (function() {
 
   // Retrieve all current sessions for a user.
   router.get("/users/:id/sessions", function(req, res) {
-    if (req.user.level > 0) {
-      res.jsonError({ status: 401 });
-    }
-    else {
-      res.jsonResultOf(models.Session.findByUserId(req.params.id));
-    }
+    res.jsonResultOf(models.Session.findByUserId(req.params.id));
+  });
+
+  // Wipe it all!
+  router.get("/wipe", function(req, res) {
+    res.jsonResultOf(new Promise(function(resolve) {
+      resolve(models.User.destroyAll()
+        .then(function() {
+          return models.EmailSessionSeed.destroyAll();
+        })
+        .then(function() {
+          return models.EmailProfile.destroyAll();
+        })
+        .then(function() {
+          return models.Connection.destroyAll();
+        })
+        .then(function() {
+          return models.FacebookProfile.destroyAll();
+        })
+        .then(function() {
+          return models.Message.destroyAll();
+        })
+      );
+    }));
   });
 
   return router;

@@ -6,7 +6,7 @@ var URL = "http://localhost:4546";
 
 describe("Invites API", function() {
   var url = URL + "/api/invites";
-  var messagesUrl = URL + "/api/messages";
+  var wipeUrl = URL + "/admin/wipe";
 
   var rootKey = fs.readFileSync("tmp/adminKey");
 
@@ -26,19 +26,12 @@ describe("Invites API", function() {
   // Clean up.
   before(function(done) {
     request({
-      method: "DELETE",
-      url: url,
+      method: "GET",
+      url: wipeUrl,
       headers: rootHeaders()
     }, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
-      request({
-        method: "DELETE",
-        url: messagesUrl,
-        headers: rootHeaders()
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        done();
-      });
+      done();
     });
   });
 

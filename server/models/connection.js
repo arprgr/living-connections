@@ -51,6 +51,10 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
+  function destroyAll() {
+    return Connection.destroy({ where: {} });
+  }
+
   function destroyByUserAndPeerIds(userId, peerId) {
     return Connection.destroy({
       where: {
@@ -93,6 +97,7 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: associate,
       builder: builder,
+      destroyAll: destroyAll,
       destroyByUserAndPeerIds: destroyByUserAndPeerIds,
       findByUserId: findByUserId,
       findByUserAndPeerIds: findByUserAndPeerIds,

@@ -55,8 +55,8 @@ router.put("/:id", function(req, res) {
     if (!invite) {
       throw { status: 404 };
     }
-    if (!(req.user.level <= 0) && (!invite.fromUser || req.user.id != invite.fromUser.id)) {
-      throw { status: 401 };
+    if (!(req.user.level <= 0) && (req.user.id != invite.fromUserId)) {
+      throw { status: 401, body: { user: req.user, invite: invite } };
     }
     fields = VALIDATOR.postvalidateUpdate(invite.message, fields);
     if (!fields) {

@@ -62,6 +62,10 @@ module.exports = function(sequelize, DataTypes) {
     return User.findOne(query);
   }
 
+  function destroyAll(id) {
+    return User.destroy({ where: {} });
+  }
+
   function destroyById(id) {
     return User.destroy({ where: { id: id }});
   }
@@ -78,6 +82,7 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: associate,
       builder: builder,
+      destroyAll: destroyAll,
       destroyById: destroyById,
       findById: findById,
       includeMe: includeMe,
