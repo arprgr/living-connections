@@ -14,16 +14,29 @@ Start the server `node server`
 Start the server in test mode `node server`
 Run tests `npm test`
 
-## TODO for version 0.1.
+## TODO for current version.
 
-Facebook login.
-Represent profile messages as types of message.
-Represent invitations using a type of message.
-Message threads.
-Track asset views
-Full differencing of action lists
+Header: Display email address and the words "Living Connections"
+Make the invitation/ticketing process super-solid.
+Make the facebook profile linkup super-solid.
+Clean up the profile editor.
+  - More instructions throughout.
+Clean up the invitation editor.
+  - Add a friend's name field (not saved in db)
+  - More instructions at all points.
+  - Don't allow backing up in process (unless updating).
+  - Submit from video.
+  - Allow resend of email message.
 
-## TODO for version 0.2
+## TODO for later
 
+Show dates in client.
+Port to React Native.
+Message threading.
+Track asset views and message views.
+Full differencing of action lists, animation, urgency.
+Represent profile messages as types of message (for tracking).
 Reminders
-Face-to-face
+Face-to-face conversations
+Drafts, eager save, save in chunks.
+Address Facebook security issues.
