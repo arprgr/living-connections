@@ -18,7 +18,7 @@ define([ "jquery", "ui/component", ], function($, Component) {
           self.validate();
         })
         .on("keydown", function(event) {
-          if (event.originalEvent.keyCode == 13) {
+          if (self.enabled && event.originalEvent.keyCode == 13) {
             self.submit();
           }
           return true;
