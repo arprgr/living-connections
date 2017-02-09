@@ -51,7 +51,8 @@ server.get("/", function(req, res) {
       // Strip away the session seed.
       res.redirect("/");
     })
-    .catch(function() {
+    .catch(function(err) {
+      console.error(err);
       res.redirect("/");
     });
   }
