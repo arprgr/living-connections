@@ -6,3 +6,4 @@ export NODE_ENV=development
 alias sequelize="./node_modules/.bin/sequelize"
 alias mocha="./node_modules/.bin/mocha"
 alias psql="/usr/local/bin/psql -U postgres -d livconn"
+alias lock-versions="./node_modules/.bin/lock-versions"
