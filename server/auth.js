@@ -30,7 +30,7 @@ function findEmailProfile(email) {
 
 // Find user by ID
 function findUser(userId) {
-  return models.User.findById(userId, { includeFacebook: true });
+  return models.User.findById(userId, { includeEmail: true, includeFacebook: true });
 }
 
 // Create a new user.
@@ -38,9 +38,9 @@ function createNewUser(name, level) {
   return models.User.builder().name(name).level(level).build();
 }
 
-// Create a new email profile.
-function createNewEmailProfile(user, email) {
-  return models.EmailProfile.builder().email(email).user(user).build();
+// Create or update email profile.
+function upsertEmailProfile(user, email) {
+  return models.EmailProfile.builder().email(email).user(user).upsert();
 }
 
 // If there is no user having the given email address, create both the new Users
@@ -48,15 +48,15 @@ function createNewEmailProfile(user, email) {
 function findOrCreateUserByEmail(email) {
   return findEmailProfile(email)
   .then(function(emailProfile) {
-    if (emailProfile) {
+    if (emailProfile && emailProfile.user) {
       return emailProfile.user;
     }
     return createNewUser(email, 1)
     .then(function(user) {
-      return createNewEmailProfile(user, email)
+      return upsertEmailProfile(user, email)
       .then(function() {
         return user;
-      });
+      })
     })
   })
 }

@@ -16,7 +16,6 @@ module.exports = function(sequelize, DataTypes) {
     return [{
       model: models.User,
       as: "user",
-      required: true,
       include: [{
         model: models.Asset,
         as: "asset"
@@ -42,6 +41,9 @@ module.exports = function(sequelize, DataTypes) {
       },
       build: function() {
         return EmailProfile.create(values);
+      },
+      upsert: function() {
+        return EmailProfile.upsert(values);
       }
     }
   }
