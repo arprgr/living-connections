@@ -29,7 +29,12 @@ function makeRequest(method, uri) {
 
     asUser: function(userId) {
       params.headers["X-Access-Key"] = rootKey;
-      params.headers["X-Effective-User"] = asUser;
+      params.headers["X-Effective-User"] = userId;
+      return this;
+    },
+
+    withData: function(data) {
+      params.form = data;
       return this;
     },
 
@@ -100,8 +105,15 @@ module.exports = {
   describe: function(title, describer) {
     describe(title, function() {
       describer({
-        makeRequest: makeRequest,
-        wipe: wipe
+        makeRequest: makeRequest
+      });
+
+      afterEach(function(done) {
+        wipe()
+        .then(function() {
+          return done();
+        })
+        .catch(done);
       });
     });
   }

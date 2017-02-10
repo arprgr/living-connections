@@ -7,6 +7,41 @@ function($,        Services,   Listing,     Activities,   ui) {
 
   var sessionManager = Services.sessionManager;
 
+  // The main app header.
+  var MainHeader = ui.Component.defineClass(function(c) {
+
+    c.defineInitializer(function() {
+      var self = this;
+
+      var titleLabel = new ui.Component("<span>", { cssClass: "title" }).setText("Living Connections");
+      var userNameLabel = new ui.Component("<span>", { cssClass: "userName" });
+      var emailLabel = new ui.Component("<span>", { cssClass: "email" });
+      var logoutLink = new ui.Link("<a>", { cssClass: "logout" }).setText("Log out").addPlugin({
+        click: function() {
+          sessionManager.logOut();
+        }
+      });
+
+      self.ele
+        .addClass("header")
+        .append(titleLabel.ele)
+        .append($("<span>")
+          .addClass("userIdent")
+          .append(userNameLabel.ele)
+          .append($("<span>").text(" "))
+          .append(emailLabel.ele)
+          .append($("<span>").text(" "))
+          .append(logoutLink.ele));
+
+      sessionManager.addStateChangeListener(function() {
+        var user = sessionManager.user || {}
+        userNameLabel.setText(user.name || "");
+        emailLabel.setText(user.email || "");
+        logoutLink.setEnabled(!!sessionManager.user);
+      });
+    });
+  });
+
   return ui.Component.defineClass(function(c) {
 
     function Main_open(self, createNewBody) {
@@ -61,30 +96,9 @@ function($,        Services,   Listing,     Activities,   ui) {
     c.defineInitializer(function() {
       var self = this;
 
-      self.container
-        .append($("<div>")
-          .addClass("header")
-          .append($("<span>")
-            .addClass("title"))
-          .append($("<span>")
-            .addClass("userIdent")
-            .append($("<span>").addClass("userName"))
-            .append($("<span>").text(" "))
-            .append($("<a>")
-              .addClass("logout")
-              .text("Log out")
-              .attr("href", "#")
-              .click(function() {
-                sessionManager.logOut();
-              }))))
-        .append($("<div>").addClass("body")
-        );
-
-      sessionManager.addStateChangeListener(function() {
-        var user = sessionManager.user || {}
-        var header = self.container.find(".header");
-        header.find(".userName").text(user.name || "");
-      });
+      self.ele
+        .append(new MainHeader().ele)
+        .append($("<div>").addClass("body"));
 
       self.fadeGoal = new ui.FadeGoal();
     });

@@ -4,7 +4,6 @@ const express = require("express");
 const Promise = require("promise");
 const ActionCompiler = require("../biz/actions");
 const admittance = require("../biz/admittance");
-const facebook = require("../biz/facebook");
 const models = require("../models/index");
 const AuthMgr = require("../auth");
 
@@ -31,7 +30,10 @@ router.post("/f", function(req, res) {
 
 // Request a login ticket via email.
 router.get("/l", function(req, res) {
-  res.jsonResultOf(new admittance.Ticket(req, req.query.email).process());
+  res.jsonResultOf(new admittance.Ticket(req, req.query.email).process()
+  .then(function(ticketInfo) {
+    return ticketInfo.ticket;
+  }));
 });
 
 // Log out.

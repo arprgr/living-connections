@@ -19,13 +19,12 @@ function send(options) {
 
   return new Promise(function(resolve, reject) {
 
-    console.log("email", options.to, options.subject);
 
     if (CONFIG.email.disabled) {
       resolve({});
     }
     else {
-      console.log("email using", CONFIG.email.type);
+      console.log("email", options.to, options.subject, "using", CONFIG.email.type);
 
       // Validate recipient.
       var to = options.to;

@@ -14,7 +14,7 @@ function findSession(externalId) {
 
 // Look up a session seed, given an email address.
 function findEmailSessionSeed(eseed) {
-  if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
+  if (CONFIG.env == "development") {
     // Development backdoor.
     if (eseed.match(/u_\d+/)) {
       return Promise.resolve({ userId: eseed.substring(2) });
@@ -131,40 +131,24 @@ function AuthMgr_establishSessionAndUser(self) {
 
 // Follow up with a just-activiated ticket (emailSessionSeed).
 function closeTicket(ticket, toUser) {
-  var group = [];
-
-  // If this session seed has a message attached...
-  if (ticket.message) {
-    // ...deliver it.
-    group.push(ticket.message.updateAttributes({
-        toUserId: toUser.id
-      }).catch(function(error) {
-        console.error("invitation message delivery error", error);
-      })
-    );
-  }
-  
-  // If this session seed has a source user...
-  if (ticket.fromUser) {
-    // Make a tentative connection (TODO: work out how connections work)
-    group.push(models.Connection.builder()
-      .userId(ticket.fromUser.id)
-      .peerId(toUser.id)
-      .build()
-      .catch(function(error) {
-        console.error("invitation connection error", error);
-      })
-    );
-  }
-
-  // Don't repeat.
-  group.push(ticket.updateAttributes({ messageId: null, fromUserId: null })
-    .catch(function(error) {
-      console.error("close ticket error", error);
-    })
-  );
-
-  return exec.executeGroup(ticket, group);
+  // If this session seed has a message attached, deliver the message.
+  return ( ticket.message 
+    ? ticket.message.updateAttributes({ toUserId: toUser.id })
+    : Promise.resolve())
+  .then(function() {
+    // If this session seed has a source user, make a tentative connection.
+    if (ticket.fromUserId != null) {
+      return models.Connection.builder()
+        .userId(toUser.id)
+        .peerId(ticket.fromUserId)
+        .build();
+    }
+    return null;
+  })
+  .then(function() {
+    // Don't repeat these.
+    return ticket.updateAttributes({ messageId: null, fromUserId: null });
+  })
 }
 
 // Log in, asynchronously.
@@ -181,9 +165,6 @@ function AuthMgr_logIn(self, user) {
 
 // A user has clicked on an invitation/ticket email.
 function AuthMgr_resolveEmailSessionSeed(self, eseed) {
-
-console.log('resolving email session seed', eseed);
-
   return findEmailSessionSeed(eseed)
   .then(function(emailSessionSeed) {
     if (emailSessionSeed) {

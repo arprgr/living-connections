@@ -18,7 +18,10 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
 
   function Component(ele, options) {
     var proto = Object.getPrototypeOf(this);
-    ele = ele || $(proto.DEFAULT_CONTAINER);
+    ele = ele || proto.DEFAULT_CONTAINER;
+    if (typeof ele === "string") {
+      ele = $(ele);
+    }
     options = $.extend({}, proto.DEFAULT_OPTIONS, options);
 
     Observable.call(this);

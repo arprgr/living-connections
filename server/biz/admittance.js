@@ -49,9 +49,9 @@ function Invitation(req, toEmail, fromUser, assetId) {
   this.goodForDays = 5;
 }
 
-// Create an EmailSessionSeed model object.
+// Create an EmailSessionSeed model object and optionally a Message object.
 // Return a promise.
-function createEmailSessionSeed(self) {
+function createTicket(self) {
   return (self.assetId && self.fromUser
     ? models.Message.builder()
       .assetId(self.assetId)
@@ -70,7 +70,10 @@ function createEmailSessionSeed(self) {
     if (message) {
       emailSessionSeedBuilder.messageId(message.id);
     }
-    return emailSessionSeedBuilder.build();
+    return emailSessionSeedBuilder.build()
+    .then(function(emailSessionSeed) {
+      return { ticket: emailSessionSeed, message: message };
+    });
   });
 }
 
@@ -96,11 +99,11 @@ function sendEmail(self) {
 }
 
 function processTicket(self) {
-  return createEmailSessionSeed(self)
-  .then(function(emailSessionSeed) {
+  return createTicket(self)
+  .then(function(ticketInfo) {
     return sendEmail(self)
     .then(function(emailResult) {
-      return emailSessionSeed;
+      return ticketInfo;
     });
   });
 }

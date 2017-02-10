@@ -5,7 +5,6 @@
 // Error reporting.
 function jsonError(err) {
   var self = this;
-  console.error(err);
   if (err.stack) {
     console.error(err.stack);
   }

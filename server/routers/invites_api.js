@@ -23,9 +23,19 @@ const VALIDATOR = new ApiValidator({
   }
 });
 
+function fakeInvite(ticket, message) {
+  return {
+    id: ticket.id,
+    externalId: ticket.externalId,
+    fromUserId: ticket.fromUserId,
+    email: ticket.email,
+    assetId: message && message.assetId
+  }
+}
+
 // Retrieve invite by ID
 router.get("/:id", function(req, res) {
-  res.jsonResultOf(EmailSessionSeed.findById(req.params.id)
+  res.jsonResultOf(EmailSessionSeed.findById(req.params.id, { deep: true })
   .then(function(invite) {
     if (!invite) {
       throw { status: 404 };
@@ -34,7 +44,7 @@ router.get("/:id", function(req, res) {
     if (req.user.id != invite.fromUserId && !(req.user.level <= 0)) {
       throw { status: 401 };
     }
-    return invite;
+    return fakeInvite(invite, invite.message);
   }));
 });
 
@@ -44,7 +54,13 @@ router.post("/", function(req, res) {
   fields.fromUserId = req.user.id;
   // TODO: validate asset.
 
-  res.jsonResultOf(new admittance.Invitation(req, req.body.email, req.user, req.body.assetId).process());
+  res.jsonResultOf(
+    new admittance.Invitation(req, req.body.email, req.user, req.body.assetId)
+    .process()
+    .then(function(result) {
+      return fakeInvite(result.ticket, result.message);
+    })
+  );
 });
 
 // Update the invite by ID - only the asset may be changed.
@@ -60,10 +76,10 @@ router.put("/:id", function(req, res) {
     }
     fields = VALIDATOR.postvalidateUpdate(invite.message, fields);
     if (!fields) {
-      return invite;
+      return fakeInvite(invite, invite.message);
     }
     return invite.message.updateAttributes(fields).then(function() {
-      return invite;
+      return fakeInvite(invite, invite.message);
     });
   }));
 });

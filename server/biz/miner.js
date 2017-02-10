@@ -68,6 +68,9 @@ function getConnections(miner) {
     miner.connections = connections || [];
     return exec.executeGroup(null, makePerConnectionQueries(miner.connections));
   })
+  .catch(function(error) {
+    console.error(error);
+  });
 }
 
 Miner.prototype.run = function() {

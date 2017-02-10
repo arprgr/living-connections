@@ -40,6 +40,7 @@ module.exports = (function() {
       .then(function(emailProfile) {
         target.emailProfile = emailProfile;
         resolve(target);
+        return null;
       })
       .catch(reject);
     });
