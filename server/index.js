@@ -31,8 +31,14 @@ server.use(require("cookie-parser")());
 server.use(require("./jsonish"));
 server.use(function(req, res, next) {
   new AuthMgr(req, res).establishSessionAndUser()
-  .then(next)
-  .catch(next);
+  .then(function() {
+    next();
+    return null;
+  })
+  .catch(function(err) {
+    next(err);
+    return null;
+  });
 });
 
 // One page template serves all.
@@ -49,11 +55,11 @@ server.get("/", function(req, res) {
     new AuthMgr(req, res).resolveEmailSessionSeed(req.query.e)
     .then(function() {
       // Strip away the session seed.
-      res.redirect("/");
+      return res.redirect("/");
     })
     .catch(function(err) {
       console.error(err);
-      res.redirect("/");
+      return res.redirect("/");
     });
   }
   else {

@@ -21,14 +21,14 @@ function getAnnouncements(miner) {
     : models.Message.findCurrentAnnouncementsForUser(miner.user.id)
   )
   .then(function(announcements) {
-    miner.announcements = announcements || [];
+    return miner.announcements = announcements || [];
   });
 }
 
 function getOutgoingInvitations(miner) {
   return models.EmailSessionSeed.findByFromUserId(miner.user.id, { deep: 1 })
   .then(function(invites) {
-    miner.outgoingInvitations = invites || [];
+    return miner.outgoingInvitations = invites || [];
   })
 }
 
@@ -39,6 +39,7 @@ function makeMessageQuery(connection) {
       if (messages && messages.length) {
         connection.latestMessage = messages[0];
       }
+      return null;   // avoid dangling promise warnings
     });
   }
 }
@@ -47,7 +48,7 @@ function makeReciprocalConnectionQuery(connection) {
   return function() {
     return models.Connection.findByUserAndPeerIds(connection.peerId, connection.userId)
     .then(function(recip) {
-      connection.reciprocal = !!recip;
+      return connection.reciprocal = !!recip;
     });
   };
 }

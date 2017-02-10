@@ -125,6 +125,7 @@ function AuthMgr_establishSessionAndUser(self) {
         req.user = models.User.superuser(self.req.headers["x-effective-user"]);
       }
     }
+    return null;   // avoid dangling promise warnings
   });
 }
 
@@ -201,6 +202,7 @@ console.log('resolving email session seed', eseed);
         return closeTicket(emailSessionSeed, session.user);
       });
     }
+    return null;   // avoid dangling promise warnings
   })
 }
 
@@ -256,6 +258,7 @@ function AuthMgr_handleFacebookLogin(self, facebookId, otherFacebookInfo) {
         return AuthMgr_logIn(self, currentUser);
       });
     }
+    return null;   // avoid dangling promise warnings
   });
 }
 
