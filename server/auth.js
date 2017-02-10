@@ -163,7 +163,7 @@ function closeTicket(ticket, toUser) {
     })
   );
 
-  return exec.executeGroup(group);
+  return exec.executeGroup(ticket, group);
 }
 
 // Log in, asynchronously.
