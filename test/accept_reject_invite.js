@@ -1,190 +1,136 @@
 var expect = require("chai").expect;
-var request = require("request");
-var fs = require("fs");
-var Promise = require("promise");
+const requestlc = require("./common/requestlc");
 
-var URL = "http://localhost:4546";
-var CONNECTIONS_URL = URL + "/api/connections";
+const GREETING_TYPE = 0;
+const INVITE_TYPE = 1;
 
-describe("Messages API (invitation actions)", function() {
+const ACCEPT = "accept";
+const REJECT = "reject";
 
-  var adminKey = fs.readFileSync("tmp/adminKey");
+requestlc.describe("Messages API (invitation actions)", function(client) {
 
-  function actionUri(messageId, action) {
-    return "/api/messages/" + messageId + "?act=" + action;
+  // Methods...
+
+  function createMessage(type, fromUserId, toUserId) {
+    return client.makeRequest("POST", "/api/messages")
+    .withData({
+      toUserId: toUserId,
+      assetId: 17,
+      type: type
+    })
+    .asUser(fromUserId).expectStatusCode(200).getJson().go();
   }
 
-  var fromUserId = 3;
-  var toUserId = 4;
-  var invMessageId;
-  var nonInvMessageId;
+  function retrieveConnection(userId, peerId) {
+    return client.makeRequest("GET", "/api/connections/" + userId + "/" + peerId)
+    .asRoot().expectStatusCode(200).getJson().go();
+  }
 
-  beforeEach(function(done) {
-    request({
-      method: "DELETE",
-      url: URL + "/connections",
-      headers: {
-        "X-Access-Key": adminKey
-      }
-    }, function(error, response, body) {
-      expect(response.statusCode).to.equal(200);
-      request({
-        method: "DELETE",
-        url: URL + "/api/messages",
-        headers: {
-          "X-Access-Key": adminKey
-        }
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        request({
-          method: "POST",
-          url: URL + "/api/messages",
-          form: {
-            type: 1,  /* invite */
-            toUserId: toUserId,
-            assetId: 5
-          },
-          headers: {
-            "X-Access-Key": adminKey,
-            "X-Effective-User": fromUserId
-          }
-        }, function(error, response, body) {
-          expect(response.statusCode).to.equal(200);
-          invMessageId = JSON.parse(body).id;
-          request({
-            method: "POST",
-            url: URL + "/api/messages",
-            form: {
-              type: 0,  /* greeting */
-              toUserId: toUserId,
-              assetId: 5
-            },
-            headers: {
-              "X-Access-Key": adminKey,
-              "X-Effective-User": fromUserId
-            }
-          }, function(error, response, body) {
-            expect(response.statusCode).to.equal(200);
-            nonInvMessageId = JSON.parse(body).id;
-            done();
-          })
-        })
-      })
+  function actOnInviteOk(action, messageId, userId) {
+    return client.makeRequest("GET", "/api/messages/" + messageId + "?act=" + action)
+    .asUser(userId).expectStatusCode(200).getJson().go();
+  }
+
+  function actOnInviteError(action, messageId, userId, expectedStatusCode) {
+    return client.makeRequest("GET", "/api/messages/" + messageId + "?act=" + action)
+    .asUser(userId).expectStatusCode(expectedStatusCode).go();
+  }
+
+  // Tests...
+
+  it("creates connection when invitation is accepted", function(done) {
+    var FROM_USER_ID = 1;
+    var TO_USER_ID = 2;
+    createMessage(INVITE_TYPE, FROM_USER_ID, TO_USER_ID)
+    .then(function(message) {
+      return actOnInviteOk(ACCEPT, message.id, TO_USER_ID);
     })
-  });
-
-  it("is ok with accepting an invitation", function(done) {
-    request({
-      method: "GET",
-      url: URL + actionUri(invMessageId, "accept"),
-      headers: {
-        "X-Access-Key": adminKey,
-        "X-Effective-User": toUserId
-      }
-    }, function(error, response, body) {
-      expect(response.statusCode).to.equal(200);
-      // accepting creates connection.
-      request({
-        method: "GET",
-        url: URL + "/connections/" + fromUserId + "/" + toUserId,
-        headers: {
-          "X-Access-Key": adminKey,
-          "X-Effective-User": fromUserId
-        }
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        expect(JSON.parse(body).grade).to.equal(1);
-        done();
-      })
-    });
-  });
-
-  it("is not ok with accepting a non-invitation", function(done) {
-    request({
-      method: "GET",
-      url: URL + actionUri(nonInvMessageId, "accept"),
-      headers: {
-        "X-Access-Key": adminKey,
-        "X-Effective-User": toUserId
-      }
-    }, function(error, response, body) {
-      expect(response.statusCode).to.equal(401);
+    .then(function() {
+      return retrieveConnection(FROM_USER_ID, TO_USER_ID);
+    })
+    .then(function(connection) {
+      expect(connection.grade).to.equal(1);
       done();
-    });
-  });
-
-  it("can accept an invitation twice without trouble", function(done) {
-    request({
-      method: "GET",
-      url: URL + actionUri(invMessageId, "accept"),
-      headers: {
-        "X-Access-Key": adminKey,
-        "X-Effective-User": toUserId
-      }
-    }, function(error, response, body) {
-      expect(response.statusCode).to.equal(200);
-      request({
-        method: "GET",
-        url: URL + actionUri(invMessageId, "accept"),
-        headers: {
-          "X-Access-Key": adminKey,
-          "X-Effective-User": toUserId
-        }
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        request({
-          method: "GET",
-          url: URL + "/connections/" + fromUserId + "/" + toUserId,
-          headers: {
-            "X-Access-Key": adminKey,
-            "X-Effective-User": fromUserId
-          }
-        }, function(error, response, body) {
-          expect(response.statusCode).to.equal(200);
-          expect(JSON.parse(body).grade).to.equal(1);
-          done();
-        })
-      })
     })
+    .catch(done);
   });
 
-  it("is ok with rejecting an invitation", function(done) {
-    request({
-      method: "GET",
-      url: URL + actionUri(invMessageId, "reject"),
-      headers: {
-        "X-Access-Key": adminKey,
-        "X-Effective-User": toUserId
-      }
-    }, function(error, response, body) {
-      expect(response.statusCode).to.equal(200);
-      // rejecting downgrades connection.
-      request({
-        method: "GET",
-        url: URL + "/connections/" + toUserId + "/" + fromUserId,
-        headers: {
-          "X-Access-Key": adminKey,
-          "X-Effective-User": toUserId
-        }
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        expect(JSON.parse(body).grade).to.equal(0);
-        done();
-      })
-    });
+  it("does not permit accepting a non-invitation", function(done) {
+    var FROM_USER_ID = 11;
+    var TO_USER_ID = 12;
+    createMessage(GREETING_TYPE, FROM_USER_ID, TO_USER_ID)
+    .then(function(message) {
+      return actOnInviteError(ACCEPT, message.id, TO_USER_ID, 401);
+    })
+    .then(function() {
+      done();
+    })
+    .catch(done);
+  });
+
+  it("permits only the recipient to accept an invitation", function(done) {
+    var FROM_USER_ID = 21;
+    var TO_USER_ID = 22;
+    createMessage(GREETING_TYPE, FROM_USER_ID, TO_USER_ID)
+    .then(function(message) {
+      return actOnInviteError(ACCEPT, message.id, TO_USER_ID + 1, 401);
+    })
+    .then(function() {
+      done();
+    })
+    .catch(done);
+  });
+
+  it("allows an invitation to be accepted twice", function(done) {
+    var FROM_USER_ID = 31;
+    var TO_USER_ID = 32;
+    var firstMessage;
+    createMessage(INVITE_TYPE, FROM_USER_ID, TO_USER_ID)
+    .then(function(message) {
+      firstMessage = message;
+      return actOnInviteOk(ACCEPT, message.id, TO_USER_ID);
+    })
+    .then(function(message) {
+      expect(message.id).to.equal(firstMessage.id);
+      return actOnInviteOk(ACCEPT, message.id, TO_USER_ID);
+    })
+    .then(function() {
+      return retrieveConnection(FROM_USER_ID, TO_USER_ID);
+    })
+    .then(function(connection) {
+      expect(connection.grade).to.equal(1);
+      done();
+    })
+    .catch(done);
+  });
+
+  it("allows an invitation to be rejected", function(done) {
+    var FROM_USER_ID = 41;
+    var TO_USER_ID = 42;
+    createMessage(INVITE_TYPE, FROM_USER_ID, TO_USER_ID)
+    .then(function(message) {
+      return actOnInviteOk(REJECT, message.id, TO_USER_ID);
+    })
+    .then(function() {
+      return retrieveConnection(TO_USER_ID, FROM_USER_ID);
+    })
+    .then(function(connection) {
+      expect(connection.grade).to.equal(0);
+      done();
+    })
+    .catch(done);
   });
 
   it("fails on bad action", function(done) {
-    request({
-      method: "GET",
-      url: URL + actionUri(invMessageId, "floof"),
-      headers: {
-        "X-Access-Key": adminKey,
-        "X-Effective-User": toUserId
-      }
-    }, function(error, response, body) {
-      expect(response.statusCode).to.equal(500);
+    var FROM_USER_ID = 51;
+    var TO_USER_ID = 52;
+    createMessage(INVITE_TYPE, FROM_USER_ID, TO_USER_ID)
+    .then(function(message) {
+      return actOnInviteError("tumble", message.id, TO_USER_ID, 500);
+    })
+    .then(function() {
       done();
-    });
+    })
+    .catch(done);
   });
 });

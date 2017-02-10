@@ -1,4 +1,4 @@
-/* api.js */
+/* api/index.js */
 
 var router = require("express").Router();
 
@@ -12,7 +12,8 @@ router.use(function(req, res, next) {
   }
 });
 
-router.use("/invites", require("./invites_api"));
+router.use("/connections", require("./connections_api"));
+router.use("/invites", require("./invites_api"));  // TODO: rename to tickets
 router.use("/messages", require("./messages_api"));
 router.use("/profile", require("./profile_api"));
 router.use("/users", require("./users_api"));
