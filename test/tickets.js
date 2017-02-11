@@ -169,12 +169,15 @@ requestlc.describe("ticketing system", function(client) {
     .then(function(actionResponse) {
       var actionList = actionResponse.actionItems;
       expect(actionList).to.exist;
+      var messageAction;
       for (var i = 0; i < actionList.length; ++i) {
         if (actionList[i].message && actionList[i].message.fromUser.id == sender.id) {
-          message = actionList[i].message;
+          messageAction = actionList[i];
         }
       }
-      expect(message).to.exist;
+      expect(messageAction).to.exist;
+      expect(typeof messageAction.id).to.equal("string");
+      expect(messageAction.id.substring(0, 7)).to.equal("inv-rec");
       done();
     })
     .catch(done);
