@@ -86,8 +86,16 @@ function makeRequest(method, uri) {
             reject(error);
           }
           else {
-            for (var i = 0; i < assertions.length; ++i) {
-              assertions[i](response, body);
+            try {
+              for (var i = 0; i < assertions.length; ++i) {
+                assertions[i](response, body);
+              }
+            }
+            catch (e) {
+              if (response.statusCode == 500) {
+                console.log(body);
+              }
+              throw e;
             }
             resolve(postproc(response, body));
           }

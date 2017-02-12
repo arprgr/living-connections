@@ -156,6 +156,9 @@ function finalizeActionItems(compiler) {
 
 ActionCompiler.prototype.run = function() {
   var compiler = this;
+  if (!compiler.user) {
+    return {};
+  }
   return new Miner(compiler.user).run()
   .then(function(miner) {
     extend(compiler, miner);

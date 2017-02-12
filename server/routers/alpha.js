@@ -12,12 +12,7 @@ var router = express.Router();
 
 // Get actions for current user. 
 router.get("/a", function(req, res) {
-  if (req.session && req.user) {
-    res.jsonResultOf(new ActionCompiler(req.user).run());
-  }
-  else {
-    res.json({});
-  }
+  res.jsonResultOf(new ActionCompiler((req.session && req.session.user) || req.user).run());
 });
 
 // Log in with Facebook.

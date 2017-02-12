@@ -36,15 +36,17 @@ requestlc.describe("Invitations", function(client) {
     return client.makeRequest("GET", "/?e=" + ticket.externalId).expectRedirect("/").getSetCookie("s").go();
   }
 
-  function requestActionList(sessionCookie) {
-    return client.makeRequest("GET", "/a").withCookie("s", sessionCookie).expectStatusCode(200).getJson().go();
+  function requestActionList(cred, credIsUserId) {
+    var req = client.makeRequest("GET", "/a");
+    credIsUserId ? req.asUser(cred) : req.withCookie("s", cred);
+    return req.expectStatusCode(200).getJson().go();
   }
 
-  function findMessageAction(actionResponse, fromUserId) {
+  function findAction(actionResponse, pred) {
     var actionList = actionResponse.actionItems;
     expect(actionList).to.exist;
     for (var i = 0; i < actionList.length; ++i) {
-      if (actionList[i].message && actionList[i].message.fromUser.id == fromUserId) {
+      if (pred(actionList[i])) {
         return actionList[i];
       }
     }
@@ -60,6 +62,14 @@ requestlc.describe("Invitations", function(client) {
 
   function cancelInvitationError(id, userId, expectedStatusCode) {
     return cancelInvitation(id, userId).expectStatusCode(expectedStatusCode).go();
+  }
+
+  function actOnInvite(action, messageId, userId) {
+    return client.makeRequest("GET", "/api/messages/" + messageId + "?act=" + action).asUser(userId);
+  }
+
+  function actOnInviteOk(action, messageId, userId) {
+    return actOnInvite(action, messageId, userId).expectStatusCode(200).getJson().go();
   }
 
   // Create sender.
@@ -101,30 +111,68 @@ requestlc.describe("Invitations", function(client) {
 
     describe("once claimed...", function() {
 
-      var sessionCookie;
+      var receiverActionResponse;
 
       beforeEach(function(done) {
         // Holder of the email account claims ticket.
         claimTicket(invite)
-        .then(function(_sessionCookie) {
-          sessionCookie = _sessionCookie;
+        .then(function(sessionCookie) {
           expect(sessionCookie).to.exist;
+          return requestActionList(sessionCookie);
+        })
+        .then(function(actionResponse) {
+          receiverActionResponse = actionResponse;
           done();
         })
         .catch(done);
       });
 
+      it("logs in the new user", function(done) {
+        // Action list is expected to contain a message from the sender.
+        expect(receiverActionResponse.user).to.exist;
+        expect(receiverActionResponse.user.id).to.exist;
+        done();
+      });
+
       it("deliver messages", function(done) {
-        requestActionList(sessionCookie)
-        .then(function(actionResponse) {
-          // Action list is expected to contain a message from the sender.
-          var messageAction = findMessageAction(actionResponse, sender.id);
-          expect(messageAction).to.exist;
-          expect(typeof messageAction.id).to.equal("string");
-          expect(messageAction.id.substring(0, 7)).to.equal("inv-rec");
-          done();
-        })
-        .catch(done);
+        // Action list is expected to contain a message from the sender.
+        var messageAction = findAction(receiverActionResponse, function(item) {
+          return item.message && item.message.fromUser && item.message.fromUser.id == sender.id;
+        });
+        expect(messageAction).to.exist;
+        expect(typeof messageAction.id).to.equal("string");
+        expect(messageAction.id.substring(0, 7)).to.equal("inv-rec");
+        done();
+      });
+
+      describe("and accepted...", function() {
+
+        beforeEach(function(done) {
+          var messageAction = findAction(receiverActionResponse, function(item) {
+            return item.message && item.message.fromUser && item.message.fromUser.id == sender.id;
+          });
+          actOnInviteOk("accept", messageAction.message.id, receiverActionResponse.user.id)
+          .then(function() {
+            done();
+          })
+          .catch(done);
+        });
+
+        it("adds receiver to sender's connection list", function(done) {
+          requestActionList(sender.id, true)
+          .then(function(actionResponse) {
+            expect(actionResponse.user).to.exist;
+            expect(parseInt(actionResponse.user.id)).to.equal(sender.id);
+            var actionList = actionResponse.actionItems;
+            expect(actionList).to.exist;
+            var greetingAction = findAction(actionResponse, function(item) {
+              return item.user && item.user.id == receiverActionResponse.user.id;
+            });
+            expect(greetingAction).to.exist;
+            done();
+          })
+          .catch(done);
+        });
       });
     });
 
@@ -149,7 +197,9 @@ requestlc.describe("Invitations", function(client) {
         requestActionList(sessionCookie)
         .then(function(actionResponse) {
           // Action list is expected not to contain a message from the sender.
-          var messageAction = findMessageAction(actionResponse, sender.id);
+          var messageAction = findAction(actionResponse, function(item) {
+            return item.message && item.message.fromUserId == sender.id;
+          });
           expect(messageAction).to.not.exist;
           done();
         })
