@@ -2,7 +2,9 @@
 
 // There is no Invite model type, but this router follows the same general pattern as for model-
 // related routers.  An invitation is represented by a EmailSessionSeed model with non-null
-// fromUserId and messageId fields.
+// fromUserId and messageId fields.  TODO: add a true Invite model type, which associates an 
+// EmailSessionSeed with a message.  And alter the video recorder to work with messages as well
+// as assets.
 
 const admittance = require("../biz/admittance");
 const EmailSessionSeed = require("../models/index").EmailSessionSeed;
@@ -86,6 +88,7 @@ router.put("/:id", function(req, res) {
 
 // Delete invite by ID
 router.delete("/:id", function(req, res) {
+  // Invitation is voided, but the ticket remains.
   res.jsonResultOf(EmailSessionSeed.findById(req.params.id)
   .then(function(invite) {
     if (!invite) {
@@ -94,7 +97,7 @@ router.delete("/:id", function(req, res) {
     if (!(req.user.level <= 0) && req.user.id != invite.fromUserId) {
       throw { status: 401 };
     }
-    return EmailSessionSeed.destroyById(req.params.id);
+    return invite.updateAttributes({ fromUserId: null, messageId: null });
   }));
 });
 
