@@ -34,29 +34,31 @@ function findUser(userId) {
 }
 
 // Create a new user.
-function createNewUser(name, level) {
-  return models.User.builder().name(name).level(level).build();
+function createNewUser(name) {
+  return models.User.builder().name(name).build();
 }
 
-// Create or update email profile.
-function upsertEmailProfile(user, email) {
-  return models.EmailProfile.builder().email(email).user(user).upsert();
+// Create email profile.
+function createEmailProfile(user, email) {
+  return models.EmailProfile.builder().email(email).user(user).build();
 }
 
-// If there is no user having the given email address, create both the new Users
-// and the new EmailProfile records.
+// If there is no user having the given email address, create both new User and
+// new EmailProfile records.
 function findOrCreateUserByEmail(email) {
   return findEmailProfile(email)
   .then(function(emailProfile) {
     if (emailProfile && emailProfile.user) {
       return emailProfile.user;
     }
-    return createNewUser(email, 1)
+    return createNewUser(email)
     .then(function(user) {
-      return upsertEmailProfile(user, email)
+      return (emailProfile
+        ? emailProfile.updateAttributes({ userId: user.id })
+        : createEmailProfile(user, email))
       .then(function() {
         return user;
-      })
+      });
     })
   })
 }
@@ -228,7 +230,7 @@ function AuthMgr_handleFacebookLogin(self, facebookId, otherFacebookInfo) {
         }
       }
       // Create a new user with the given profile and log them in.
-      return createNewUser(facebookProfile.name || facebookProfile.email || "New User", 1)
+      return createNewUser(facebookProfile.name || facebookProfile.email || "New User")
       .then(function(user) {
         currentUser = user;
         return facebookProfile.updateAttributes({
