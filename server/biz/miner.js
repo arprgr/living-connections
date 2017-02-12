@@ -12,7 +12,16 @@ function Miner(user) {
   self.user = user;
   self.announcements = [];
   self.outgoingInvitations = [];
-  self.connections = [];
+  self.others = {};
+}
+
+function openOther(miner, user) {
+  if (!(user.id in miner.others)) {
+    miner.others[user.id] = {};
+  }
+  var other = miner.others[user.id];
+  other.user = user;
+  return other;
 }
 
 function getAnnouncements(miner) {
@@ -25,6 +34,19 @@ function getAnnouncements(miner) {
   });
 }
 
+function getConnections(miner) {
+  return models.Connection.findByUserId(miner.user.id)
+  .then(function(connections) {
+    if (connections) {
+      for (var i = 0; i < connections.length; ++i) {
+        var conn = connections[i];
+        openOther(miner, conn.peer).isConnection = true;
+      }
+    }
+    return null;
+  });
+}
+
 function getOutgoingInvitations(miner) {
   return models.EmailSessionSeed.findByFromUserId(miner.user.id, { deep: 1 })
   .then(function(invites) {
@@ -32,44 +54,19 @@ function getOutgoingInvitations(miner) {
   })
 }
 
-function makeMessageQuery(connection) {
-  return function() {
-    return models.Message.findByUserIds(connection.peerId, connection.userId, { limit: 1 })
-    .then(function(messages) {
-      if (messages && messages.length) {
-        connection.latestMessage = messages[0];
+function getIncomingMessages(miner) {
+  return models.Message.findByReceiver(miner.user.id, { deep: 1 })
+  .then(function(messages) {
+    if (messages) {
+      for (var i = 0; i < messages.length; ++i) {
+        var msg = messages[i];
+        var other = openOther(miner, msg.fromUser);
+        if (!other.incomingMessage) {
+          other.incomingMessage = msg;
+        }
       }
-      return null;   // avoid dangling promise warnings
-    });
-  }
-}
-
-function makeReciprocalConnectionQuery(connection) {
-  return function() {
-    return models.Connection.findByUserAndPeerIds(connection.peerId, connection.userId)
-    .then(function(recip) {
-      return connection.reciprocal = !!recip;
-    });
-  };
-}
-
-function makePerConnectionQueries(connections) {
-  var group = [];
-  for (var i = 0; i < connections.length; ++i) {
-    group.push(makeReciprocalConnectionQuery(connections[i]));
-    group.push(makeMessageQuery(connections[i]));
-  }
-  return group;
-}
-
-function getConnections(miner) {
-  return models.Connection.findByUserId(miner.user.id)
-  .then(function(connections) {
-    miner.connections = connections || [];
-    return exec.executeGroup(null, makePerConnectionQueries(miner.connections));
-  })
-  .catch(function(error) {
-    console.error(error);
+    }
+    return null;   // avoid dangling promise warnings
   });
 }
 
@@ -78,7 +75,8 @@ Miner.prototype.run = function() {
   return exec.executeGroup(miner, [
     getAnnouncements,
     getConnections,
-    getOutgoingInvitations
+    getOutgoingInvitations,
+    getIncomingMessages
   ])
 }
 

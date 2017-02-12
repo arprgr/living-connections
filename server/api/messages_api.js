@@ -33,8 +33,11 @@ const VALIDATOR = new ApiValidator({
 var router = require("express").Router();
 
 function acceptInvitation(message) {
-  // When an invitation is accepted by the receiver, the sender makes a connection to the receiver.
+  // When an invitation is accepted, a connection is made.
   return Connection.regrade(message.fromUserId, message.toUserId, 1)
+  .then(function() {
+    return Connection.regrade(message.toUserId, message.fromUserId, 1)
+  })
   .then(function() {
     return message;
   })

@@ -38,9 +38,6 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function includes() {
-  }
-
   function associate(_models) {
     models = _models;
     Message.belongsTo(models.User, { as: "toUser" });
@@ -147,6 +144,12 @@ module.exports = function(sequelize, DataTypes) {
     });
   }
 
+  function findByReceiver(toUserId, options) {
+    return findAllWhere({
+      "toUserId": toUserId
+    }, options);
+  }
+
   function findByUserIds(u1, u2, options) {
     return findAllWhere({
       "$or": [{
@@ -180,6 +183,7 @@ module.exports = function(sequelize, DataTypes) {
       findAnnouncements: findAnnouncements,
       findCurrentAnnouncementsForUser: findCurrentAnnouncementsForUser,
       findById: findById,
+      findByReceiver: findByReceiver,
       findByUserIds: findByUserIds
     }
   });

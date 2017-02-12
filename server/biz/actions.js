@@ -74,27 +74,26 @@ function addActionItem(compiler, msg, action, data) {
 }
 
 function addConnectionItems(compiler) {
-  var connections = compiler.connections;
-  for (var i = 0; i < connections.length; ++i) {
-    var conn = connections[i];
-    var latestMessage = conn.latestMessage;
-    if (latestMessage && latestMessage.toUserId == compiler.user.id) {
-      latestMessage.fromUser = conn.peer;
+  var others = compiler.others;
+  for (var userId in others) {
+    var other = others[userId];
+    var incomingMessage = other.incomingMessage;
+    if (incomingMessage) {
       addActionItem(compiler,
-        (latestMessage.type == Message.INVITE_TYPE && !conn.reciprocal) ? MSG_INVITATION : MSG_GREETING,
+        incomingMessage.type == Message.INVITE_TYPE && !other.isConnection ? MSG_INVITATION : MSG_GREETING,
         ACTION_RECEIVE, {
           // Apparently sequelize model objects are immutable.  Didn't know that!
           message: {
-            id: latestMessage.id,
-            assetId: latestMessage.assetId,
-            asset: latestMessage.asset,
-            fromUser: conn.peer
+            id: incomingMessage.id,
+            assetId: incomingMessage.assetId,
+            asset: incomingMessage.asset,
+            fromUser: other.user
           }
         });
     }
     else {
       addActionItem(compiler, MSG_GREETING, ACTION_CREATE, {
-        user: conn.peer
+        user: other.user
       });
     }
   }

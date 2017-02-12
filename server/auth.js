@@ -131,26 +131,12 @@ function AuthMgr_establishSessionAndUser(self) {
   });
 }
 
-// Follow up with a just-activiated ticket (emailSessionSeed).
+// Follow up with a ticket just used to log in...
 function closeTicket(ticket, toUser) {
-  // If this session seed has a message attached, deliver the message.
-  return ( ticket.message 
+  // If this ticket has a message attached, deliver the message.
+  return ticket.message 
     ? ticket.message.updateAttributes({ toUserId: toUser.id })
-    : Promise.resolve())
-  .then(function() {
-    // If this session seed has a source user, make a tentative connection.
-    if (ticket.fromUserId != null) {
-      return models.Connection.builder()
-        .userId(toUser.id)
-        .peerId(ticket.fromUserId)
-        .build();
-    }
-    return null;
-  })
-  .then(function() {
-    // Don't repeat these.
-    return ticket.updateAttributes({ messageId: null, fromUserId: null });
-  })
+    : Promise.resolve();
 }
 
 // Log in, asynchronously.

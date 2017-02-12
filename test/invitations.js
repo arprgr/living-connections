@@ -32,10 +32,6 @@ requestlc.describe("Invitations", function(client) {
     return sendInvitation(fromUserId, email).expectStatusCode(expectedStatusCode).go();
   }
 
-  function retrieveTicket(id) {
-    return client.makeRequest("GET", "/api/invites/" + id).asRoot().expectStatusCode(200).getJson().go();
-  }
-
   function claimTicket(ticket) {
     return client.makeRequest("GET", "/?e=" + ticket.externalId).expectRedirect("/").getSetCookie("s").go();
   }
@@ -126,18 +122,6 @@ requestlc.describe("Invitations", function(client) {
           expect(messageAction).to.exist;
           expect(typeof messageAction.id).to.equal("string");
           expect(messageAction.id.substring(0, 7)).to.equal("inv-rec");
-          done();
-        })
-        .catch(done);
-      });
-
-      it("become void", function(done) {
-        retrieveTicket(invite.id)     // tickets and invites are one and the same, for now.
-        .then(function(ticket) {
-          expect(ticket.id).to.equal(invite.id);
-          expect(ticket.externalId).to.equal(invite.externalId);
-          expect(ticket.messageId).to.not.exist;
-          expect(ticket.fromUserId).to.be.null;
           done();
         })
         .catch(done);
