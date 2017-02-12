@@ -1,5 +1,7 @@
 /* api_validator.js */
 
+var EMAIL_REGEX = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/;
+
 function checkInputFields(schema, fields) {
   var validFields = {};
   var invalidFields = {};
@@ -25,6 +27,11 @@ function checkInputFields(schema, fields) {
         case "date":
           value = new Date(value);
           break;
+        case "email":
+          value = value.toLowerCase();
+          if (!value.match(EMAIL_REGEX)) {
+            throw {};
+          }
         }
         validFields[key] = value;
       }

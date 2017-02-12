@@ -10,6 +10,7 @@ const admittance = require("../biz/admittance");
 const EmailSessionSeed = require("../models/index").EmailSessionSeed;
 const Message = require("../models/index").Message;
 const ApiValidator = require("./api_validator");
+const Promise = require("promise");
 
 var router = require("express").Router();
 
@@ -21,7 +22,7 @@ const VALIDATOR = new ApiValidator({
   email: {
     constant: true,
     required: true,
-    type: "string"
+    type: "email"
   }
 });
 
@@ -52,17 +53,17 @@ router.get("/:id", function(req, res) {
 
 // Create an invite.
 router.post("/", function(req, res) {
-  var fields = VALIDATOR.validateNew(req.body);
-  fields.fromUserId = req.user.id;
-  // TODO: validate asset.
+  res.jsonResultOf(new Promise(function(resolve) {
+    var fields = VALIDATOR.validateNew(req.body);
+    fields.fromUserId = req.user.id;
+    // TODO: validate asset.
 
-  res.jsonResultOf(
-    new admittance.Invitation(req, req.body.email, req.user, req.body.assetId)
-    .process()
-    .then(function(result) {
-      return fakeInvite(result.ticket, result.message);
-    })
-  );
+    resolve(new admittance.Invitation(req, fields.email, req.user, fields.assetId)
+      .process()
+      .then(function(result) {
+        return fakeInvite(result.ticket, result.message);
+      }));
+  }));
 });
 
 // Update the invite by ID - only the asset may be changed.

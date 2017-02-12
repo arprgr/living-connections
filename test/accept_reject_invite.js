@@ -21,11 +21,6 @@ requestlc.describe("Messages API (invitation actions)", function(client) {
     .asUser(fromUserId).expectStatusCode(200).getJson().go();
   }
 
-  function retrieveConnection(userId, peerId) {
-    return client.makeRequest("GET", "/api/connections/" + userId + "/" + peerId)
-    .asRoot().expectStatusCode(200).getJson().go();
-  }
-
   function actOnInviteOk(action, messageId, userId) {
     return client.makeRequest("GET", "/api/messages/" + messageId + "?act=" + action)
     .asUser(userId).expectStatusCode(200).getJson().go();
@@ -37,36 +32,6 @@ requestlc.describe("Messages API (invitation actions)", function(client) {
   }
 
   // Tests...
-
-  it("creates connection when invitation is accepted", function(done) {
-    var FROM_USER_ID = 1;
-    var TO_USER_ID = 2;
-    createMessage(INVITE_TYPE, FROM_USER_ID, TO_USER_ID)
-    .then(function(message) {
-      return actOnInviteOk(ACCEPT, message.id, TO_USER_ID);
-    })
-    .then(function() {
-      return retrieveConnection(FROM_USER_ID, TO_USER_ID);
-    })
-    .then(function(connection) {
-      expect(connection.grade).to.equal(1);
-      done();
-    })
-    .catch(done);
-  });
-
-  it("does not permit accepting a non-invitation", function(done) {
-    var FROM_USER_ID = 11;
-    var TO_USER_ID = 12;
-    createMessage(GREETING_TYPE, FROM_USER_ID, TO_USER_ID)
-    .then(function(message) {
-      return actOnInviteError(ACCEPT, message.id, TO_USER_ID, 401);
-    })
-    .then(function() {
-      done();
-    })
-    .catch(done);
-  });
 
   it("permits only the recipient to accept an invitation", function(done) {
     var FROM_USER_ID = 21;
@@ -95,10 +60,6 @@ requestlc.describe("Messages API (invitation actions)", function(client) {
       return actOnInviteOk(ACCEPT, message.id, TO_USER_ID);
     })
     .then(function() {
-      return retrieveConnection(FROM_USER_ID, TO_USER_ID);
-    })
-    .then(function(connection) {
-      expect(connection.grade).to.equal(1);
       done();
     })
     .catch(done);
@@ -112,10 +73,6 @@ requestlc.describe("Messages API (invitation actions)", function(client) {
       return actOnInviteOk(REJECT, message.id, TO_USER_ID);
     })
     .then(function() {
-      return retrieveConnection(TO_USER_ID, FROM_USER_ID);
-    })
-    .then(function(connection) {
-      expect(connection.grade).to.equal(0);
       done();
     })
     .catch(done);

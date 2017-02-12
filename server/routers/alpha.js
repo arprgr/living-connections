@@ -6,6 +6,7 @@ const ActionCompiler = require("../biz/actions");
 const admittance = require("../biz/admittance");
 const models = require("../models/index");
 const AuthMgr = require("../auth");
+const ApiValidator = require("../api/api_validator");
 
 var router = express.Router();
 
@@ -30,9 +31,21 @@ router.post("/f", function(req, res) {
 
 // Request a login ticket via email.
 router.get("/l", function(req, res) {
-  res.jsonResultOf(new admittance.Ticket(req, req.query.email).process()
-  .then(function(ticketInfo) {
-    return ticketInfo.ticket;
+
+  const VALIDATOR = new ApiValidator({
+    email: {
+      constant: true,
+      required: true,
+      type: "email"
+    }
+  });
+
+  res.jsonResultOf(new Promise(function(resolve, reject) {
+    var fields = VALIDATOR.validateNew(req.query);
+    resolve(new admittance.Ticket(req, fields.email).process()
+    .then(function(ticketInfo) {
+      return ticketInfo.ticket;
+    }));
   }));
 });
 
