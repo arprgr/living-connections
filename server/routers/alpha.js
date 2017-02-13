@@ -28,6 +28,8 @@ router.post("/f", function(req, res) {
 router.get("/l", function(req, res) {
 
   const VALIDATOR = new ApiValidator({
+    "_": {
+    },
     email: {
       constant: true,
       required: true,
