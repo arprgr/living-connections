@@ -27,7 +27,7 @@ router.get("/:id", function(req, res) {
       throw { status: 404 };
     }
     // A user may be viewed only by itself or an admin.
-    if (req.user.id != user.id && !(req.user.level <= 0)) {
+    if (!req.isAdmin && req.user.id != user.id) {
       throw { status: 401 };
     }
     return user;
@@ -42,7 +42,7 @@ router.delete("/:id", function(req, res) {
       throw { status: 404 };
     }
     // A user may be deleted only by the admin.
-    if (!(req.user.level <= 0)) {
+    if (!req.isAdmin) {
       throw { status: 401 };
     }
     return User.destroyById(user.id);
@@ -62,7 +62,7 @@ if (process.env.NODE_ENV == "test") {
 router.post("/", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
     // A user may be created only by the admin.
-    if (!(req.user.level <= 0)) {
+    if (!req.isAdmin) {
       throw { status: 401 };
     }
     resolve(User.create(VALIDATOR.validateNew(req.body)));

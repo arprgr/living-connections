@@ -24,7 +24,7 @@ requestlc.describe("Users API", function(client) {
     });
 
     it("sets id, name, and default level", function(done) {
-      client.makeRequest("POST", PATH).withData({ name: "Jack" }).asRoot().getJson().go()
+      client.makeRequest("POST", PATH).withData({ name: "Jack" }).asRoot().expectStatusCode(200).getJson().go()
       .then(function(user) {
         expect(typeof user.id).to.equal("number");
         expect(user.name).to.equal("Jack");

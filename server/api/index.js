@@ -4,7 +4,7 @@ var router = require("express").Router();
 
 // All API functions require some sort of authentication.
 router.use(function(req, res, next) {
-  if (!req.user) {
+  if (!req.isAdmin && !req.user) {
     next({ status: 401 });
   }
   else {

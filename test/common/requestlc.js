@@ -58,6 +58,13 @@ function makeRequest(method, uri) {
       return this;
     },
 
+    expectBody: function(expectedBody) {
+      assertions.push(function(response, body) {
+        expect(body).to.equal(expectedBody);
+      });
+      return this;
+    },
+
     getJson: function() {
       postproc = function(response, body) {
         var obj = JSON.parse(body);

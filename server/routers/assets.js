@@ -5,16 +5,6 @@ const videoStoreConnector = require("../connectors/videostore");
 
 var router = require("express").Router();
 
-// All functions require a valid user.
-router.use(function(req, res, next) {
-  if (req.user) {
-    next();
-  }
-  else {
-    res.jsonError({ status: 401 });
-  }
-});
-
 function createAsset(creatorId, mime, key, url) {
   return Asset.create({
     creatorId: creatorId,
@@ -37,12 +27,15 @@ function adminCreate(req, res) {
 
 // Create
 router.post("/", function(req, res) {
+  if (!req.user) {
+    res.jsonError({ status: 401 });
+  }
   res.jsonResultOf(req.is("video/*") ? upload(req, res) : adminCreate(req, res));
 });
 
 // Retrieve (by id)
 router.get("/:id", function(req, res) {
-  if (req.user.level > 0) {
+  if (!req.isAdmin) {
     res.jsonError({ status: 401 });
   }
   else {
@@ -52,7 +45,7 @@ router.get("/:id", function(req, res) {
 
 // Delete all.
 router.delete("/", function(req, res) {
-  if (req.user.level > 0) {
+  if (!req.isAdmin) {
     res.jsonError({ status: 401 });
   }
   else {
@@ -62,7 +55,7 @@ router.delete("/", function(req, res) {
 
 // Delete one.
 router.delete("/:id", function(req, res) {
-  if (req.user.level > 0) {
+  if (!req.isAdmin) {
     res.jsonError({ status: 401 });
   }
   else {

@@ -9,7 +9,7 @@ router.put("/:userId/:peerId", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
     // TODO: validate user IDs.
     // Only admin access... for now.
-    if (!(req.user.level <= 0)) {
+    if (!req.user.isAdmin) {
       throw { status: 401 };
     }
     return Connection.regrade(req.params.userId, req.params.peerId, req.body.grade)

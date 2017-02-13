@@ -55,9 +55,7 @@ router.get("/:id", function(req, res) {
       throw { status: 404 };
     }
     // A message may be viewed only by the sender, the receiver, or an admin.
-    if (req.user.id != message.fromUserId &&
-      req.user.id != message.toUserId &&
-      !(req.user.level <= 0)) {
+    if (!req.isAdmin && req.user.id != message.fromUserId && req.user.id != message.toUserId) {
       throw { status: 401 };
     }
     // This method can execute one or more actions as side effects.
@@ -92,8 +90,7 @@ router.delete("/:id", function(req, res) {
       throw { status: 404 };
     }
     // A message may be deleted only by the sender.
-    if (req.user.id != message.fromUserId &&
-      !(req.user.level <= 0)) {
+    if (!req.isAdmin && req.user.id != message.fromUserId) {
       throw { status: 401 };
     }
     return Message.destroyById(req.params.id);
@@ -112,6 +109,10 @@ if (process.env.NODE_ENV == "test") {
 // Create a message.
 router.post("/", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
+    if (!req.user) {
+      throw { status: 401 };
+    }
+
     var fields = VALIDATOR.validateNew(req.body);
     fields.fromUserId = req.user.id;
     
@@ -134,7 +135,7 @@ router.post("/", function(req, res) {
     switch (fields.type) {
     case Message.ANNOUNCEMENT_TO_ALL_TYPE:
     case Message.ANNOUNCEMENT_TO_NEW_TYPE:
-      if (!(req.user.level <= 0)) {
+      if (!req.isAdmin) {
         throw { status: 401 };
       }
       if (!fields.startDate) {
@@ -167,7 +168,7 @@ router.put("/:id", function(req, res) {
         switch (fields.type) {
         case Message.ANNOUNCEMENT_TO_ALL_TYPE:
         case Message.ANNOUNCEMENT_TO_NEW_TYPE:
-          if (!(req.user.level <= 0)) {
+          if (!req.isAdmin) {
             throw { status: 401 };
           }
           break;

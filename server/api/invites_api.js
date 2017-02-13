@@ -44,7 +44,7 @@ router.get("/:id", function(req, res) {
       throw { status: 404 };
     }
     // An invite may be viewed only by the sender or an admin.
-    if (req.user.id != invite.fromUserId && !(req.user.level <= 0)) {
+    if (!req.isAdmin && req.user.id != invite.fromUserId) {
       throw { status: 401 };
     }
     return fakeInvite(invite, invite.message);
@@ -74,7 +74,7 @@ router.put("/:id", function(req, res) {
     if (!invite) {
       throw { status: 404 };
     }
-    if (!(req.user.level <= 0) && (req.user.id != invite.fromUserId)) {
+    if (!req.isAdmin && req.user.id != invite.fromUserId) {
       throw { status: 401, body: { user: req.user, invite: invite } };
     }
     fields = VALIDATOR.postvalidateUpdate(invite.message, fields);
@@ -95,7 +95,7 @@ router.delete("/:id", function(req, res) {
     if (!invite) {
       throw { status: 404 };
     }
-    if (!(req.user.level <= 0) && req.user.id != invite.fromUserId) {
+    if (!req.isAdmin && req.user.id != invite.fromUserId) {
       throw { status: 401 };
     }
     return invite.updateAttributes({ fromUserId: null, messageId: null });

@@ -10,7 +10,7 @@ module.exports = (function() {
 
   // All of these functions require admin permissions.
   router.use(function(req, res, next) {
-    if (!req.user || req.user.level > 0) {
+    if (!req.isAdmin) {
       res.jsonError({ status: 401 });
     }
     else {

@@ -1,191 +1,128 @@
-var expect = require("chai").expect;
-var request = require("request");
-var fs = require("fs");
+const expect = require("chai").expect;
+const requestlc = require("./common/requestlc");
 
-var URL = "http://localhost:4546";
-
-describe("Messages API", function() {
-  var url = URL + "/api/messages";
-
-  var rootKey = fs.readFileSync("tmp/adminKey");
-
-  var rootHeaders = {
-    "X-Access-Key": rootKey
-  };
-
-  function authHeaders(userId) {
-    return {
-      "X-Access-Key": rootKey,
-      "X-Effective-User": userId
-    }
-  }
-
-  var fromUserId = 3;
-  var seedProperties = {
-    assetId: 5,
-    toUserId: 4,
-    type: 1
-  };
-  var goodMessageId;
-
-  // Start fresh each time, with a single message in the table.
-  beforeEach(function(done) {
-    request({
-      method: "DELETE",
-      url: url,
-      headers: rootHeaders
-    }, function(error, response, body) {
-      expect(response.statusCode).to.equal(200);
-      request({
-        method: "POST",
-        url: url,
-        headers: authHeaders(fromUserId),
-        form: seedProperties,
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        goodMessageId = JSON.parse(body).id;
-        done();
-      });
-    });
-  });
+requestlc.describe("Messages API", function(client) {
 
   describe("get method", function() {
 
-    it("is inaccessible without authorization", function(done) {
-      request({
-        method: "GET",
-        url: url + "/" + goodMessageId,
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(401);
+    var fromUserId = 3;
+
+    var seedProperties = {
+      assetId: 5,
+      toUserId: 4,
+      type: 1
+    };
+
+    var goodMessageId;
+
+    beforeEach(function(done) {
+      client.makeRequest("POST", "/api/messages").asUser(fromUserId).withData(seedProperties) 
+      .expectStatusCode(200).getJson().go()
+      .then(function(message) {
+        goodMessageId = message.id;
         done();
-      });
+      })
+      .catch(done);
+    });
+
+    function get(id) {
+      return client.makeRequest("GET", "/api/messages/" + id);
+    }
+
+    it("is inaccessible without authorization", function(done) {
+      get(goodMessageId).expectStatusCode(401).go()
+      .then(function() {
+        done();
+      })
+      .catch(done);
     });
 
     it("allows root to retrieve message", function(done) {
-      request({
-        method: "GET",
-        url: url + "/" + goodMessageId,
-        headers: rootHeaders
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        expect(JSON.parse(body).assetId).to.equal(seedProperties.assetId);
-        expect(JSON.parse(body).toUserId).to.equal(seedProperties.toUserId);
+      get(goodMessageId).asRoot()
+      .expectStatusCode(200).getJson().go()
+      .then(function(message) {
+        expect(message.assetId).to.equal(seedProperties.assetId);
+        expect(message.toUserId).to.equal(seedProperties.toUserId);
         done();
-      });
+      })
+      .catch(done);
     })
 
     it("returns 404 for missing ID", function(done) {
-      request({
-        method: "GET",
-        url: url + "/" + (goodMessageId - 1),
-        headers: rootHeaders
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(404);
+      get(goodMessageId*2 + 1).asRoot().expectStatusCode(404).go()
+      .then(function() {
         done();
-      });
+      })
+      .catch(done);
     })
 
     it("does not permit just anyone to retrieve message", function(done) {
-      request({
-        method: "GET",
-        url: url + "/" + goodMessageId,
-        headers: authHeaders(fromUserId + seedProperties.toUserId + 1)
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(401);
-        done();
-      });
+      get(goodMessageId).asUser(fromUserId * 2)
+      .expectStatusCode(401).go()
+      .then(function() { done(); })
+      .catch(done);
     })
 
     it("allows sender to retrieve message", function(done) {
-      request({
-        method: "GET",
-        url: url + "/" + goodMessageId,
-        headers: rootHeaders
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        expect(JSON.parse(body).assetId).to.equal(seedProperties.assetId);
-        expect(JSON.parse(body).toUserId).to.equal(seedProperties.toUserId);
+      get(goodMessageId).asUser(fromUserId)
+      .expectStatusCode(200).getJson().go()
+      .then(function(message) {
+        expect(message.assetId).to.equal(seedProperties.assetId);
+        expect(message.toUserId).to.equal(seedProperties.toUserId);
         done();
-      });
+      })
+      .catch(done);
     });
   });
 
   describe("post method", function() {
 
+    function post(data) {
+      return client.makeRequest("POST", "/api/messages").withData(data);
+    }
+
     it("is inaccessible without authorization", function(done) {
-      request({
-        method: "POST",
-        url: url
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(401);
-        done();
-      });
+      post({}).expectStatusCode(401).go()
+      .then(function() { done(); })
+      .catch(done);
     });
 
-    it("is accessible with root authorization", function(done) {
-      request({
-        method: "POST",
-        url: url,
-        headers: rootHeaders,
-        form: {
-          type: 0,
-          assetId: 1,
-          toUserId: 1
-        }
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        done();
-      });
-    })
-
     it("defaults to greeting type", function(done) {
-      request({
-        method: "POST",
-        url: url,
-        headers: rootHeaders,
-        form: {
-          assetId: 1,
-          toUserId: 1
-        }
-      }, function(error, response, body) {
-        expect(JSON.parse(body).type).to.equal(0);
+      post({
+        assetId: 1,
+        toUserId: 1
+      }).asUser(12).expectStatusCode(200).getJson().go()
+      .then(function(message) {
+        expect(message.type).to.equal(0);
         done();
-      });
+      })
+      .catch(done);
     })
 
     it("requires recipient for greeting type", function(done) {
-      request({
-        method: "POST",
-        url: url,
-        headers: rootHeaders,
-        form: {
-          type: 0,
-          assetId: 1
-        }
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(500);
-        expect(body).to.equal('{"toUserId":"?"}');
+      post({
+        type: 0,
+        assetId: 1
+      }).asUser(12).expectStatusCode(500).expectBody('{"toUserId":"?"}').go()
+      .then(function() {
         done();
-      });
+      })
+      .catch(done);
     })
 
-    it("defaults start and end date for announcements", function(done) {
-      request({
-        method: "POST",
-        url: url,
-        headers: rootHeaders,
-        form: {
-          type: 3,
-          assetId: 1
-        }
-      }, function(error, response, body) {
-        expect(response.statusCode).to.equal(200);
-        expect(typeof JSON.parse(body).startDate).to.equal("string");
-        expect(typeof JSON.parse(body).endDate).to.equal("string");
+    it("ordinary users may not post announcements", function(done) {
+      post({
+        type: 3,
+        assetId: 1
+      }).asUser(12).expectStatusCode(401).go()
+      .then(function() {
         done();
-      });
+      })
+      .catch(done);
     })
   });
+
+  /********
 
   describe("put method", function() {
 
@@ -222,7 +159,7 @@ describe("Messages API", function() {
         }
       }, function(error, response, body) {
         expect(response.statusCode).to.equal(200);
-        expect(JSON.parse(body).assetId).to.equal(seedProperties.assetId + 1);
+        expect(message.assetId).to.equal(seedProperties.assetId + 1);
         done();
       });
     })
@@ -269,4 +206,6 @@ describe("Messages API", function() {
       });
     })
   });
+
+  *******/
 });

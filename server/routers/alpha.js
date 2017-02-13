@@ -12,15 +12,19 @@ var router = express.Router();
 
 // Get actions for current user. 
 router.get("/a", function(req, res) {
-  res.jsonResultOf(new ActionCompiler((req.session && req.session.user) || req.user).run());
+  res.jsonResultOf(new Promise(function(resolve) {
+    resolve(new ActionCompiler((req.session && req.session.user) || req.user).run());
+  }));
 });
 
 // Log in with Facebook.
 router.post("/f", function(req, res) {
-  res.jsonResultOf(new AuthMgr(req, res).handleFacebookLogin(req.body.id, {
-    name: req.body.name,
-    email: req.body.email,
-    picture: req.body.picture
+  res.jsonResultOf(new Promise(new function(resolve) {
+    resolve(new AuthMgr(req, res).handleFacebookLogin(req.body.id, {
+      name: req.body.name,
+      email: req.body.email,
+      picture: req.body.picture
+    }));
   }));
 });
 

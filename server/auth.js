@@ -63,15 +63,6 @@ function findOrCreateUserByEmail(email) {
   })
 }
 
-// Got secret access key?
-function hasSecretAccessKey(req) {
-  var accessKey = req.headers["x-access-key"];
-  if (accessKey) {
-    return accessKey === CONFIG.adminKey;
-  }
-  return false;
-}
-
 // Does the request originate from the local host?
 function isLocalRequest(req) {
   switch (req.headers["x-forwarded-for"] || req.connection.remoteAddress) {
@@ -80,6 +71,26 @@ function isLocalRequest(req) {
     return true;
   }
   return false;
+}
+
+// Got secret access key?
+function authForTesting(req) {
+  if ((CONFIG.env == "development" || CONFIG.env == "test") &&
+      (isLocalRequest(req) || req.headers["x-access-key"] === CONFIG.adminKey)) {
+    var effectiveUser = req.headers["x-effective-user"];
+    if (effectiveUser) {
+      req.user = {
+        id: parseInt(effectiveUser),
+        name: "Test",
+        level: 1
+      };
+      console.log("Assumed identity of user for testing:", effectiveUser);
+    }
+    else {
+      req.isAdmin = true;
+      console.log("Admin access for testing");
+    }
+  }
 }
 
 // Transmit session ID to client.
@@ -108,6 +119,12 @@ function AuthMgr(req, res) {
   this.res = res;
 }
 
+function setSession(self, session) {
+  self.req.session = session;
+  self.req.user = session.user;
+  self.req.isAdmin = session.user.level <= 0;
+}
+
 // If the request includes session identification, fetch the session and user objects.
 function AuthMgr_establishSessionAndUser(self) {
   var req = self.req;
@@ -118,14 +135,10 @@ function AuthMgr_establishSessionAndUser(self) {
   return (sessionCookie ? findSession(sessionCookie) : Promise.resolve())
   .then(function(session) {
     if (session) {
-      req.session = session;
-      req.user = session.user;
+      setSession(self, session);
     }
     else {
-      // Should we grant this request superuser power?
-      if (hasSecretAccessKey(self.req) || isLocalRequest(self.req)) {
-        req.user = models.User.superuser(self.req.headers["x-effective-user"]);
-      }
+      authForTesting(req);
     }
     return null;   // avoid dangling promise warnings
   });
@@ -144,8 +157,7 @@ function AuthMgr_logIn(self, user) {
   // Create a session.
   return models.Session.builder().user(user).build()
   .then(function(session) {
-    self.req.session = session;
-    self.req.user = session.user;
+    setSession(self, session);
     sendSessionCookie(self.res, session.externalId);
     return session;
   });
