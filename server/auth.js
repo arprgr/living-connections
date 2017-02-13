@@ -25,7 +25,7 @@ function findEmailSessionSeed(eseed) {
 
 // Look up an email profile, given a email address.
 function findEmailProfile(email) {
-  return models.EmailProfile.findByEmail(email);
+  return models.EmailProfile.findByEmail(email, { deep: 1 });
 }
 
 // Find user by ID
@@ -73,26 +73,6 @@ function isLocalRequest(req) {
   return false;
 }
 
-// Got secret access key?
-function authForTesting(req) {
-  if ((CONFIG.env == "development" || CONFIG.env == "test") &&
-      (isLocalRequest(req) || req.headers["x-access-key"] === CONFIG.adminKey)) {
-    var effectiveUser = req.headers["x-effective-user"];
-    if (effectiveUser) {
-      req.user = {
-        id: parseInt(effectiveUser),
-        name: "Test",
-        level: 1
-      };
-      console.log("Assumed identity of user for testing:", effectiveUser);
-    }
-    else {
-      req.isAdmin = true;
-      console.log("Admin access for testing");
-    }
-  }
-}
-
 // Transmit session ID to client.
 function sendSessionCookie(res, sessionId) {
   res.cookie("s", sessionId, {
@@ -119,26 +99,55 @@ function AuthMgr(req, res) {
   this.res = res;
 }
 
+function setUser(self, user) {
+  self.req.user = user;
+  self.req.isAdmin = user.level <= 0;
+}
+
 function setSession(self, session) {
   self.req.session = session;
-  self.req.user = session.user;
-  self.req.isAdmin = session.user.level <= 0;
+  setUser(self, session.user);
+}
+
+function extHeaderAccessEnabled(self) {
+  return CONFIG.auth.enableExtHeaderAccess && self.req.headers["x-access-key"] === CONFIG.adminKey;
+}
+
+function extHeaderLogin(self) {
+  var effectiveUserId = self.req.headers["x-effective-user"];
+  if (effectiveUserId) {
+    return models.User.findById(effectiveUserId)
+    .then(function(user) {
+      setUser(self, user || {
+        id: parseInt(effectiveUserId),
+        name: "Test",
+        level: 1
+      });
+      console.log("Assumed identity of user for testing:", effectiveUserId);
+    })
+  }
+  else {
+    self.req.isAdmin = true;
+    console.log("Admin access for testing");
+  }
 }
 
 // If the request includes session identification, fetch the session and user objects.
 function AuthMgr_establishSessionAndUser(self) {
-  var req = self.req;
-
   // Sessions are persisted via cookie.
-  var sessionCookie = req.cookies.s && req.cookies.s;
+  var sessionCookie = self.req.cookies && self.req.cookies.s;
 
   return (sessionCookie ? findSession(sessionCookie) : Promise.resolve())
   .then(function(session) {
     if (session) {
       setSession(self, session);
     }
-    else {
-      authForTesting(req);
+    else if (extHeaderAccessEnabled(self)) {
+      return extHeaderLogin(self);
+    }
+    else if (CONFIG.auth.grantAdminToLocalRequest && isLocalRequest(self.req)) {
+      self.req.isAdmin = true;
+      console.log("Grant admin access to local connection");
     }
     return null;   // avoid dangling promise warnings
   });

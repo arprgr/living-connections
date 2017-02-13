@@ -53,12 +53,6 @@ module.exports = function(sequelize, DataTypes) {
     var query = {
       where: { id: id }
     };
-    if (options && options.includeEmail) {
-      query.include = [{
-        as: "emailProfile",
-        model: models.EmailProfile
-      }]
-    }
     if (options && options.includeFacebook) {
       query.include = query.include || [];
       query.include.push({

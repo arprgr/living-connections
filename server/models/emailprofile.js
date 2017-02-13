@@ -12,17 +12,6 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function includes() {
-    return [{
-      model: models.User,
-      as: "user",
-      include: [{
-        model: models.Asset,
-        as: "asset"
-      }]
-    }]
-  }
-
   function associate(_models) {
     models = _models;
     EmailProfile.belongsTo(models.User, { "as": "user" });
@@ -48,23 +37,38 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function findWhere(where) {
-    return EmailProfile.find({
+  function query(where, options) {
+    var include;
+    if (options && options.deep) {
+      include = [{
+        model: models.User,
+        as: "user",
+        include: [{
+          model: models.Asset,
+          as: "asset"
+        }]
+      }];
+    }
+    return {
       where: where,
-      include: includes()
-    });
+      include: include
+    }
   }
 
-  function findById(id) {
-    return findWhere({ id: id });
+  function findById(id, options) {
+    return EmailProfile.findOne(query({ id: id }, options));
   }
 
-  function findByEmail(email) {
-    return findWhere({ email: email });
+  function findByEmail(email, options) {
+    return EmailProfile.findOne(query({ email: email }, options));
+  }
+
+  function findByUserId(userId, options) {
+    return EmailProfile.findAll(query({ userId: userId }, options));
   }
 
   function findByUser(user) {
-    return findWhere({ userId: user.id });
+    return findByUserId(user.id);
   }
 
   function destroyWhere(where) {
@@ -86,6 +90,7 @@ module.exports = function(sequelize, DataTypes) {
       findById: findById,
       findByEmail: findByEmail,
       findByUser: findByUser,
+      findByUserId: findByUserId,
       destroyAll: destroyAll,
       destroyById: destroyById
     }

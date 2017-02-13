@@ -117,10 +117,11 @@ Ticket.prototype = {
 Invitation.prototype = {
   process: function() {
     var self = this;
+    // Get the sender's email address.
     return models.EmailProfile.findByUser(self.fromUser)
-    .then(function(emailProfile) {
-      if (emailProfile) {
-        self.senderEmail = emailProfile.email;
+    .then(function(emailProfiles) {
+      if (emailProfiles && emailProfiles.length) {
+        self.senderEmail = emailProfiles[0].email;
       }
       return processTicket(self);
     })

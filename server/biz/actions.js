@@ -166,7 +166,11 @@ ActionCompiler.prototype.run = function() {
   })
   .then(function() {
     return {
-      user: compiler.user,
+      user: {
+        id: compiler.user.id,
+        name: compiler.user.name,
+        email: compiler.emailProfile && compiler.emailProfile.email
+      },
       actionItems: finalizeActionItems(compiler)
     }
   })

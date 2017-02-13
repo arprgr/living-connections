@@ -22,6 +22,10 @@ const DEFAULTS = {
       "/": "./client"
     }
   },
+  auth: {
+    grantAdminToLocalRequest: false,
+    enableExtHeaderAccess: false
+  },
   clientServiceConfigurations: {
     apiService: {
       path: "api",
@@ -105,6 +109,9 @@ const OVERRIDES = {
         "/mocha": "./node_modules/grunt-blanket-mocha/node_modules/mocha",
         "/chai": "./node_modules/chai"
       }
+    },
+    auth: {
+      enableExtHeaderAccess: true
     },
     email: {
       disabled: true

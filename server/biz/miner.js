@@ -15,6 +15,15 @@ function Miner(user) {
   self.others = {};
 }
 
+function getEmailProfile(miner) {
+  return models.EmailProfile.findByUser(miner.user)
+  .then(function(emailProfiles) {
+    if (emailProfiles && emailProfiles.length) {
+      miner.emailProfile = emailProfiles[0];
+    }
+  });
+}
+
 function openOther(miner, user) {
   if (!(user.id in miner.others)) {
     miner.others[user.id] = {};
@@ -73,6 +82,7 @@ function getIncomingMessages(miner) {
 Miner.prototype.run = function() {
   var miner = this;
   return exec.executeGroup(miner, [
+    getEmailProfile,
     getAnnouncements,
     getConnections,
     getOutgoingInvitations,

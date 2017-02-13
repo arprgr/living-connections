@@ -36,7 +36,7 @@ function($,        Services,   Listing,     Activities,   ui) {
       sessionManager.addStateChangeListener(function() {
         var user = sessionManager.user || {}
         userNameLabel.setText(user.name || "");
-        emailLabel.setText(user.email || "");
+        emailLabel.setText(user.email && user.email != user.name ? user.email : "");
         logoutLink.setEnabled(!!sessionManager.user);
       });
     });
