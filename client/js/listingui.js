@@ -42,7 +42,7 @@ define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
       var self = this;
       self.container.addClass("listing");
       new ui.Audio().load("audio/chime.wav").then(function(chime) {
-        self.container.addClass(chime.container);
+        self.container.append(chime.container);
         self.chime = chime;
       });
     });

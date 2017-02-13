@@ -27,14 +27,6 @@ function($,        Activity,     ui,         ActionItem,   Services) {
     }
 
     function addInvitationButtons(self, messageId) {
-      addButton(self, "Accept " + fromUser.name + "'s invitation to connect", function() {
-        Services.apiService.acceptInvite(messageId);
-        self.exit();
-      });
-      addButton(self, "No, thanks", function() {
-        Services.apiService.rejectInvite(messageId);
-        self.exit();
-      });
     }
 
     function addButtons(self, fromUser) {
@@ -57,7 +49,14 @@ function($,        Activity,     ui,         ActionItem,   Services) {
         var fromUser = message.fromUser;
         if (fromUser) {
           if (actionItem.type.match(/inv-/)) {
-            addInvitationButtons(self, message.id);
+            addButton(self, "Accept " + fromUser.name + "'s invitation to connect", function() {
+              Services.apiService.acceptInvite(message.id);
+              self.exit();
+            });
+            addButton(self, "No, thanks", function() {
+              Services.apiService.rejectInvite(message.id);
+              self.exit();
+            });
           }
           addButtons(self, fromUser);
         }

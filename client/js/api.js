@@ -167,7 +167,7 @@ define([ "http" ], function(HttpMethod) {
   }
   
   var ActOnInviteMethod = new HttpMethod.Get()
-    .addPathComponent("messages")
+    .addPathComponent("api/messages")
     .addPathParameter("id")
     .addQueryParameter("act")
     .build();
@@ -191,11 +191,11 @@ define([ "http" ], function(HttpMethod) {
     },
 
     acceptInvite: function(id) {
-      return new ActOnInviteMethd().setId(id).setAct("accept").execute();
+      return new ActOnInviteMethod().setId(id).setAct("accept").execute();
     },
 
     rejectInvite: function(id) {
-      return new ActOnInviteMethd().setId(id).setAct("reject").execute();
+      return new ActOnInviteMethod().setId(id).setAct("reject").execute();
     }
   }
 

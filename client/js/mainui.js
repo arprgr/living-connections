@@ -64,6 +64,7 @@ function($,        Services,   Listing,     Activities,   ui) {
           self.inTransition = false;
         }
       }
+      return self;
     }
 
     function Main_newListing(self) {
@@ -106,17 +107,13 @@ function($,        Services,   Listing,     Activities,   ui) {
     c.extendPrototype({
       open: function() {
         var self = this;
-        if (!self.currentBody) {
-          Main_open(self, Main_newListing(self));
-        }
+        return Main_open(self, Main_newListing(self));
       },
 
       close: function() {
         var self = this;
-        if (self.currentBody) {
-          self.currentBody.close();
-          self.currentBody = null;
-        }
+        self.currentBody && self.currentBody.close();
+        return self;
       }
     });
   });
