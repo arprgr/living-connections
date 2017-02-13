@@ -20,7 +20,7 @@ function($,        Services,   ui,         FacebookButton) {
       var loginButton = ui.Button.create("That's me!", function() {
         loginButton.enabled = false;
         Services.sessionManager.logInWithFacebook(fbService.value)
-        .then(function() {
+        .then(function(response) {
           console.log(response);
         })
         .catch(function(err) {
