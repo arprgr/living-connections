@@ -52,6 +52,24 @@ requestlc.describe("Invitations", function(client) {
     }
   }
 
+  function findGreetingAction(actionResponse, toUserId) {
+    return findAction(actionResponse, function(item) {
+      return item.user && item.user.id == toUserId;
+    });
+  }
+
+  function findMessageAction(actionResponse, fromUserId) {
+    return findAction(actionResponse, function(item) {
+      return item.message && item.message.fromUser && item.message.fromUser.id == fromUserId;
+    });
+  }
+
+  function findUpdateInviteAction(actionResponse) {
+    return findAction(actionResponse, function(item) {
+      return item.id.substring(0, 7) == "inv-upd";
+    });
+  }
+
   function cancelInvitation(id, userId) {
     return client.makeRequest("DELETE", "/api/invites/" + id).asUser(userId);
   }
@@ -109,9 +127,24 @@ requestlc.describe("Invitations", function(client) {
       .catch(done);
     });
 
-    describe("once claimed...", function() {
+    it("appear in sender's action list", function(done) {
+      requestActionList(sender.id, true)
+      .then(function(actionResponse) {
+        expect(actionResponse.user).to.exist;
+        expect(parseInt(actionResponse.user.id)).to.equal(sender.id);
+        var actionList = actionResponse.actionItems;
+        expect(actionList).to.exist;
+        var updInvAction = findUpdateInviteAction(actionResponse);
+        expect(updInvAction).to.exist;
+        done();
+      })
+      .catch(done);
+    });
+
+    describe("once claimed", function() {
 
       var receiverActionResponse;
+      var messageAction;
 
       beforeEach(function(done) {
         // Holder of the email account claims ticket.
@@ -122,6 +155,7 @@ requestlc.describe("Invitations", function(client) {
         })
         .then(function(actionResponse) {
           receiverActionResponse = actionResponse;
+          messageAction = findMessageAction(receiverActionResponse, sender.id);
           done();
         })
         .catch(done);
@@ -136,21 +170,15 @@ requestlc.describe("Invitations", function(client) {
 
       it("deliver messages", function(done) {
         // Action list is expected to contain a message from the sender.
-        var messageAction = findAction(receiverActionResponse, function(item) {
-          return item.message && item.message.fromUser && item.message.fromUser.id == sender.id;
-        });
         expect(messageAction).to.exist;
         expect(typeof messageAction.id).to.equal("string");
         expect(messageAction.id.substring(0, 7)).to.equal("inv-rec");
         done();
       });
 
-      describe("and accepted...", function() {
+      describe("and accepted", function() {
 
         beforeEach(function(done) {
-          var messageAction = findAction(receiverActionResponse, function(item) {
-            return item.message && item.message.fromUser && item.message.fromUser.id == sender.id;
-          });
           actOnInviteOk("accept", messageAction.message.id, receiverActionResponse.user.id)
           .then(function() {
             done();
@@ -158,17 +186,50 @@ requestlc.describe("Invitations", function(client) {
           .catch(done);
         });
 
-        it("adds receiver to sender's connection list", function(done) {
+        it("add receiver to sender's connection list", function(done) {
           requestActionList(sender.id, true)
           .then(function(actionResponse) {
             expect(actionResponse.user).to.exist;
             expect(parseInt(actionResponse.user.id)).to.equal(sender.id);
             var actionList = actionResponse.actionItems;
             expect(actionList).to.exist;
-            var greetingAction = findAction(actionResponse, function(item) {
-              return item.user && item.user.id == receiverActionResponse.user.id;
-            });
+            var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
             expect(greetingAction).to.exist;
+            done();
+          })
+          .catch(done);
+        });
+      });
+
+      describe("and rejected", function() {
+
+        beforeEach(function(done) {
+          actOnInviteOk("reject", messageAction.message.id, receiverActionResponse.user.id)
+          .then(function() {
+            done();
+          })
+          .catch(done);
+        });
+
+        it("the message is removed", function(done) {
+          requestActionList(receiverActionResponse.user.id, true)
+          .then(function(newActionResponse) {
+            messageAction = findMessageAction(newActionResponse, sender.id);
+            expect(messageAction).to.not.exist;
+            done();
+          })
+          .catch(done);
+        });
+
+        it("does not add receiver to sender's connection list", function(done) {
+          requestActionList(sender.id, true)
+          .then(function(actionResponse) {
+            expect(actionResponse.user).to.exist;
+            expect(parseInt(actionResponse.user.id)).to.equal(sender.id);
+            var actionList = actionResponse.actionItems;
+            expect(actionList).to.exist;
+            var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
+            expect(greetingAction).to.not.exist;
             done();
           })
           .catch(done);
@@ -197,10 +258,18 @@ requestlc.describe("Invitations", function(client) {
         requestActionList(sessionCookie)
         .then(function(actionResponse) {
           // Action list is expected not to contain a message from the sender.
-          var messageAction = findAction(actionResponse, function(item) {
-            return item.message && item.message.fromUserId == sender.id;
-          });
+          var messageAction = findMessageAction(actionResponse, sender.id);
           expect(messageAction).to.not.exist;
+          done();
+        })
+        .catch(done);
+      });
+
+      it("no longer appear in sender's action list", function(done) {
+        requestActionList(sender.id, true)
+        .then(function(actionResponse) {
+          var updInvAction = findUpdateInviteAction(actionResponse);
+          expect(updInvAction).to.not.exist;
           done();
         })
         .catch(done);

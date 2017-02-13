@@ -44,10 +44,7 @@ function acceptInvitation(message) {
 }
 
 function rejectInvitation(message) {
-  return Connection.regrade(message.toUserId, message.fromUserId, 0)
-  .then(function() {
-    return message;
-  });
+  return message.updateAttributes({ toUserId: null });
 }
 
 // Retrieve message by ID
