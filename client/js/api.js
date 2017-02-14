@@ -172,6 +172,12 @@ define([ "http" ], function(HttpMethod) {
     .addQueryParameter("act")
     .build();
 
+  var UpdateUserMethod = new HttpMethod.PutForm()
+    .addPathComponent("api/users")
+    .addPathParameter("id")
+    .addQueryParameter("name")
+    .build();
+
   ApiService.prototype = {
 
     saveVideo: function(blob) {
@@ -196,6 +202,10 @@ define([ "http" ], function(HttpMethod) {
 
     rejectInvite: function(id) {
       return new ActOnInviteMethod().setId(id).setAct("reject").execute();
+    },
+
+    updateUser: function(id, name) {
+      return new UpdateUserMethod().setId(id).setName(name).execute();
     }
   }
 

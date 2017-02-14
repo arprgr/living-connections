@@ -51,7 +51,7 @@ function findOrCreateUserByEmail(email) {
     if (emailProfile && emailProfile.user) {
       return emailProfile.user;
     }
-    return createNewUser(email)
+    return createNewUser("")
     .then(function(user) {
       return (emailProfile
         ? emailProfile.updateAttributes({ userId: user.id })
@@ -237,7 +237,7 @@ function AuthMgr_handleFacebookLogin(self, facebookId, otherFacebookInfo) {
         }
       }
       // Create a new user with the given profile and log them in.
-      return createNewUser(facebookProfile.name || facebookProfile.email || "New User")
+      return createNewUser(facebookProfile.name || facebookProfile.email || "")
       .then(function(user) {
         currentUser = user;
         return facebookProfile.updateAttributes({

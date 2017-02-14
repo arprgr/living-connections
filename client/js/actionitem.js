@@ -64,11 +64,14 @@ define([ "jquery" ], function($) {
       case "inv-upd":
         return "Update invitation for " + this.invite.email;
       case "pro-rec":
-        return userName(this) + "'s profile";
+        return "About " + userName(this) + "...";
       case "pro-cre":
-        return "Create your profile";
+        return "Tell other users about you!";
       case "pro-upd":
-        return "Update your profile";
+        return 'Update your "about you" message';
+      case "usr-cre":
+      case "usr-upd":
+        return "Set your user name";
       }
       return "";
     }

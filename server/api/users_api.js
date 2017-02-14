@@ -73,7 +73,7 @@ router.post("/", function(req, res) {
 router.put("/:id", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
     var fields = VALIDATOR.prevalidateUpdate(req.body);
-    resolve(User.findByExternalId(req.params.id)
+    resolve(User.findById(req.params.id)
       .then(function(user) {
         if (!user) {
           throw { status: 404 };

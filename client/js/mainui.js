@@ -33,12 +33,15 @@ function($,        Services,   Listing,     Activities,   ui) {
           .append($("<span>").text(" "))
           .append(logoutLink.ele));
 
-      sessionManager.addStateChangeListener(function() {
+      function update() {
         var user = sessionManager.user || {}
         userNameLabel.setText(user.name || "");
         emailLabel.setText(user.email && user.email != user.name ? user.email : "");
         logoutLink.setEnabled(!!sessionManager.user);
-      });
+      }
+
+      sessionManager.addStateChangeListener(update);
+      sessionManager.addActionListener(update);
     });
   });
 
