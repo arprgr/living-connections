@@ -11,7 +11,7 @@ Source the devsetup script.
 Run `sequelize db:migrate`
 Run `sequelize db:seed:all`
 Start the server `node server`
-Start the server in test mode `node server`
+Start the server in test mode `NODE_ENV=test node server`
 Run tests `npm test`
 
 ## TODO for current version.
