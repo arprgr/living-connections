@@ -19,7 +19,7 @@ router.get("/a", function(req, res) {
 
 // Log in with Facebook.
 router.post("/f", function(req, res) {
-  res.jsonResultOf(new Promise(new function(resolve) {
+  res.jsonResultOf(new Promise(function(resolve) {
     resolve(new AuthMgr(req, res).handleFacebookLogin(req.body.id, {
       name: req.body.name,
       email: req.body.email,
