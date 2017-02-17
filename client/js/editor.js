@@ -252,12 +252,6 @@ console.log('summarize', self.cellIndex);
       self.doneButton = doneButton;
     });
 
-    c.defineProperty("actionItem", {
-      get: function() {
-        return this.options.actionItem;
-      }
-    });
-
     c.extendPrototype({
       open: function() {
         var self = this;

@@ -22,6 +22,9 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
         self.state.setValue(0);
         theVideo.onloadedmetadata = function() {
           self.state.setValue(1);
+          // Set the width of the container to match the intrinsic width of the video.
+          // This enables us to center the container using margin: auto.
+          self.ele.css("width", theVideo.videoWidth);
         }
         theVideo.onerror = function() {
           // Event object contains no useful information.

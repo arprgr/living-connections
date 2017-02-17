@@ -1,6 +1,6 @@
 // activities.js - ActivityComponent
 
-define([ "msgviewer", "anneditor",        "greeditor",    "inveditor",      "proeditor",  "usereditor" ],
+define([ "msgviewer", "anneditor",        "greeditor",    "inveditor",     "proeditor",    "usereditor" ],
 function( MsgViewer,  AnnouncementEditor, GreetingEditor, InvitationEditor, ProfileEditor, UserEditor) {
 
   return {

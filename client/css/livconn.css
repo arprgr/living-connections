@@ -202,6 +202,7 @@ div {
   border-radius: 6px;
   color: #004;
   box-shadow: 2px 2px 2px 2px rgba(0,0,0,0.2);
+  padding-bottom: 4px;
 }
 #app .activity .header {
   position: relative;
@@ -222,11 +223,14 @@ div {
 }
 #app .activity .header .cancel {
   position: absolute;
-  top: 7px;
-  right: 7px;
+  top: 3px;
+  right: 0px;
 }
 #app .activity .vidrec {
   position: relative;
+}
+.vid {
+  margin: auto;
 }
 #app .activity .vidrec .buttons {
   position: absolute;
@@ -243,7 +247,7 @@ div {
 }
 #app .activity .panel {
   border-top: dashed 1px #96a090;
-  padding: 5px 0 5px 20px;
+  padding: 5px 20px;
 }
 #app .activity .panel > div {
   margin-top: 5px;

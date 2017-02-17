@@ -56,7 +56,7 @@ define([ "jquery" ], function($) {
       case "gre-rec":
         return "Message from " + userName(this);
       case "gre-cre":
-        return (this.isReply ? "Reply to " : "Send a greeting to ") + userName(this);
+        return (this.isReply ? "Reply to " : "Send a videogram to ") + userName(this);
       case "inv-rec":
         return "Invitation from " + userName(this);
       case "inv-cre":

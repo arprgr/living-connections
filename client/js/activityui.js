@@ -1,18 +1,21 @@
 // activityui.js - ActivityComponent.  A base component class.
 // All activity views have a header containing an icon, a title, and a cancel/exit link.
 
-define([ "jquery", "ui/component" ], function($, Component) {
+define([ "jquery", "ui/index" ], function($, ui) {
 
-  return Component.defineClass(function(c) {
+  return ui.Component.defineClass(function(c) {
 
     c.defineDefaultOptions({
-      exitLinkText: "Exit",
+      exitLinkText: "Close",
       actionItem: {}
     });
 
     c.defineInitializer(function() {
       var self = this;
       var actionItem = self.options.actionItem;
+      var exitButton = ui.Button.create(self.options.exitLinkText, function() {
+        self.exit();
+      });
       self.container
         .addClass("activity")
         .append($("<div>")
@@ -20,15 +23,15 @@ define([ "jquery", "ui/component" ], function($, Component) {
           .append($("<div>").addClass("icon").append($("<img>").attr("src", actionItem.iconUri)))
           .append($("<div>").addClass("title").append($("<span>").text(actionItem.title || "")))
           .append($("<div>").addClass("cancel")
-            .append($("<a>")
-              .text(self.options.exitLinkText)
-              .attr("href", "#")
-              .click(function() {
-                self.exit();
-              })
-            )
+            .append(exitButton.ele)
           )
         );
+    });
+
+    c.defineProperty("actionItem", {
+      get: function() {
+        return this.options.actionItem;
+      }
     });
 
     c.extendPrototype({
