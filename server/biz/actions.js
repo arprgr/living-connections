@@ -8,7 +8,7 @@ const Message = require("../models/index").Message;
 const SUBJ_INVITATION = "inv";    // Ask another user to connect.
 const SUBJ_GREETING = "gre";      // Say hi.  One time, immediate.
 const SUBJ_REMINDER = "rem";      // A message sent at a specific time, possibly repeating.
-const SUBJ_USER = "usr";          // Who am I?
+const SUBJ_USER = "usr";          // Name and other details.
 const SUBJ_PROFILE = "pro";       // About me...
 const SUBJ_ANNOUNCEMENT = "ann";  // A broadcast message, usually by the administrator.
 
@@ -16,19 +16,35 @@ const ACTION_CREATE = "cre";       // Create a message and a wrapper for it.
 const ACTION_UPDATE = "upd";       // Replace the message in a wrapper with a new one.
 const ACTION_RECEIVE = "rec";      // Interact with an incoming message.
 
-const SUBJECTS = {
-  "inv": { priority: 11 },
-  "gre": { priority: 7 },
-  "rem": { priority: 13 },
-  "pro": { priority: 4 },
-  "usr": { priority: 5 },
-  "ann": { priority: 3 }
-}
-
-const ACTIONS = {
-  "cre": { priority: 2 },
-  "upd": { priority: 1, },
-  "rec": { priority: 4, }
+const PROPERTIES = {
+  "rem": { 
+    "rec": { priority: 95, },
+    "cre": { priority: 66 },
+    "upd": { priority: 1 }
+  },
+  "gre": {
+    "rec": { priority: 94, },
+    "cre": { priority: 70 },
+    "upd": { priority: 35 }
+  },
+  "inv": { 
+    "rec": { priority: 93, },
+    "cre": { priority: 62 },
+    "upd": { priority: 31 }
+  },
+  "ann": {
+    "rec": { priority: 92, },
+    "cre": { priority: 60 },
+    "upd": { priority: 30 }
+  },
+  "pro": { 
+    "cre": { priority: 40 },
+    "upd": { priority: 20 }
+  },
+  "usr": {
+    "cre": { priority: 50 },
+    "upd": { priority: 10 }
+  }
 }
 
 const MAX_ACTION_ITEMS = 20;
@@ -38,12 +54,7 @@ function byPriorityDesc(a, b) {
 }
 
 function priorityOfSubjectAction(msg, action) {
-  var fudge = 0;
-  if (msg == SUBJ_PROFILE && action == ACTION_CREATE) {
-    msg = SUBJ_INVITATION;
-    fudge = 1;
-  }
-  return SUBJECTS[msg].priority * ACTIONS[action].priority + fudge;
+  return PROPERTIES[msg][action].priority;
 }
 
 function ActionCompiler(user) {
