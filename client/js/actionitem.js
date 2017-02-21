@@ -70,8 +70,9 @@ define([ "jquery" ], function($) {
       case "pro-upd":
         return 'Update your "about you" message';
       case "usr-cre":
+        return "Start by picking your user name";
       case "usr-upd":
-        return "Set your user name";
+        return "Change your user name";
       }
       return "";
     }
