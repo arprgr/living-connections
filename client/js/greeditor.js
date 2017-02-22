@@ -32,29 +32,44 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
       var self = this;
       var controller = self.options.controller;
 
+      self.defaultButtons = {};
+      function declareDefaultButtonForState(state, button) {
+        button.ele.addClass("default");
+        self.defaultButtons[state] = button;
+      }
+
       // [Click here] to start recording
       var startButton = ui.Button.create("Click here", function() {
         self.invokePlugin("startRecording");
       });
+      declareDefaultButtonForState(STATE_READY, startButton);
+
       // Recording... [Stop]
       var stopButton = ui.Button.create("Stop", function() {
         self.invokePlugin("stopRecording");
       });
+      declareDefaultButtonForState(STATE_RECORDING, stopButton);
+
       // Review your XXX...  [Send it] or [Re-record it]
       var acceptButton = ui.Button.create("Send it", function() {
         self.invokePlugin("acceptRecording");
       });
+      declareDefaultButtonForState(STATE_REVIEW, acceptButton);
       var rejectButton = ui.Button.create("Re-record it", function() {
         self.invokePlugin("rejectRecording");
       });
+
       // Your XXX has been sent. [OK]
       var closeButton = ui.Button.create("OK", function() {
-        self.invokePlugin("requestClose");
+        self.invokePlugin("exit");
       });
+      declareDefaultButtonForState(STATE_DONE, closeButton);
+
       // Oh no, something went wrong. [Try again]
       var retryButton = ui.Button.create("Try again", function() {
         self.invokePlugin("retry");
       });
+      declareDefaultButtonForState(STATE_ERROR, retryButton);
 
       self.addCompartment(STATE_WAITING, new WaitAnim($("<div>"), {
       }));
@@ -63,7 +78,7 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
         .append($("<span>").text(" to start recording."))
       ));
       self.addCompartment(STATE_RECORDING, new ui.Component($("<div>")
-        .append($("<span>").text("Recording."))
+        .append($("<span>").text("Recording... "))
         .append(stopButton.ele)
       ));
       self.addCompartment(STATE_REVIEW, new ui.Component($("<div>")
@@ -75,7 +90,7 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
         .append($("<span>").text("Ugh, something went wrong! " + self.options.what))
       ));
       self.addCompartment(STATE_DONE, new ui.Component($("<div>")
-        .append($("<span>").text(capitalize(self.options.what) + " sent."))
+        .append($("<span>").text(capitalize(self.options.what) + " sent! "))
         .append(closeButton.ele)
       ));
     });
@@ -85,15 +100,25 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
 
     var controller;
 
+    function showState(state) {
+      self.controlPanel.show(state);
+      var defaultButton = self.controlPanel.defaultButtons[state];
+      if (defaultButton) {
+        setTimeout(function() {
+          defaultButton.focus();
+        }, 100);
+      }
+    }
+
     function runTransition() {
       // TODO: add timeout.
       self.transitionFunc()
       .then(function() {
-        self.controlPanel.show(self.targetState);
+        showState(self.targetState);
       })
       .catch(function() {
         self.videoBlob = null;
-        self.controlPanel.show(STATE_ERROR);
+        showState(STATE_ERROR);
       });
     }
 
@@ -175,7 +200,7 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
 
       startRecording: function() {
         videoService.startRecording();
-        self.controlPanel.show(STATE_RECORDING);
+        showState(STATE_RECORDING);
         self.autoStopTime = now() + (self.options.maxSeconds * 1000);
         scheduleCountdown();
       },
@@ -213,7 +238,8 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
       var self = this;
       var controller = createController(self);
       var controlPanel = new ControlPanel($("<div>").addClass("controlPanel"), self.options)
-        .addPlugin(controller);
+        .addPlugin(controller)
+        .addPlugin(self);
       var videoComponent = new ui.Video($("<div>").addClass("vid"));
       var counter = new ui.Component($("<span>").addClass("counter"));
 

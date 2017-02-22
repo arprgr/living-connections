@@ -36,6 +36,13 @@ define([ "ui/component" ], function(Component) {
         }
       }
     });
+
+    c.extendPrototype({
+      focus: function() {
+        this.ele.focus();
+        return this;
+      }
+    });
   });
 
   // Handy factory method.
