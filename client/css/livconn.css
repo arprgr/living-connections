@@ -272,6 +272,10 @@ video {
   color: #aaa;
   border: solid 2px #aaa;
 }
+#app button:enabled.default {
+  color: #070;
+  border: solid 3px #070;
+}
 #app button:enabled:hover {
   background-color: #ec9;
 }

@@ -1,7 +1,7 @@
 // usereditor.js - User Editor component
 
-define([ "jquery", "services", "activityui", "ui/index" ],
-function($,        Services,   Activity,     ui) {
+define([ "jquery", "services", "activityui", "ui/index", "waitanim" ],
+function($,        Services,   Activity,     ui,         WaitAnim) {
 
   var sessionManager = Services.sessionManager;
 
@@ -19,67 +19,90 @@ function($,        Services,   Activity,     ui) {
 
   return Activity.defineClass(function(c) {
 
-    c.defineInitializer(function() {
-      var self = this;
+    function block(self) {
+      self.nameInput.enabled = false;
+      self.updateButton.enabled = false;
+      self.waitAnim.open();
+    }
 
-      var nameInput;
-      var updateButton;
+    function unblock(self) {
+      self.nameInput.enabled = true;
+      self.updateButton.enabled = self.nameInput.valid && self.nameInput.value != self.nameValue;
+      self.waitAnim.close();
+    }
 
-      function showProgress(promise) {
-        // TODO: pop up a results window.  TODO: add a timeout.
-        updateButton.enabled = false;
-        promise.then(function() {
-          updateButton.enabled = true;
-        }).catch(function(err) {
-          updateButton.enabled = true;
+    function submit(self) {
+      if (self.updateButton.enabled) {
+        block(self);
+        Services.apiService.updateUser(getUserId(), self.nameValue)
+        .then(function() {
+          unblock(self);
+          sessionManager.refreshNow();
+        })
+        .catch(function(err) {
+          unblock(self);
           console.log(err);
         });
       }
+    }
 
-      nameInput = new ui.TextInput().addPlugin({
+    function createNameInput(self) {
+      var nameInput = new ui.TextInput().addPlugin({
         submit: function(name) {
-          showProgress(Services.apiService.updateUser(getUserId(), name));
+          self.nameValue = name;
+          submit(self);
         }
       });
       nameInput.addChangeListener(function() {
-        updateButton.enabled = nameInput.valid;
+        unblock(self);
       });
       nameInput.ele.find("input").attr("placeholder", "(not set)");
+      return nameInput;
+    }
 
+    function createUpdateButton(self) {
       var updateButton = ui.Button.create("Update", function() {
         nameInput.submit();
       });
+      updateButton.ele.addClass("default");
+      return updateButton;
+    }
 
-      var underLabel = new ui.Component();
+    c.defineInitializer(function() {
+      var self = this;
+
+      var nameInput = createNameInput(self);
+      self.nameInput = nameInput;
+      
+      var updateButton = createUpdateButton(self);
+      self.updateButton = updateButton;
+
+      var waitAnim = new WaitAnim($("<span>"), { ndots: 3 });
+      self.waitAnim = waitAnim;
 
       self.ele
         .append($("<div>")
           .addClass("panel")
           .append($("<div>")
             .append($("<span>").text("Your user name is: ")
-            .append(nameInput.container)
-            .append(updateButton.container)))
+            .append(nameInput.ele)
+            .append(updateButton.ele))
+            .append(waitAnim.ele))
           .append($("<div>")
             .text("This is the name that is shown to other Living Connections users " +
                   "and appears in the invitations that you send."))
           );
-
-      self.nameInput = nameInput;
-      self.updateButton = updateButton;
     });
 
     c.extendPrototype({
       open: function() {
         var self = this;
+        self.nameValue = getUserName();
         self.nameInput.value = getUserName();
         setTimeout(function() {
           self.nameInput.select().focus();
         }, 100);
         return Activity.prototype.open.call(self);
-      },
-      close: function() {
-        var self = this;
-        return self;
       },
       exit: function() {
         this.invokePlugin("exit");

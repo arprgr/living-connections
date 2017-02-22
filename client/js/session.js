@@ -163,6 +163,11 @@ define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
     notifyStateChangeListeners(self);
   }
 
+  function refreshNow(self) {
+    stopPolling(self);
+    startPolling(self);
+  }
+
   function SessionManager(options) {
     var self = this;
     $.extend(self, DEFAULT_OPTIONS, options);
@@ -216,6 +221,10 @@ define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
 
     logInWithFacebook: function(fbInfo) {
       return logInWithFacebook(this, fbInfo);
+    },
+
+    refreshNow: function() {
+      return refreshNow(this);
     },
 
     logOut: function() {
