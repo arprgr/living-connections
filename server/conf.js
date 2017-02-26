@@ -28,24 +28,24 @@ const DEFAULTS = {
   },
   clientServiceConfigurations: {
     apiService: {
-      path: "api",
+      path: "ApiService",
       config: {}
     },
     facebookService: {
-      path: "fb",
+      path: "FacebookService",
       config: {
         appId: "1093072224140701",
         version: "v2.8"
       }
     },
     sessionManager: {
-      path: "session",
+      path: "SessionManager",
       config: {
         retryTolerance: 3
       }
     },
     videoService: {
-      path: "vid",
+      path: "VideoService",
       config: {
         mimePriorityList: [
           "video/webm, codecs=vp9",
