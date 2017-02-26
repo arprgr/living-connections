@@ -6,7 +6,53 @@ const SERVER_URL = "http://localhost:4546";
 
 const rootKey = fs.readFileSync("tmp/adminKey");
 
+function expector(response, body) {
+
+  return {
+
+    expectStatusCode: function(expectedStatusCode) {
+      expect(response.statusCode).to.equal(expectedStatusCode);
+      return this;
+    },
+
+    expectResponseHeader: function(name, value) {
+      expect(response.headers[name]).to.equal(value);
+    },
+
+    expectRedirect: function(expectedLocation) {
+      expect(response.statusCode).to.equal(302);
+      expect(response.headers["location"]).to.equal(expectedLocation);
+      return this;
+    },
+
+    expectBody: function(expectedBody) {
+      expect(body).to.equal(expectedBody);
+      return this;
+    },
+
+    getJson: function() {
+      var obj = JSON.parse(body);
+      expect(obj).to.exist;
+      return obj;
+    },
+
+    getSetCookie: function(name) {
+      expect(response.headers["set-cookie"]).to.exist;
+      expect(response.headers["set-cookie"].length).to.equal(1);
+      var cookie = response.headers["set-cookie"][0];
+      var m = cookie.match(/^s=([^;]+);/);
+      expect(m).to.exist;
+      return m[1];
+    }
+  }
+}
+
 function makeRequest(method, uri) {
+
+  if (uri === undefined) {
+    uri = method;
+    method = "GET";
+  }
 
   var params = {
     method: method,
@@ -14,10 +60,6 @@ function makeRequest(method, uri) {
     headers: {},
     followRedirect: false
   }
-
-  var assertions = [];
-
-  var postproc = function(response, body) { return body; };
 
   return {
 
@@ -43,49 +85,6 @@ function makeRequest(method, uri) {
       return this;
     },
 
-    expectStatusCode: function(expectedStatusCode) {
-      assertions.push(function(response) {
-        expect(response.statusCode).to.equal(expectedStatusCode);
-      });
-      return this;
-    },
-
-    expectRedirect: function(expectedLocation) {
-      assertions.push(function(response) {
-        expect(response.statusCode).to.equal(302);
-        expect(response.headers["location"]).to.equal(expectedLocation);
-      });
-      return this;
-    },
-
-    expectBody: function(expectedBody) {
-      assertions.push(function(response, body) {
-        expect(body).to.equal(expectedBody);
-      });
-      return this;
-    },
-
-    getJson: function() {
-      postproc = function(response, body) {
-        var obj = JSON.parse(body);
-        expect(obj).to.exist;
-        return obj;
-      }
-      return this;
-    },
-
-    getSetCookie: function(name) {
-      postproc = function(response, body) {
-        expect(response.headers["set-cookie"]).to.exist;
-        expect(response.headers["set-cookie"].length).to.equal(1);
-        var cookie = response.headers["set-cookie"][0];
-        var m = cookie.match(/^s=([^;]+);/);
-        expect(m).to.exist;
-        return m[1];
-      }
-      return this;
-    },
-
     go: function() {
       return new Promise(function(resolve, reject) {
         request(params, function(error, response, body) {
@@ -93,31 +92,31 @@ function makeRequest(method, uri) {
             reject(error);
           }
           else {
-            try {
-              for (var i = 0; i < assertions.length; ++i) {
-                assertions[i](response, body);
-              }
-            }
-            catch (e) {
-              if (response.statusCode == 500) {
-                console.log(body);
-              }
-              throw e;
-            }
-            resolve(postproc(response, body));
+            resolve(expector(response, body));
           }
         })
       })
+    },
+
+    getJson: function() {
+      return this.go().then(function(expector) {
+        expector.expectStatusCode(200);
+        return expector.getJson();
+      });
     }
   }
 }
 
-function wipe() {
-  return makeRequest("GET", "/admin/wipe").asRoot().expectStatusCode(200).go();
-}
-
 module.exports = {
   describe: function(title, describer) {
+
+    function wipe() {
+      return makeRequest("GET", "/admin/wipe").asRoot().go()
+      .then(function(expector) {
+        expector.expectStatusCode(200);
+      });
+    }
+
     describe(title, function() {
       describer({
         makeRequest: makeRequest

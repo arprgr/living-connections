@@ -6,19 +6,23 @@ requestlc.describe("Email ticketing", function(client) {
   // Methods...
 
   function requestTicket(email) {
-    return client.makeRequest("GET", "/l?email=" + email)
+    return client.makeRequest("GET", "/l?email=" + email);
   }
 
-  function retrieveTicket(id) {
-    return client.makeRequest("GET", "/api/invites/" + id).asRoot().expectStatusCode(200).getJson().go();
+  function requestTicketOk(email) {
+    return requestTicket(email).getJson();
   }
 
   function claimTicketOk(ticket) {
-    return client.makeRequest("GET", "/?e=" + ticket.externalId).expectRedirect("/").getSetCookie("s").go();
+    return client.makeRequest("GET", "/?e=" + ticket.externalId).go()
+    .then(function(expector) { 
+      expector.expectRedirect("/");
+      return expector.getSetCookie("s");
+    });
   }
 
   function requestActionList(sessionCookie) {
-    return client.makeRequest("GET", "/a").withCookie("s", sessionCookie).expectStatusCode(200).getJson().go();
+    return client.makeRequest("GET", "/a").withCookie("s", sessionCookie).getJson();
   }
 
   function findMessageAction(actionResponse, fromUserId) {
@@ -34,8 +38,9 @@ requestlc.describe("Email ticketing", function(client) {
   // Tests...
 
   it("rejects invalid email address", function(done) {
-    requestTicket("blah").expectStatusCode(500).go()
-    .then(function() {
+    requestTicket("blah").go()
+    .then(function(expector) {
+      expector.expectStatusCode(500);
       done();
     })
     .catch(done);
@@ -48,12 +53,8 @@ requestlc.describe("Email ticketing", function(client) {
     var ticket;
     var sessionCookie;
 
-    function requestTicketOk() {
-      return requestTicket(TEST_EMAIL).expectStatusCode(200).getJson().go();
-    }
-
     beforeEach(function(done) {
-      requestTicketOk()
+      requestTicketOk(TEST_EMAIL)
       .then(function(_ticket) {
         ticket = _ticket;
         expect(ticket.externalId).to.exist;
@@ -78,12 +79,23 @@ requestlc.describe("Email ticketing", function(client) {
       .catch(done);
     });
 
-    it("enforces one user per email address", function(done) {
+    it("can be claimed again", function(done) {
+      claimTicketOk(ticket).then(function(sessionCookie) {
+        return requestActionList(sessionCookie);
+      })
+      .then(function(actionResponse) {
+        expect(actionResponse.user).to.exist;
+        done();
+      })
+      .catch(done);
+    });
+
+    it("enforces one user per email", function(done) {
       var user1;
       requestActionList(sessionCookie)
       .then(function(actionResponse) {
         user1 = actionResponse.user;
-        return requestTicketOk();
+        return requestTicketOk(TEST_EMAIL);
       })
       .then(function(ticket) {
         return claimTicketOk(ticket);

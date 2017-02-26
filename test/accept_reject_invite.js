@@ -18,17 +18,28 @@ requestlc.describe("Messages API (invitation actions)", function(client) {
       assetId: 17,
       type: type
     })
-    .asUser(fromUserId).expectStatusCode(200).getJson().go();
+    .asUser(fromUserId).go()
+    .then(function(expector) {
+      expector.expectStatusCode(200);
+      return expector.getJson();
+    })
   }
 
   function actOnInviteOk(action, messageId, userId) {
     return client.makeRequest("GET", "/api/messages/" + messageId + "?act=" + action)
-    .asUser(userId).expectStatusCode(200).getJson().go();
+    .asUser(userId).go()
+    .then(function(expector) {
+      expector.expectStatusCode(200);
+      return expector.getJson();
+    })
   }
 
   function actOnInviteError(action, messageId, userId, expectedStatusCode) {
     return client.makeRequest("GET", "/api/messages/" + messageId + "?act=" + action)
-    .asUser(userId).expectStatusCode(expectedStatusCode).go();
+    .asUser(userId).go()
+    .then(function(expector) {
+      expector.expectStatusCode(expectedStatusCode);
+    });
   }
 
   // Tests...

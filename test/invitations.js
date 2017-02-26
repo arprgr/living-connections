@@ -12,7 +12,7 @@ requestlc.describe("Invitations", function(client) {
 
   function createUser(name) {
     return client.makeRequest("POST", "/api/users")
-    .withData({ name: name }).asRoot().expectStatusCode(200).getJson().go()
+    .withData({ name: name }).asRoot().getJson();
   }
 
   function sendInvitation(fromUserId, email) {
@@ -25,21 +25,21 @@ requestlc.describe("Invitations", function(client) {
   }
 
   function sendInvitationOk(fromUserId, email) {
-    return sendInvitation(fromUserId, email).expectStatusCode(200).getJson().go();
-  }
-
-  function sendInvitationError(fromUserId, email, expectedStatusCode) {
-    return sendInvitation(fromUserId, email).expectStatusCode(expectedStatusCode).go();
+    return sendInvitation(fromUserId, email).getJson();
   }
 
   function claimTicket(ticket) {
-    return client.makeRequest("GET", "/?e=" + ticket.externalId).expectRedirect("/").getSetCookie("s").go();
+    return client.makeRequest("GET", "/?e=" + ticket.externalId).go()
+    .then(function(expector) {
+      expector.expectRedirect("/");
+      return expector.getSetCookie("s");
+    });
   }
 
   function requestActionList(cred, credIsUserId) {
     var req = client.makeRequest("GET", "/a");
     credIsUserId ? req.asUser(cred) : req.withCookie("s", cred);
-    return req.expectStatusCode(200).getJson().go();
+    return req.getJson();
   }
 
   function findAction(actionResponse, pred) {
@@ -75,11 +75,14 @@ requestlc.describe("Invitations", function(client) {
   }
 
   function cancelInvitationOk(id, userId) {
-    return cancelInvitation(id, userId).expectStatusCode(200).getJson().go();
+    return cancelInvitation(id, userId).getJson();
   }
 
   function cancelInvitationError(id, userId, expectedStatusCode) {
-    return cancelInvitation(id, userId).expectStatusCode(expectedStatusCode).go();
+    return cancelInvitation(id, userId).go()
+    .then(function(expector) {
+      expector.expectStatusCode(expectedStatusCode);
+    });
   }
 
   function actOnInvite(action, messageId, userId) {
@@ -87,7 +90,7 @@ requestlc.describe("Invitations", function(client) {
   }
 
   function actOnInviteOk(action, messageId, userId) {
-    return actOnInvite(action, messageId, userId).expectStatusCode(200).getJson().go();
+    return actOnInvite(action, messageId, userId).getJson();
   }
 
   // Create sender.
@@ -102,8 +105,10 @@ requestlc.describe("Invitations", function(client) {
   });
 
   it("rejects invalid email", function(done) {
-    sendInvitationError(sender, "blah", 500)
-    .then(function() {
+
+    return sendInvitation(sender, "blah").go()
+    .then(function(expector) {
+      expector.expectStatusCode(500);
       done();
     })
     .catch(done);

@@ -11,7 +11,7 @@ requestlc.describe("User identification", function(client) {
       name: name,
       level: level
     })
-    .asRoot().expectStatusCode(200).getJson().go();
+    .asRoot().getJson();
   }
 
   function createEmailProfile(userId, email) {
@@ -20,11 +20,11 @@ requestlc.describe("User identification", function(client) {
       userId: userId,
       email: email
     })
-    .asRoot().expectStatusCode(200).getJson().go();
+    .asRoot().getJson();
   }
 
   function fetchActionList(userId) {
-    return client.makeRequest("GET", "/a").asUser(userId).expectStatusCode(200).getJson().go();
+    return client.makeRequest("GET", "/a").asUser(userId).getJson();
   }
 
   // Tests...

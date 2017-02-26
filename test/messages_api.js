@@ -17,7 +17,7 @@ requestlc.describe("Messages API", function(client) {
 
     beforeEach(function(done) {
       client.makeRequest("POST", "/api/messages").asUser(fromUserId).withData(seedProperties) 
-      .expectStatusCode(200).getJson().go()
+      .getJson()
       .then(function(message) {
         goodMessageId = message.id;
         done();
@@ -30,16 +30,16 @@ requestlc.describe("Messages API", function(client) {
     }
 
     it("is inaccessible without authorization", function(done) {
-      get(goodMessageId).expectStatusCode(401).go()
-      .then(function() {
+      get(goodMessageId).go()
+      .then(function(expector) {
+        expector.expectStatusCode(401);
         done();
       })
       .catch(done);
     });
 
     it("allows root to retrieve message", function(done) {
-      get(goodMessageId).asRoot()
-      .expectStatusCode(200).getJson().go()
+      get(goodMessageId).asRoot().getJson()
       .then(function(message) {
         expect(message.assetId).to.equal(seedProperties.assetId);
         expect(message.toUserId).to.equal(seedProperties.toUserId);
@@ -49,23 +49,25 @@ requestlc.describe("Messages API", function(client) {
     })
 
     it("returns 404 for missing ID", function(done) {
-      get(goodMessageId*2 + 1).asRoot().expectStatusCode(404).go()
-      .then(function() {
+      get(goodMessageId*2 + 1).asRoot().go()
+      .then(function(expector) {
+        expector.expectStatusCode(404);
         done();
       })
       .catch(done);
     })
 
     it("does not permit just anyone to retrieve message", function(done) {
-      get(goodMessageId).asUser(fromUserId * 2)
-      .expectStatusCode(401).go()
-      .then(function() { done(); })
+      get(goodMessageId).asUser(fromUserId * 2).go()
+      .then(function(expector) {
+        expector.expectStatusCode(401);
+        done();
+      })
       .catch(done);
     })
 
     it("allows sender to retrieve message", function(done) {
-      get(goodMessageId).asUser(fromUserId)
-      .expectStatusCode(200).getJson().go()
+      get(goodMessageId).asUser(fromUserId).getJson()
       .then(function(message) {
         expect(message.assetId).to.equal(seedProperties.assetId);
         expect(message.toUserId).to.equal(seedProperties.toUserId);
@@ -82,8 +84,10 @@ requestlc.describe("Messages API", function(client) {
     }
 
     it("is inaccessible without authorization", function(done) {
-      post({}).expectStatusCode(401).go()
-      .then(function() { done(); })
+      post({}).go().then(function(expector) {
+        expector.expectStatusCode(401);
+        done();
+      })
       .catch(done);
     });
 
@@ -91,7 +95,7 @@ requestlc.describe("Messages API", function(client) {
       post({
         assetId: 1,
         toUserId: 1
-      }).asUser(12).expectStatusCode(200).getJson().go()
+      }).asUser(12).getJson()
       .then(function(message) {
         expect(message.type).to.equal(0);
         done();
@@ -103,8 +107,9 @@ requestlc.describe("Messages API", function(client) {
       post({
         type: 0,
         assetId: 1
-      }).asUser(12).expectStatusCode(500).expectBody('{"toUserId":"?"}').go()
-      .then(function() {
+      }).asUser(12).go().then(function(expector) {
+        expector.expectStatusCode(500);
+        expect(expector.getJson().toUserId).to.equal("?");
         done();
       })
       .catch(done);
@@ -114,8 +119,8 @@ requestlc.describe("Messages API", function(client) {
       post({
         type: 3,
         assetId: 1
-      }).asUser(12).expectStatusCode(401).go()
-      .then(function() {
+      }).asUser(12).go().then(function(expector) {
+        expector.expectStatusCode(401);
         done();
       })
       .catch(done);

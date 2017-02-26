@@ -8,23 +8,16 @@ requestlc.describe("Users API", function(client) {
   describe("post method", function() {
 
     it("is inaccessible without authorization", function(done) {
-      client.makeRequest("POST", PATH).withData({ name: "Jack" }).expectStatusCode(401).go()
-      .then(function() {
-        done();
-      })
-      .catch(done);
-    });
-
-    it("is accessible with root authorization", function(done) {
-      client.makeRequest("POST", PATH).withData({ name: "Jack" }).asRoot().expectStatusCode(200).go()
-      .then(function() {
+      client.makeRequest("POST", PATH).withData({ name: "Jack" }).go()
+      .then(function(expector) {
+        expector.expectStatusCode(401);
         done();
       })
       .catch(done);
     });
 
     it("sets id, name, and default level", function(done) {
-      client.makeRequest("POST", PATH).withData({ name: "Jack" }).asRoot().expectStatusCode(200).getJson().go()
+      client.makeRequest("POST", PATH).withData({ name: "Jack" }).asRoot().getJson()
       .then(function(user) {
         expect(typeof user.id).to.equal("number");
         expect(user.name).to.equal("Jack");
