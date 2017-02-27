@@ -62,7 +62,8 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
       for (var i = 0; i < plugins.length; ++i) {
         var plugin = plugins[i];
         if (method in plugin) {
-          retval = plugin[method].apply(plugin, args);
+          var thisRetval = plugin[method].apply(plugin, args);
+          retval = retval || thisRetval;
         }
       }
       return retval;

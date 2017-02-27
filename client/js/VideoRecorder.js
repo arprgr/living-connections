@@ -1,7 +1,7 @@
-// greeditor.js - new Greeting Editor incorporating new VideoRecorder component
+// VideoRecorder.js - Video recorder component.
 
-define([ "jquery", "services", "ui/index", "activityui", "waitanim" ],
-function($,        Services,   ui,         Activity,      WaitAnim) {
+define([ "jquery", "services", "ui/index", "waitanim" ],
+function($,        Services,   ui,         WaitAnim) {
 
   var videoService = Services.videoService;
 
@@ -10,7 +10,8 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
   var STATE_WAITING = "waiting";     // Waiting for I/O.
   var STATE_READY = "ready";         // Camera is on but not recording.  There is no saved video.
   var STATE_RECORDING = "recording"; // Camera is on and recording.
-  var STATE_REVIEW = "review";       // Playing back a previously recorded video.
+  var STATE_REVIEW = "review";       // Playing back a video that was just recorded and not yet saved.
+  var STATE_PREVIEW = "preview";     // Playing back a previously saved video.
   var STATE_ERROR = "error";         // Something went wrong.
   var STATE_DONE = "done";           // Success.
 
@@ -86,8 +87,13 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
         .append(acceptButton.ele)
         .append(rejectButton.ele)
       ));
+      self.addCompartment(STATE_PREVIEW, new ui.Component($("<div>")
+        .append($("<span>").text("Here is your previously recorded " + self.options.what + "... "))
+        .append(rejectButton.ele)
+      ));
       self.addCompartment(STATE_ERROR, new ui.Component($("<div>")
-        .append($("<span>").text("Ugh, something went wrong! " + self.options.what))
+        .append($("<span>").text("Oh no, something went wrong! "))
+        .append(retryButton.ele)
       ));
       self.addCompartment(STATE_DONE, new ui.Component($("<div>")
         .append($("<span>").text(capitalize(self.options.what) + " sent! "))
@@ -163,6 +169,10 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
       }, 20);
     }
 
+    function showUrl() {
+      return self.videoComponent.load(self.url);
+    }
+
     function showRecording() {
       var promise = $.Deferred();
       self.videoComponent.pause();
@@ -170,8 +180,9 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
       hideCountdown();
       videoService.stopRecording(function(blob, url) {
         self.videoBlob = blob;
+        self.url = url;
         videoService.close();
-        promise.resolve(self.videoComponent.load(url));
+        promise.resolve(showUrl());
       });
       return promise;
     }
@@ -184,18 +195,21 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
       .then(function(asset) {
         return self.videoComponent.load(asset.url)
         .then(function() {
-          return Services.apiService.saveForm("gre", "cre", {
-            assetId: asset.id,
-            toUserId: self.actionItem.user.id
-          });
+          return self.invokePlugin("saveMessage", asset.id);
         });
       })
     }
 
     controller = {
 
-      open: function() {
-        toNextState(openCamera, STATE_READY);
+      open: function(url) {
+        if (url) {
+          self.url = url;
+          toNextState(showUrl, STATE_PREVIEW);
+        }
+        else {
+          toNextState(openCamera, STATE_READY);
+        }
       },
 
       startRecording: function() {
@@ -226,7 +240,7 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
     return controller;
   }
 
-  return Activity.defineClass(function(c) {
+  return ui.Component.defineClass(function(c) {
 
     c.defineDefaultOptions({
       what: "videogram",
@@ -237,22 +251,21 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
     c.defineInitializer(function() {
       var self = this;
       var controller = createController(self);
-      var controlPanel = new ControlPanel($("<div>").addClass("controlPanel"), self.options)
+      var controlPanel = new ControlPanel($("<div>"), $.extend({}, self.options, {
+        cssClasses: [ "controlPanel", "panel" ]
+      }))
         .addPlugin(controller)
         .addPlugin(self);
       var videoComponent = new ui.Video($("<div>").addClass("vid"));
       var counter = new ui.Component($("<span>").addClass("counter"));
 
       self.ele
+        .append(controlPanel.ele)
         .append($("<div>")
+          .addClass("vidrec")
           .addClass("panel")
-          .append(controlPanel.ele))
-        .append($("<div>")
-          .addClass("panel")
-          .append($("<div>")
-            .addClass("vidrec")
-            .append(videoComponent.ele)
-          ))
+          .append(videoComponent.ele)
+        )
 
       self.controlPanel = controlPanel;
       self.videoComponent = videoComponent;
@@ -262,15 +275,18 @@ function($,        Services,   ui,         Activity,      WaitAnim) {
 
     c.extendPrototype({
 
-      open: function() {
-        this.controlPanel.open();
-        this.controller.open();
+      open: function(url) {
+        this.controller.open(url);
         return this;
       },
 
       close: function() {
         videoService.close();
         return this;
+      },
+
+      exit: function() {
+        return this.invokePlugin("exit");
       }
     });
   });

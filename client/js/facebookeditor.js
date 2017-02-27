@@ -1,7 +1,3 @@
-// proeditor.js - Profile Editor component
-
-define([ "jquery", "editor", "ui/index", "fblogin",     "vidrec" ],
-function($,        Editor,   ui,         FacebookLogin, VideoRecorder) {
 
   //
   // Facebook section
@@ -42,26 +38,3 @@ function($,        Editor,   ui,         FacebookLogin, VideoRecorder) {
       }
     });
   });
-
-  return Editor.defineClass(function(c) {
-
-    c.defineDefaultOptions({
-      cells: [
-        //ProfileFacebookCell,
-        { cons: VideoRecorder, options: { prompt: "Add a videogram to your profile" } }
-      ]
-    });
-
-    c.defineInitializer(function() {
-      //if (this.actionItem.user.facebookProfile) {
-        //this.cells[1].visible = false;
-      //}
-    });
-
-    c.extendPrototype({
-      _initData: function() {
-        return this.actionItem.user;
-      }
-    });
-  });
-});

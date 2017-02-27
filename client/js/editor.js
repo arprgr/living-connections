@@ -147,10 +147,7 @@ function($,        Services,   Activity,     ui) {
     }
 
     function submit(self) {
-      var actionItem = self.actionItem;
-      var data = self.data;
-      // TODO: pop up a results window.  TODO: add a timeout.
-      Services.apiService.saveForm(actionItem.what, actionItem.action, data).then(function() {
+      return self.saveForm(self.data).then(function() {
         self.exit();
       }).catch(function(err) {
         console.log(err);
@@ -184,7 +181,6 @@ function($,        Services,   Activity,     ui) {
     function Editor_openByIndex(self, newIndex) {
       if (newIndex != self.cellIndex) {
         if (self.cellIndex >= 0) {
-console.log('summarize', self.cellIndex);
           self.cells[self.cellIndex].show(SUMMARY);
         }
         if (newIndex >= 0 && newIndex < self.cells.length) {
@@ -285,6 +281,9 @@ console.log('summarize', self.cellIndex);
       },
       exit: function() {
         this.invokePlugin("exit");
+      },
+      saveMessage: function() {
+        return submit(this);
       },
       formClosing: function() {
         updateDoneButton(this);
