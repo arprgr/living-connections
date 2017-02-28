@@ -3,7 +3,16 @@ export SERVER=http://localhost:4545
 export PGPASSWORD=postgres
 export CLOUDINARY_URL=cloudinary://425898524282428:7pPjCUilLoTETVKv9yRfrh-TwIo@living-connections
 export NODE_ENV=development
+
 alias sequelize="./node_modules/.bin/sequelize"
 alias mocha="./node_modules/.bin/mocha"
-alias psql="/usr/local/bin/psql -U postgres -d livconn"
+alias db="/usr/local/bin/psql -U postgres -d livconn"
 alias lock-versions="./node_modules/.bin/lock-versions"
+alias server="node server"
+alias testserver="NODE_ENV=test node server"
+
+echo "Living Connections Project"
+echo "--------------------------"
+echo "server           Run the server"
+echo "testserver       Run the server in test mode"
+echo "db               Connect to the local database"
