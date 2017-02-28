@@ -123,7 +123,6 @@ function($,        Services,   ui,         WaitAnim) {
         showState(self.targetState);
       })
       .catch(function() {
-        self.videoBlob = null;
         showState(STATE_ERROR);
       });
     }

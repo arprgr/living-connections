@@ -26,9 +26,6 @@ function($,        Activity,     ui,         ActionItem,   Services) {
       button.container.appendTo(self.container.find(".buttons"));
     }
 
-    function addInvitationButtons(self, messageId) {
-    }
-
     function addButtons(self, fromUser) {
       addButton(self, "Reply to " + fromUser.name, function() {
         self.openOther(new ActionItem({ id: "gre-cre", user: fromUser, isReply: 1 }));

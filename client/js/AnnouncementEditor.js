@@ -1,18 +1,14 @@
-// anneditor.js - Announcement Editor component
+// AnnouncementEditor.js - Announcement Editor component
 
-define([ "jquery", "services", "editor", "vidrec",      "ui/index" ],
-function($,        Services,   Editor,   VideoRecorder, ui) {
+define([ "jquery", "activityui", "VideoRecorder", "ui/index" ],
+function($,        Activity,     VideoRecorder,   ui) {
 
-  var AnnouncementTypeCell = Editor.Cell.defineClass(function(c) {
-
-    c.defineDefaultOptions({
-      outputProperties: [ "type" ]
-    });
+  return Activity.defineClass(function(c) {
 
     c.defineInitializer(function() {
       var self = this;
 
-      var radioGroup = new ui.RadioGroup($("<div>"), {
+      var typeSelector = new ui.RadioGroup($("<div>"), {
         groupName: "annType",
         choices: [
           { value: 3, label: "To all users" },
@@ -20,95 +16,79 @@ function($,        Services,   Editor,   VideoRecorder, ui) {
         ]
       });
 
-      self.form.container
-        .append($("<div>")
-          .text("Announce to all users, or only to new users?"))
-        .append(radioGroup.container)
-        .append($("<div>")
-          .append(ui.Button.create("Keep Going", function() {
-            self.data.type = radioGroup.value;
-            self.advance();
-          }).container)
-        );
-
-      self.radioGroup = radioGroup;
-    });
-
-    c.extendPrototype({
-      open: function() {
-        this.radioGroup.apparentValue = this.data && this.data.type;
-        return Editor.Cell.prototype.open.call(this);
-      },
-      summarize: function() {
-        var type = this.data && this.data.type;
-        if (type == null) {
-          return "(Audience not selected)";
-        }
-        return "Announce to " + (type == 4 ? "new" : "all") + " users";
-      }
-    });
-  });
-
-  var AnnouncementPeriodCell = Editor.Cell.defineClass(function(c) {
-
-    c.defineInitializer(function() {
-      var self = this;
       var startDatePicker = new ui.DateTimeInput($("<span>"));
       startDatePicker.addChangeListener(function(value) {
         self.data.startDate = value;
       });
+
       var endDatePicker = new ui.DateTimeInput($("<span>"));
       endDatePicker.addChangeListener(function(value) {
         self.data.endDate = value;
       });
-      self.form.container
-        .append($("<div>")
-          .append($("<span>").text("Start date: "))
-          .append(startDatePicker.container))
-        .append($("<div>")
-          .append($("<span>").text("End date: "))
-          .append(endDatePicker.container))
-        .append($("<div>")
-          .append(ui.Button.create("OK", function() {
-            self.data.startDate = startDatePicker.value;
-            self.data.endDate = endDatePicker.value;
-            self.advance();
-          }).container)
+
+      var videoRecorder = new VideoRecorder("<div>", {
+        what: "announcement"
+      }).addPlugin(self);
+
+      self.ele
+        .append($("<div>").addClass("panel")
+          .append($("<div>")
+            .text("Announce to all users, or only to new users?"))
+          .append(typeSelector.ele)
+          .append($("<div>")
+            .append(ui.Button.create("Keep Going", function() {
+              self.data.type = typeSelector.value;
+              self.advance();
+            }).ele)
+          )
         )
+        .append($("<div>").addClass("panel")
+          .append($("<div>")
+            .append($("<span>").text("Start date: "))
+            .append(startDatePicker.ele))
+          .append($("<div>")
+            .append($("<span>").text("End date: "))
+            .append(endDatePicker.ele))
+        )
+        .append(videoRecorder.ele)
+
+      self.typeSelector = typeSelector;
       self.startDatePicker = startDatePicker;
       self.endDatePicker = endDatePicker;
+      self.videoRecorder = videoRecorder;
+
+      self.data = self.actionItem.message || {};
     });
+
+    var ONE_WEEK = 7*24*60*60*1000;
+
+    function open(self) {
+      var data = self.data;
+      self.typeSelector.apparentValue = data.type;
+      var startDate = data.startDate ? new Date(data.startDate) : new Date();
+      var endDate = data.endDate ? new Date(data.endDate) : new Date(startDate.getTime() + ONE_WEEK);
+      self.startDatePicker.value = startDate;
+      self.endDatePicker.value = endDate;
+      self.videoRecorder.open(data.asset && data.asset.url);
+      return self;
+    }
 
     c.extendPrototype({
       open: function() {
-        var startDate = this.data.startDate ? new Date(this.data.startDate) : new Date();
-        var endDate = this.data.endDate ? new Date(this.data.endDate) : 
-          new Date(startDate.getTime() + 7*24*60*60*1000);
-        this.startDatePicker.value = startDate;
-        this.endDatePicker.value = endDate;
-        return Editor.Cell.prototype.open.call(this);
+        return open(this);
       },
-      summarize: function() {
-        var startDate = this.data.startDate;
-        var endDate = this.data.endDate;
-        if (!startDate || !endDate) {
-          return "(Active period not selected)";
-        }
-        return "Announcement active from " + startDate  + " to " + endDate;
+      saveMessage: function(assetId) {
+        return this.saveForm($.extend({}, this.data, {
+          assetId: assetId,
+          type: this.typeSelector.value,
+          startDate: this.startDatePicker.value,
+          endDate: this.endDatePicker.value
+        }));
+      },
+      close: function() {
+        this.videoRecorder.close();
+        return this;
       }
     });
   });
-
-  return Editor.defineClass(function(c) {
-
-    c.defineDefaultOptions({
-      cells: [ AnnouncementTypeCell, AnnouncementPeriodCell, VideoRecorder ]
-    });
-
-    c.extendPrototype({
-      _initData: function() {
-        return this.actionItem.message;
-      }
-    });
-  })
 });
