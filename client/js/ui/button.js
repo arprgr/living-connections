@@ -10,7 +10,14 @@ define([ "ui/component" ], function(Component) {
       var self = this;
       self._enabled = true;
       self.ele.click(function() {
-        self.invokePlugin("click");
+        self.invokePlugin("click");   // deprecated
+        self.invokePlugin("onClick");
+      });
+      self.ele.on("keydown", function(event) {
+        if (self.enabled && event.originalEvent.keyCode == 13) {
+          self.invokePlugin("onClick");
+        }
+        return true;
       });
     });
 
@@ -48,7 +55,7 @@ define([ "ui/component" ], function(Component) {
   // Handy factory method.
   Button.create = function(label, onClick) {
     return new Button().setLabel(label).addPlugin({
-      click: onClick
+      onClick: onClick
     });
   }
 

@@ -1,7 +1,9 @@
 // activities.js - ActivityComponent
 
-define([ "msgviewer", "AnnouncementEditor", "GreetingEditor", "inveditor",     "ProfileEditor", "usereditor" ],
-function( MsgViewer,  AnnouncementEditor,   GreetingEditor,   InvitationEditor, ProfileEditor,  UserEditor) {
+define([ "msgviewer", "AnnouncementEditor", "GreetingEditor", "CreateInviteEditor", "inveditor",
+  "ProfileEditor", "usereditor" ],
+function( MsgViewer,  AnnouncementEditor,   GreetingEditor,   CreateInviteEditor,   UpdateInviteEditor,
+  ProfileEditor,   UserEditor) {
 
   return {
     ClassForActionItem: function(actionItem) {
@@ -14,7 +16,7 @@ function( MsgViewer,  AnnouncementEditor,   GreetingEditor,   InvitationEditor, 
       case "gre":
         return GreetingEditor;
       case "inv":
-        return InvitationEditor;
+        return actionItem.action == "cre" ? CreateInviteEditor : UpdateInviteEditor;
       case "pro":
         return ProfileEditor;
       case "usr":

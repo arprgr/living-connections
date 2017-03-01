@@ -56,7 +56,7 @@ function($,        Services,   Activity,     ui,         WaitAnim) {
       nameInput.addChangeListener(function() {
         unblock(self);
       });
-      nameInput.ele.find("input").attr("placeholder", "(not set)");
+      nameInput.placeholder = "(not set)";
       return nameInput;
     }
 

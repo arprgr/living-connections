@@ -14,8 +14,12 @@ define([ "jquery", "ui/component", ], function($, Component) {
       var self = this;
       self._enabled = true;
       self.container.append($("<input>")
+        .on("focus", function() {
+          self.invokePlugin("onFocus", self.value);
+        })
         .on("blur", function() {
           self.validate();
+          self.invokePlugin("onBlur", self.value);
         })
         .on("keydown", function(event) {
           if (self.enabled && event.originalEvent.keyCode == 13) {
@@ -25,7 +29,8 @@ define([ "jquery", "ui/component", ], function($, Component) {
         })
         .on("change paste keyup", function() {
           self.clearStyles();
-          self.notifyChangeListeners();
+          self.notifyChangeListeners();   // deprecated
+          self.invokePlugin("onChange", self.value);
         }));
     });
 
@@ -98,11 +103,13 @@ define([ "jquery", "ui/component", ], function($, Component) {
         var self = this;
         var isValid = self.validate();
         if (isValid) {
-          self.invokePlugin("submit", self.value);
+          self.invokePlugin("submit", self.value);   // deprecated
+          self.invokePlugin("onSubmit", self.value);
         }
         else {
           self.input.focus().select();
-          self.invokePlugin("showInvalid");
+          self.invokePlugin("showInvalid");  // deprecated
+          self.invokePlugin("onError");
         }
       },
 

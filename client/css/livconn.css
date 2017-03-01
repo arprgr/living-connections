@@ -131,9 +131,6 @@ div {
 #login .fadedot {
   margin: 5px 20px;
 }
-.invalid {
-  border: solid 3px red;
-}
 #app {
   position: absolute;
   top: 0;
@@ -280,11 +277,20 @@ video {
   background-color: #ec9;
 }
 #app input[type=text] {
+  color: #004;
+  padding: 4px;
+  width: 450px;
+}
+input[type=text] {
   background-color: white;
   color: #004;
   border: solid 2px #004;
   font-size: 18px;
-  padding: 4px;
-  display: inline;
-  width: 450px;
+}
+input[type=text].invalid {
+  border: solid 3px red;
+}
+span.error {
+  color: red;
+  font-style: italic;
 }

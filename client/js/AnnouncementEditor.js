@@ -35,12 +35,6 @@ function($,        Activity,     VideoRecorder,   ui) {
           .append($("<div>")
             .text("Announce to all users, or only to new users?"))
           .append(typeSelector.ele)
-          .append($("<div>")
-            .append(ui.Button.create("Keep Going", function() {
-              self.data.type = typeSelector.value;
-              self.advance();
-            }).ele)
-          )
         )
         .append($("<div>").addClass("panel")
           .append($("<div>")
