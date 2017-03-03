@@ -32,6 +32,7 @@ function($,        Services,   ui,         WaitAnim) {
     c.defineInitializer(function() {
       var self = this;
       var controller = self.options.controller;
+      var what = self.options.what;
 
       self.defaultButtons = {};
       function declareDefaultButtonForState(state, button) {
@@ -76,19 +77,19 @@ function($,        Services,   ui,         WaitAnim) {
       }));
       self.addCompartment(STATE_READY, new ui.Component($("<div>")
         .append(startButton.ele)
-        .append($("<span>").text(" to start recording."))
+        .append($("<span>").text(" to start recording your " + what + "."))
       ));
       self.addCompartment(STATE_RECORDING, new ui.Component($("<div>")
         .append($("<span>").text("Recording... "))
         .append(stopButton.ele)
       ));
       self.addCompartment(STATE_REVIEW, new ui.Component($("<div>")
-        .append($("<span>").text("Please review your " + self.options.what + "... "))
+        .append($("<span>").text("Please review your " + what + "... "))
         .append(acceptButton.ele)
         .append(rejectButton.ele)
       ));
       self.addCompartment(STATE_PREVIEW, new ui.Component($("<div>")
-        .append($("<span>").text("Here is your previously recorded " + self.options.what + "... "))
+        .append($("<span>").text("Here is your previously recorded " + what + "... "))
         .append(rejectButton.ele)
       ));
       self.addCompartment(STATE_ERROR, new ui.Component($("<div>")
@@ -96,7 +97,7 @@ function($,        Services,   ui,         WaitAnim) {
         .append(retryButton.ele)
       ));
       self.addCompartment(STATE_DONE, new ui.Component($("<div>")
-        .append($("<span>").text(capitalize(self.options.what) + " sent! "))
+        .append($("<span>").text(capitalize(what) + " sent! "))
         .append(closeButton.ele)
       ));
     });

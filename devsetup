@@ -11,8 +11,27 @@ alias lock-versions="./node_modules/.bin/lock-versions"
 alias server="node server"
 alias testserver="NODE_ENV=test node server"
 
+
+openTab()
+{
+  osascript -e 'activate application "iTerm"'
+  osascript -e 'tell application "System Events" to keystroke "t" using command down'
+}
+
+runCommand()
+{
+  osascript -e "tell application \"iTerm\" to tell session -1 of current terminal to write text \"${1}\""
+}
+
+term()
+{
+  openTab
+  runCommand "cd $LIVCONN_HOME"
+}
+
 echo "Living Connections Project"
 echo "--------------------------"
 echo "server           Run the server"
 echo "testserver       Run the server in test mode"
 echo "db               Connect to the local database"
+echo "term             Open a new terminal window"

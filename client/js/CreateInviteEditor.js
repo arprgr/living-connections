@@ -24,28 +24,25 @@ function($,        Activity,     VideoRecorder,   ui) {
     c.defineInitializer(function() {
       var self = this;
 
-      function updateOkEnabled() {
-        self.okButton.enabled = self.emailInput.valid && self.nameInput.value;
-      }
-
       function makeInput(cons, placeholder) {
-        var input = new cons()
+        var input = new cons("<span>", { required: true })
           .setPlaceholder(placeholder)
           .addPlugin({
             onChange: function() {
-              input.input.removeClass("invalid");
+              self.okButton.enabled = self.emailInput.valid && self.nameInput.valid;
             },
             onFocus: function() {
               self.okButton.enabled = true;
             },
-            onError: function() {
-              input.input.addClass("invalid");
-            },
             onBlur: function() {
-              if (!input.valid) {
-                self.invokePlugin("onError");
+              if (!input.validate()) {
+                input.focus();
               }
-              updateOkEnabled();
+            },
+            onSubmit: function() {
+              if (self.emailInput.valid && self.nameInput.value) {
+                self.invokePlugin("openVideoRecorder");
+              }
             }
           });
         return input;
@@ -56,7 +53,7 @@ function($,        Activity,     VideoRecorder,   ui) {
           onChange: function() {
             self.nameError.visible = false;
           },
-          onError: function() {
+          onInvalid: function() {
             self.nameError.visible = true;
           }
         });
@@ -68,7 +65,7 @@ function($,        Activity,     VideoRecorder,   ui) {
           onChange: function() {
             self.emailError.visible = false;
           },
-          onError: function() {
+          onInvalid: function() {
             self.emailError.visible = true;
           }
         });
@@ -95,7 +92,6 @@ function($,        Activity,     VideoRecorder,   ui) {
           .append($("<div>")
             .append(self.okButton.ele))
         )
-
     });
 
     c.extendPrototype({
@@ -113,23 +109,19 @@ function($,        Activity,     VideoRecorder,   ui) {
 
     c.defineInitializer(function() {
       var self = this;
-
-      var nameAndEmailEditor = new NameAndEmailEditor();
-
-      var videoRecorder = new VideoRecorder("<div>", {
-        what: "invitation"
-      }).addPlugin(self);
-
-      self.ele
-        .append(nameAndEmailEditor.ele)
-        .append(videoRecorder.ele)
-
-      self.nameAndEmailEditor = nameAndEmailEditor;
-      self.videoRecorder = videoRecorder;
+      self.nameAndEmailEditor = new NameAndEmailEditor().addPlugin(self);
+      self.ele.append(self.nameAndEmailEditor.ele)
     });
 
-    function open() {
-        this.videoRecorder.open();
+    function openVideoRecorder(self) {
+      var nameAndEmailEditor = self.nameAndEmailEditor;
+      nameAndEmailEditor.visible = false;
+      nameAndEmailEditor.close();
+
+      self.videoRecorder = new VideoRecorder("<div>", {
+        what: "invitation to " + self.nameAndEmailEditor.name
+      }).addPlugin(self).open();
+      self.ele.append(self.videoRecorder.ele)
     }
 
     c.extendPrototype({
@@ -137,12 +129,14 @@ function($,        Activity,     VideoRecorder,   ui) {
         this.nameAndEmailEditor.open();
         return this;
       },
+      openVideoRecorder: function() {
+        return openVideoRecorder(this);
+      },
       saveMessage: function(assetId) {
         return this.saveForm($.extend({}, this.data, {
           assetId: assetId,
           email: this.nameAndEmailEditor.email,
-          name: this.nameAndEmailEditor.name,
-          endDate: this.endDatePicker.value
+          name: this.nameAndEmailEditor.name
         }));
       },
       close: function() {

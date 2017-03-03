@@ -89,12 +89,14 @@ define([ "http" ], function(HttpMethod) {
       .addPathComponent("api/invites")
       .addQueryParameter("assetId")
       .addQueryParameter("email")
+      .addQueryParameter("name")
       .build();
 
     return function(form) {
       return new PostInviteMethod()
         .setAssetId(form.assetId)
         .setEmail(form.email)
+        .setName(form.name)
         .execute();
     }
   }

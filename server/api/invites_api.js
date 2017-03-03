@@ -23,6 +23,11 @@ const VALIDATOR = new ApiValidator({
     constant: true,
     required: true,
     type: "email"
+  },
+  name: {
+    constant: true,
+    required: true,
+    type: "string"
   }
 });
 

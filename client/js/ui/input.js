@@ -10,6 +10,12 @@ define([ "jquery", "ui/component", ], function($, Component) {
       invalidCssClass: "invalid"
     });
 
+    function onChange(self) {
+      self.clearStyles();
+      self.notifyChangeListeners();   // deprecated
+      self.invokePlugin("onChange", self.value);
+    }
+
     c.defineInitializer(function() {
       var self = this;
       self._enabled = true;
@@ -27,10 +33,14 @@ define([ "jquery", "ui/component", ], function($, Component) {
           }
           return true;
         })
-        .on("change paste keyup", function() {
-          self.clearStyles();
-          self.notifyChangeListeners();   // deprecated
-          self.invokePlugin("onChange", self.value);
+        .on("keyup", function(event) {
+          if (self.enabled && event.originalEvent.keyCode >= 32) {
+            onChange(self);
+          }
+          return true;
+        })
+        .on("change paste", function() {
+          onChange(self);
         }));
     });
 
@@ -55,6 +65,9 @@ define([ "jquery", "ui/component", ], function($, Component) {
 
     c.defineProperty("valid", {
       get: function() {
+        if (this.value === "" && this.options.required) {
+          return false;
+        }
         return this._isValueValid(this.value);
       }
     });
@@ -90,11 +103,12 @@ define([ "jquery", "ui/component", ], function($, Component) {
       validate: function() {
         var self = this;
         var valid = self.valid;
-        if (valid || self.value == "") {
+        if (valid) {
           self.clearStyles();
         }
         else {
           self.input.addClass(self.options.invalidCssClass);
+          self.invokePlugin("onInvalid", self.value);
         }
         return valid;
       },
@@ -109,7 +123,6 @@ define([ "jquery", "ui/component", ], function($, Component) {
         else {
           self.input.focus().select();
           self.invokePlugin("showInvalid");  // deprecated
-          self.invokePlugin("onError");
         }
       },
 
