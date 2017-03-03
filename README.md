@@ -10,6 +10,8 @@ Run npm install.
 
 Install postgres database locally, run on default port (5432).
 
+Create PSQL databases "livconn" and "livconn_test".
+
 Source the devsetup script.
 
 Run `sequelize db:migrate`

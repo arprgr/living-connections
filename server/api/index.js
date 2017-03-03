@@ -13,8 +13,8 @@ router.use(function(req, res, next) {
 });
 
 router.use("/connections", require("./connections_api"));
-router.use("/emailprofiles", require("./email_profiles_api"));
-router.use("/invites", require("./invites_api"));  // TODO: rename to tickets
+router.use("/emailprofiles", require("./email_profiles_api"));  // TODO: rename to tickets
+router.use("/invites", require("./invites_api"));
 router.use("/messages", require("./messages_api"));
 router.use("/profile", require("./profile_api"));
 router.use("/users", require("./users_api"));

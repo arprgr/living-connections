@@ -128,7 +128,37 @@ Invitation.prototype = {
   }
 }
 
+function inviteExpiresAt() {
+  return dateFromNow(5);
+}
+
+function sendInvitationEmail(req, invite, ticket, email) {
+  var fromUser = req.user;
+  var host = req.headers.host;
+  var protocol = host.match(/localhost/) ? "http:" : "https:";
+
+  // Get the sender's email address.
+  return models.EmailProfile.findByUser(fromUser)
+  .then(function(emailProfiles) {
+    var senderEmail;
+    if (emailProfiles && emailProfiles.length) {
+      senderEmail = emailProfiles[0].email;
+    }
+    return sendEmail({
+      invite: invite,
+      templateName: "templates/invitation.pug", 
+      subject: "Join me on Living Connections",
+      toEmail: email,
+      senderEmail: senderEmail,
+      fromUser: fromUser,
+      url: protocol + "//" + host + "?e=" + ticket.externalId
+    });
+  });
+}
+
 module.exports = {
   Invitation: Invitation,
-  Ticket: Ticket
+  Ticket: Ticket,
+  inviteExpiresAt: inviteExpiresAt,
+  sendInvitationEmail: sendInvitationEmail
 };

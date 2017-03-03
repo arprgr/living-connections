@@ -60,6 +60,9 @@ module.exports = (function() {
         .then(function() {
           return models.Message.destroyAll();
         })
+        .then(function() {
+          return models.Asset.destroyAll();
+        })
       );
     }));
   });

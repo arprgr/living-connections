@@ -32,21 +32,6 @@ const VALIDATOR = new ApiValidator({
 
 var router = require("express").Router();
 
-function acceptInvitation(message) {
-  // When an invitation is accepted, a connection is made.
-  return Connection.regrade(message.fromUserId, message.toUserId, 1)
-  .then(function() {
-    return Connection.regrade(message.toUserId, message.fromUserId, 1)
-  })
-  .then(function() {
-    return message;
-  })
-}
-
-function rejectInvitation(message) {
-  return message.updateAttributes({ toUserId: null });
-}
-
 // Retrieve message by ID
 router.get("/:id", function(req, res) {
   res.jsonResultOf(Message.findById(req.params.id, { deep: true })
@@ -57,26 +42,6 @@ router.get("/:id", function(req, res) {
     // A message may be viewed only by the sender, the receiver, or an admin.
     if (!req.isAdmin && req.user.id != message.fromUserId && req.user.id != message.toUserId) {
       throw { status: 401 };
-    }
-    // This method can execute one or more actions as side effects.
-    // Not sure that this is the greatest API design, but it serves the
-    // purpose of enabling acceptance and rejection of invitation
-    // messages.
-    var action = req.query.act;
-    if (action) {
-      // Accept/reject an invitation.
-      if (message.type != Message.INVITE_TYPE || message.toUserId != req.user.id) {
-        throw { status: 401 };
-      }
-      if (action == "accept") {
-        return acceptInvitation(message);
-      }
-      else if (action == "reject") {
-        return rejectInvitation(message)
-      }
-      else {
-        throw { status: 500 };
-      }
     }
     return message;
   }));
