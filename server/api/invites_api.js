@@ -1,5 +1,6 @@
 /* invites_api.js */
 
+const CONFIG = require("../conf");
 const admittance = require("../biz/admittance");
 const models = require("../models/index");
 const Asset = models.Asset;
@@ -74,7 +75,12 @@ router.post("/", function(req, res) {
           .build();
       })
       .then(function(invite) {
-        admittance.sendInvitationEmail(req, invite, theTicket, fields.email);
+        var emailPromise = admittance.sendInvitationEmail(req, invite, theTicket, fields.email);
+        if (CONFIG.env == "test") {
+          return emailPromise.then(function() {
+            return invite;
+          });
+        }
         return invite;
       })
     }));

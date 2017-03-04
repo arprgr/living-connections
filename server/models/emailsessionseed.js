@@ -25,6 +25,7 @@ module.exports = function(sequelize, DataTypes) {
     };
     return {
       externalId: function(externalId) {
+console.log('set external Id of ticket', externalId);
         values.externalId = externalId;
         return this;
       },

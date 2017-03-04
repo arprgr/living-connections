@@ -1,5 +1,6 @@
 var expect = require("chai").expect;
 const requestlc = require("./common/requestlc");
+const fs = require("fs");
 
 requestlc.describe("Invites API", function(client) {
   const PATH = "/api/invites";
@@ -11,6 +12,7 @@ requestlc.describe("Invites API", function(client) {
   var theInvite;
 
   beforeEach(function(done) {
+    fs.unlinkSync("tmp/email");
     client.makeRequest("POST", "/assets").asUser(fromUserId).withData({
       mime: "audio/shmaudio",
       key: "abc",
@@ -27,6 +29,7 @@ requestlc.describe("Invites API", function(client) {
     .then(function(invite) {
       theInvite = invite;
       expect(invite.state).to.equal(0);
+      expect(invite.ticketId).to.exist;
       done();
     })
     .catch(done);
@@ -85,6 +88,27 @@ requestlc.describe("Invites API", function(client) {
       }).go()
       .then(function(expector) {
         expector.expectStatusCode(401);
+        done();
+      })
+      .catch(done);
+    });
+
+    it("creates a ticket", function(done) {
+      client.makeRequest("GET", "/api/tickets/" + theInvite.ticketId).asUser(fromUserId).getJson()
+      .then(function(ticket) {
+        expect(ticket.email).to.equal(email);
+        done();
+      })
+      .catch(done);
+    });
+
+    it("sends email", function(done) {
+      var html = fs.readFileSync("tmp/email").toString();
+      client.makeRequest("GET", "/api/tickets/" + theInvite.ticketId).asUser(fromUserId).getJson()
+      .then(function(ticket) {
+        expect(html.indexOf("Hi, " + name + "!")).gt(0);
+        expect(ticket.externalId).to.exist;
+        expect(html.indexOf(ticket.externalId)).gt(0);
         done();
       })
       .catch(done);
