@@ -57,7 +57,7 @@ function getConnections(miner) {
 }
 
 function getOutgoingInvitations(miner) {
-  return models.EmailSessionSeed.findByFromUserId(miner.user.id, { deep: 1 })
+  return models.Invite.findByFromUserId(miner.user.id, { deep: 1 })
   .then(function(invites) {
     return miner.outgoingInvitations = invites || [];
   })

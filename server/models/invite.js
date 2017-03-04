@@ -66,11 +66,37 @@ module.exports = function(sequelize, DataTypes) {
     }
   }
 
-  function findById(id) {
-    var query = {
+  function addFindOptions(query, options) {
+    options = options || {};
+    if (options.deep) {
+      query.include = [{
+        model: models.Message,
+        as: "message",
+        include: [{
+          model: models.Asset,
+          as: "asset"
+        }]
+      }]
+    }
+    return query;
+  }
+
+  function findById(id, options) {
+    return Invite.findOne(addFindOptions({
       where: { id: id }
-    };
-    return Invite.findOne(query);
+    }, options));
+  }
+
+ function findByTicketId(ticketId, options) {
+    return Invite.findOne(addFindOptions({
+      where: { ticketId: ticketId }
+    }, options));
+  }
+
+  function findByFromUserId(fromUserId, options) {
+    return Invite.findAll(addFindOptions({
+      where: { fromUserId: fromUserId }
+    }, options));
   }
 
   function destroyAll(id) {
@@ -86,6 +112,8 @@ module.exports = function(sequelize, DataTypes) {
       associate: associate,
       builder: builder,
       findById: findById,
+      findByTicketId: findByTicketId,
+      findByFromUserId: findByFromUserId,
       destroyAll: destroyAll,
       destroyById: destroyById
     }

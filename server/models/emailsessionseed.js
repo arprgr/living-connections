@@ -25,7 +25,6 @@ module.exports = function(sequelize, DataTypes) {
     };
     return {
       externalId: function(externalId) {
-console.log('set external Id of ticket', externalId);
         values.externalId = externalId;
         return this;
       },
@@ -35,14 +34,6 @@ console.log('set external Id of ticket', externalId);
       },
       expiresAt: function(expiresAt) {
         values.expiresAt = expiresAt;
-        return this;
-      },
-      fromUser: function(fromUser) {
-        values.fromUserId = fromUser.id;
-        return this;
-      },
-      messageId: function(messageId) {
-        values.messageId = messageId;
         return this;
       },
       build: function() {
@@ -67,19 +58,6 @@ console.log('set external Id of ticket', externalId);
     var query = {
       where: where
     };
-    if (options && options.deep) {
-      query.include = [{
-        model: models.Message,
-        as: "message",
-        include: [{
-          model: models.Asset,
-          as: "asset"
-        }]
-      }, {
-        model: models.User,
-        as: "fromUser"
-      }]
-    }
     if (options && options.current) {
       query.where.expiresAt = { "$gt": new Date() };
     }
@@ -94,27 +72,6 @@ console.log('set external Id of ticket', externalId);
     return findOne({ externalId: externalId }, options);
   }
 
-  function findByFromUserId(fromUserId, options) {
-    options = options || {};
-    var query = {
-      where: { fromUserId: fromUserId }
-    };
-    if (options.deep) {
-      query.include = [{
-        model: models.Message,
-        as: "message",
-        include: [{
-          model: models.Asset,
-          as: "asset"
-        }]
-      }]
-    }
-    if (options && options.current) {
-      query.where.expiresAt = { "$gt": date };
-    }
-    return EmailSessionSeed.findAll(query);
-  }
-
   EmailSessionSeed = sequelize.define("EmailSessionSeed", schema(), {
     classMethods: {
       associate: associate,
@@ -122,8 +79,7 @@ console.log('set external Id of ticket', externalId);
       destroyAll: destroyAll,
       destroyById: destroyById,
       findById: findById,
-      findByExternalId: findByExternalId,
-      findByFromUserId: findByFromUserId
+      findByExternalId: findByExternalId
     }
   })
 

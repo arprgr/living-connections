@@ -4,6 +4,7 @@
 
 const CONFIG = require("./conf");
 const models = require("./models/index");
+const Ticket = models.EmailSessionSeed;
 const Promise = require("promise");
 const exec = require("./util/exec");
 
@@ -12,15 +13,15 @@ function findSession(externalId) {
   return models.Session.findByExternalId(externalId);
 }
 
-// Look up a session seed, given an email address.
-function findEmailSessionSeed(eseed) {
+// Look up a ticket, given an email address.
+function findTicket(eseed) {
   if (CONFIG.env == "development") {
     // Development backdoor.
     if (eseed.match(/u_\d+/)) {
       return Promise.resolve({ userId: eseed.substring(2) });
     }
   }
-  return models.EmailSessionSeed.findByExternalId(eseed, { current: 1, deep: 1 });
+  return Ticket.findByExternalId(eseed, { current: 1, deep: 1 });
 }
 
 // Look up an email profile, given a email address.
@@ -155,10 +156,15 @@ function AuthMgr_establishSessionAndUser(self) {
 
 // Follow up with a ticket just used to log in...
 function closeTicket(ticket, toUser) {
-  // If this ticket has a message attached, deliver the message.
-  return ticket.message 
-    ? ticket.message.updateAttributes({ toUserId: toUser.id })
-    : Promise.resolve();
+  // If this ticket is part of an invitation, deliver the invitation.
+  return models.Invite.findByTicketId(ticket.id).then(function(invite) {
+    if (invite && invite.state == 0) {
+      return invite.updateAttributes({
+        state: 1,
+        toUserId: toUser.id 
+      });
+    }
+  });
 }
 
 // Log in, asynchronously.
@@ -173,8 +179,8 @@ function AuthMgr_logIn(self, user) {
 }
 
 // A user has clicked on an invitation/ticket email.
-function AuthMgr_resolveEmailSessionSeed(self, eseed) {
-  return findEmailSessionSeed(eseed)
+function AuthMgr_resolveTicket(self, eseed) {
+  return findTicket(eseed)
   .then(function(emailSessionSeed) {
     if (emailSessionSeed) {
       logOut(self.req);
@@ -257,7 +263,7 @@ AuthMgr.prototype = {
     return AuthMgr_establishSessionAndUser(this);
   },
   resolveEmailSessionSeed: function(eseed) {
-    return AuthMgr_resolveEmailSessionSeed(this, eseed);
+    return AuthMgr_resolveTicket(this, eseed);
   },
   handleFacebookLogin: function(facebookId, otherFacebookInfo) {
     return AuthMgr_handleFacebookLogin(this, facebookId, otherFacebookInfo);
