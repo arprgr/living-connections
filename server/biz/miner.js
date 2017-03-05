@@ -11,6 +11,7 @@ function Miner(user) {
   var self = this;
   self.user = user;
   self.announcements = [];
+  self.incomingInvitations = [];
   self.outgoingInvitations = [];
   self.others = {};
 }
@@ -57,9 +58,22 @@ function getConnections(miner) {
 }
 
 function getOutgoingInvitations(miner) {
-  return models.Invite.findByFromUserId(miner.user.id, { deep: 1 })
+  return models.Invite.findByFromUserId(miner.user.id, {
+    deep: 1,
+    excludeRejected: 1
+  })
   .then(function(invites) {
     return miner.outgoingInvitations = invites || [];
+  })
+}
+
+function getIncomingInvitations(miner) {
+  return models.Invite.findByToUserId(miner.user.id, {
+    deep: 1,
+    excludeRejected: 1
+  })
+  .then(function(invites) {
+    return miner.incomingInvitations = invites || [];
   })
 }
 
@@ -86,6 +100,7 @@ Miner.prototype.run = function() {
     getAnnouncements,
     getConnections,
     getOutgoingInvitations,
+    getIncomingInvitations,
     getIncomingMessages
   ])
 }

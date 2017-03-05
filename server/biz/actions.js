@@ -114,13 +114,18 @@ function addInvitationItems(compiler) {
   if (compiler.user.level <= 1 && compiler.user.name) {
     addActionItem(compiler, SUBJ_INVITATION, ACTION_CREATE);
   }
+  var incomingInvitations = compiler.incomingInvitations;
+  for (var i = 0; i < incomingInvitations.length; ++i) {
+    var inv = incomingInvitations[i];
+    addActionItem(compiler, SUBJ_INVITATION, ACTION_RECEIVE, { invite: inv });
+  }
   var outgoingInvitations = compiler.outgoingInvitations;
   for (var i = 0; i < outgoingInvitations.length; ++i) {
     var inv = outgoingInvitations[i];
     addActionItem(compiler, SUBJ_INVITATION, ACTION_UPDATE, {
       invite: {
         id: inv.id,
-        email: inv.email,
+        name: inv.recipientName,
         assetId: inv.message && inv.message.assetId,
         asset: inv.message && inv.message.asset
       }

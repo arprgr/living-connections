@@ -93,6 +93,19 @@ requestlc.describe("Invites API", function(client) {
       .catch(done);
     });
 
+    it("rejects invalid email", function(done) {
+      client.makeRequest("POST", PATH).asUser(fromUserId).withData({
+        assetId: 3,
+        name: "blah",
+        email: "blah"
+      }).go()
+      .then(function(expector) {
+        expector.expectStatusCode(500);
+        done();
+      })
+      .catch(done);
+    });
+
     it("creates a ticket", function(done) {
       client.makeRequest("GET", "/api/tickets/" + theInvite.ticketId).asUser(fromUserId).getJson()
       .then(function(ticket) {

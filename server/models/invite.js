@@ -3,6 +3,11 @@ module.exports = function(sequelize, DataTypes) {
   var Invite;
   var models;
 
+  const STATE_INIT = 0;
+  const STATE_RECEIVED = 1;
+  const STATE_ACCEPTED = 2;
+  const STATE_REJECTED = 3;
+
   function schema() {
     return {
       fromUserId: {
@@ -70,13 +75,16 @@ module.exports = function(sequelize, DataTypes) {
     options = options || {};
     if (options.deep) {
       query.include = [{
-        model: models.Message,
-        as: "message",
-        include: [{
-          model: models.Asset,
-          as: "asset"
-        }]
+        model: models.Asset,
+        as: "asset"
+      }, {
+        model: models.User,
+        as: "fromUser"
       }]
+    }
+    if (options.excludeRejected) {
+      if (!query.where) query.where = {};
+      query.where.state = { "$ne": STATE_REJECTED };
     }
     return query;
   }
@@ -99,6 +107,12 @@ module.exports = function(sequelize, DataTypes) {
     }, options));
   }
 
+  function findByToUserId(toUserId, options) {
+    return Invite.findAll(addFindOptions({
+      where: { toUserId: toUserId }
+    }, options));
+  }
+
   function destroyAll(id) {
     return Invite.destroy({ where: {} });
   }
@@ -114,6 +128,7 @@ module.exports = function(sequelize, DataTypes) {
       findById: findById,
       findByTicketId: findByTicketId,
       findByFromUserId: findByFromUserId,
+      findByToUserId: findByToUserId,
       destroyAll: destroyAll,
       destroyById: destroyById
     }

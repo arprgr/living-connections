@@ -3,10 +3,7 @@
 const CONFIG = require("../conf");
 const admittance = require("../biz/admittance");
 const models = require("../models/index");
-const Asset = models.Asset;
 const Invite = models.Invite;
-const Message = models.Message;
-const User = models.User;
 const Ticket = models.EmailSessionSeed;
 const ApiValidator = require("./api_validator");
 const Promise = require("promise");
@@ -55,8 +52,11 @@ router.post("/", function(req, res) {
     var fields = VALIDATOR.validateNew(req.body);
     var theTicket;
 
-    resolve(Asset.findById(fields.assetId)
+    resolve(models.Asset.findById(fields.assetId)
     .then(function(asset) {
+      if (!asset) {
+        throw { status: 500 };
+      }
       if (asset.creatorId != fromUser.id) {
         throw { status: 401 };
       }
@@ -146,8 +146,17 @@ router.post("/:id/accept", function(req, res) {
       }
       return invite.updateAttributes({
         state: 2
+      })
+      .then(function() {
+        return models.Connection.regrade(invite.toUserId, invite.fromUserId, 1);
+      })
+      .then(function() {
+        return models.Connection.regrade(invite.fromUserId, invite.toUserId, 1);
+      })
+      .then(function() {
+        return invite;
       });
-    }));
+    }))
   }));
 });
 

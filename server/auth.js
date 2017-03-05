@@ -167,7 +167,7 @@ function closeTicket(ticket, toUser) {
   });
 }
 
-// Log in, asynchronously.
+// Create a new session and send its ID to the client as a cookie.
 function AuthMgr_logIn(self, user) {
   // Create a session.
   return models.Session.builder().user(user).build()
