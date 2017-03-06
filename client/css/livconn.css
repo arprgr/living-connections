@@ -223,24 +223,20 @@ div {
   top: 3px;
   right: 0px;
 }
-#app .activity .vidrec {
+.vidrec {
   position: relative;
 }
 .vid {
   margin: auto;
-}
-#app .activity .vidrec .buttons {
-  position: absolute;
-  top: 10px;
-  left: 25px;
-}
-#app .activity .vidrec .counter {
-  color: red;
   position: relative;
+}
+.vid .counter {
+  position: absolute;
   top: 5px;
-  font-size: 30px;
+  left: 8px;
+  color: red;
+  font-size: 24px;
   font-weight: bold;
-  padding-left: 5px;
 }
 #app .activity .panel {
   border-top: dashed 1px #96a090;
