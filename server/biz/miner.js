@@ -60,7 +60,7 @@ function getConnections(miner) {
 function getOutgoingInvitations(miner) {
   return models.Invite.findByFromUserId(miner.user.id, {
     deep: 1,
-    excludeRejected: 1
+    excludeClosed: 1
   })
   .then(function(invites) {
     return miner.outgoingInvitations = invites || [];
@@ -70,7 +70,7 @@ function getOutgoingInvitations(miner) {
 function getIncomingInvitations(miner) {
   return models.Invite.findByToUserId(miner.user.id, {
     deep: 1,
-    excludeRejected: 1
+    excludeClosed: 1
   })
   .then(function(invites) {
     return miner.incomingInvitations = invites || [];

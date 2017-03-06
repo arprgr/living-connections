@@ -82,9 +82,9 @@ module.exports = function(sequelize, DataTypes) {
         as: "fromUser"
       }]
     }
-    if (options.excludeRejected) {
+    if (options.excludeClosed) {
       if (!query.where) query.where = {};
-      query.where.state = { "$ne": STATE_REJECTED };
+      query.where.state = { "$in": [ 0, 1 ] };
     }
     return query;
   }

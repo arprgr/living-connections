@@ -180,7 +180,7 @@ requestlc.describe("Invitation flow:", function(client) {
         .catch(done);
       });
 
-      it("add receiver to sender's connection list", function(done) {
+      it("adds receiver to sender's connection list", function(done) {
         requestActionList(theSender.id, true)
         .then(function(actionResponse) {
           expect(actionResponse.user).to.exist;
@@ -189,6 +189,16 @@ requestlc.describe("Invitation flow:", function(client) {
           expect(actionList).to.exist;
           var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
           expect(greetingAction).to.exist;
+          done();
+        })
+        .catch(done);
+      });
+
+      it("closes the invitation", function(done) {
+        requestActionList(receiverActionResponse.user.id, true)
+        .then(function(newActionResponse) {
+          inviteAction = findInviteAction(newActionResponse, theSender.id);
+          expect(inviteAction).to.not.exist;
           done();
         })
         .catch(done);
@@ -205,7 +215,7 @@ requestlc.describe("Invitation flow:", function(client) {
         .catch(done);
       });
 
-      it("the invitation is removed", function(done) {
+      it("closes the invitation", function(done) {
         requestActionList(receiverActionResponse.user.id, true)
         .then(function(newActionResponse) {
           inviteAction = findInviteAction(newActionResponse, theSender.id);
