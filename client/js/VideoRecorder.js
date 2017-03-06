@@ -142,7 +142,7 @@ function($,        Services,   ui,         WaitAnim) {
       });
     }
 
-    function showCountdown(text, opacity) {
+    function showCountdown(secondsRemaining, opacity) {
       self.counter.visible = true;
       self.counter.text = secondsRemaining;
       self.counter.container.css("opacity", (millisRemaining % 1000) / 1000);

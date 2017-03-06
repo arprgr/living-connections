@@ -168,10 +168,10 @@ define([ "http" ], function(HttpMethod) {
     }
   }
   
-  var ActOnInviteMethod = new HttpMethod.Get()
-    .addPathComponent("api/messages")
+  var ActOnInviteMethod = new HttpMethod.PostForm()
+    .addPathComponent("api/invites")
     .addPathParameter("id")
-    .addQueryParameter("act")
+    .addPathParameter("act")
     .build();
 
   var UpdateUserMethod = new HttpMethod.PutForm()

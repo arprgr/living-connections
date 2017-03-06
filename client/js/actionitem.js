@@ -3,7 +3,7 @@
 define([ "jquery" ], function($) {
 
   function getUser(actionItem) {
-    return actionItem.user || (actionItem.message && actionItem.message.fromUser);
+    return actionItem.user || (actionItem.message && actionItem.message.fromUser) || (actionItem.invite && actionItem.invite.fromUser);;
   }
 
   function userName(actionItem) {
