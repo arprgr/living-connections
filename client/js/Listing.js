@@ -1,4 +1,4 @@
-// listingui.js
+// Listing.js - action item list component.
 
 define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
 

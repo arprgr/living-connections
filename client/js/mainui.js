@@ -2,7 +2,7 @@
 
 // Manages transitions between listing and activity views.
 
-define([ "jquery", "services", "listingui", "activities", "ui/index" ],
+define([ "jquery", "services", "Listing", "activities", "ui/index" ],
 function($,        Services,   Listing,     Activities,   ui) {
 
   var sessionManager = Services.sessionManager;
