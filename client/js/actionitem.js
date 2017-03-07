@@ -3,7 +3,7 @@
 define([ "jquery" ], function($) {
 
   function getUser(actionItem) {
-    return actionItem.user || (actionItem.message && actionItem.message.fromUser) || (actionItem.invite && actionItem.invite.fromUser);;
+    return actionItem.user || (actionItem.message && actionItem.message.fromUser) || (actionItem.invite && actionItem.invite.fromUser);
   }
 
   function userName(actionItem) {
@@ -30,6 +30,14 @@ define([ "jquery" ], function($) {
 
   function defaultIcon(actionItem) {
     return "/img/" + actionItem.type + ".png";
+  }
+
+  function inviteNameAndEmail(invite) {
+    var str = invite.recipientName;
+    if (invite.ticket && invite.ticket.email) {
+      str += " <" + invite.ticket.email + ">";
+    }
+    return str;
   }
 
   var actionProperty = {
@@ -62,7 +70,7 @@ define([ "jquery" ], function($) {
       case "inv-cre":
         return "Invite someone to connect with you";
       case "inv-upd":
-        return "Update invitation for " + this.invite.email;
+        return "Update invitation for " + inviteNameAndEmail(this.invite);
       case "pro-rec":
         return "About " + userName(this) + "...";
       case "pro-cre":

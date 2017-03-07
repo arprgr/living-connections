@@ -10,15 +10,15 @@ define([ "ui/component" ], function(Component) {
       var self = this;
       self._enabled = true;
       self.ele.click(function() {
-        self.invokePlugin("click");   // deprecated
-        self.invokePlugin("onClick");
+        self.click();
       });
       self.ele.on("keydown", function(event) {
         if (self.enabled && event.originalEvent.keyCode == 13) {
-          self.invokePlugin("onClick");
+          self.click();
         }
         return true;
       });
+      self.label = self.options.label || "";
     });
 
     c.defineProperty("label", {
@@ -48,6 +48,12 @@ define([ "ui/component" ], function(Component) {
       focus: function() {
         this.ele.focus();
         return this;
+      },
+      click: function() {
+        var self = this;
+        self.invokePlugin("click");   // deprecated
+        self.invokePlugin("onClick");
+        return self;
       }
     });
   });

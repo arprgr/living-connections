@@ -78,6 +78,9 @@ module.exports = function(sequelize, DataTypes) {
         model: models.Asset,
         as: "asset"
       }, {
+        model: models.EmailSessionSeed,
+        as: "ticket"
+      }, {
         model: models.User,
         as: "fromUser"
       }]
