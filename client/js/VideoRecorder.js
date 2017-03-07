@@ -263,7 +263,7 @@ function($,        Services,   ui,         WaitAnim) {
       }))
         .addPlugin(controller)
         .addPlugin(self);
-      var videoComponent = new ui.Video($("<div>").addClass("vid"));
+      var videoComponent = new ui.Video();
       var counter = new ui.Component($("<span>").addClass("counter"));
 
       self.ele

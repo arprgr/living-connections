@@ -226,11 +226,11 @@ div {
 .vidrec {
   position: relative;
 }
-.vid {
+div.video {
   margin: auto;
   position: relative;
 }
-.vid .counter {
+div.video .counter {
   position: absolute;
   top: 5px;
   left: 8px;
@@ -238,16 +238,16 @@ div {
   font-size: 24px;
   font-weight: bold;
 }
+video {
+  object-fit: contain;
+  object-position: 50% 50%;
+}
 #app .activity .panel {
   border-top: dashed 1px #96a090;
   padding: 5px 20px;
 }
 #app .activity .panel > div {
   margin-top: 5px;
-}
-video {
-  object-fit: contain;
-  object-position: 50% 50%;
 }
 #app button {
   background-color: white;
