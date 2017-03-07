@@ -1,7 +1,7 @@
 // appui.js
 
-define([ "jquery", "services", "loginui",      "mainui",      "waitanim", "ui/index" ],
-function($,        Services,   LoginComponent, MainComponent, WaitAnim,   ui) {
+define([ "jquery", "services", "Login",  "mainui",      "waitanim", "ui/index" ],
+function($,        Services,   Login,    MainComponent, WaitAnim,   ui) {
 
   var NO_VID =
     "Sorry, this browser is not capable of sending and receiving Living Connections videograms.";
@@ -26,7 +26,7 @@ function($,        Services,   LoginComponent, MainComponent, WaitAnim,   ui) {
       initialState: STARTUP
     })
     carton.addCompartment(STARTUP, new ui.Component($("#startup")));
-    carton.addCompartment(LOGIN, new LoginComponent($("#login")));
+    carton.addCompartment(LOGIN, new Login($("#login")));
     carton.addCompartment(APP, new MainComponent($("#app")));
 
     var waitAnim = new WaitAnim(selectUnder());
