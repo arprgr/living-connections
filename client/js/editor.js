@@ -1,6 +1,6 @@
 // editor.js - Editor: a framework component class: an Activity that creates/modifies an entity.
 
-define([ "jquery", "services", "activityui", "ui/index" ],
+define([ "jquery", "services", "Activity", "ui/index" ],
 function($,        Services,   Activity,     ui) {
 
   // A summarized panel

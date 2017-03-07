@@ -1,6 +1,6 @@
 // usereditor.js - User Editor component
 
-define([ "jquery", "services", "activityui", "ui/index", "waitanim" ],
+define([ "jquery", "services", "Activity", "ui/index", "waitanim" ],
 function($,        Services,   Activity,     ui,         WaitAnim) {
 
   var sessionManager = Services.sessionManager;

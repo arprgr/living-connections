@@ -1,6 +1,6 @@
 // CreateInviteEditor.js - New invitation editor
 
-define([ "jquery", "activityui", "VideoRecorder", "ui/index" ],
+define([ "jquery", "Activity", "VideoRecorder", "ui/index" ],
 function($,        Activity,     VideoRecorder,   ui) {
 
   var NameAndEmailEditor = ui.Carton.defineClass(function(c) {

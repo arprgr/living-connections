@@ -1,6 +1,6 @@
 // MessageViewer.js - Mesage Viewer component
 
-define([ "jquery", "activityui", "ui/index", "actionitem", "services" ],
+define([ "jquery", "Activity", "ui/index", "actionitem", "services" ],
 function($,        Activity,     ui,         ActionItem,   Services) {
 
   var Button = ui.Button;

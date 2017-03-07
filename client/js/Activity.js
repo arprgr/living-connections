@@ -1,4 +1,4 @@
-// activityui.js - ActivityComponent.  A base component class.
+// Activity.js - base component class for all types of activity.
 // All activity views have a header containing an icon, a title, and a cancel/exit link.
 
 define([ "jquery", "ui/index", "services" ],
