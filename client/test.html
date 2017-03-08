@@ -1,0 +1,78 @@
+<html>
+<head>
+	<link href="style.css" rel="stylesheet">
+<!--	<script src="script.js"></script> -->
+</head>
+
+<!-- video -->
+<div id="video-container">
+	<video id ="video" width="640" height="365">
+		<source src="http://res.cloudinary.com/living-connections/video/upload/v1487886891/nbneeuh1wn34xqhcsjab.webm">
+	</video>
+	
+	<!--video controls -->
+	<div id="video-controls">
+		<button type="button" id="play-pause">Play</button>
+		<button type="button" id="mute">Mute</button>
+		<button type="button" id="full-screen">Full-Screen</button>
+	</div>
+</div>
+
+<script>
+window.onload = function() {
+
+	//initialize video from HTML markup
+	var video = document.getElementById("video");
+	var video = document.getElementsByTagName('video')[0];
+	video.removeAttribute('controls');
+
+	//initialize buttons from HTML markup
+	var playButton = document.getElementById("play-pause");
+	var muteButton = document.getElementById("mute");
+	var fullScreenButton = document.getElementById("full-screen");
+
+	//play-pause button
+	playButton.addEventListener("click", function() {
+		if(video.paused==true) {
+			//play video
+			video.play();
+			//update button text to pause
+			playButton.innerHTML = "Pause";
+		} else {
+			//pause video
+			video.pause();
+			//update button text to play
+			playButton.innerHTML = "Play";
+		}
+	});
+
+	//mute button
+	muteButton.addEventListener("click", function() {
+		if(video.muted==false) {
+			//mute video
+			video.muted = true;
+			//update button text to unmute
+			muteButton.innerHTML = "Unmute";
+		} else {
+			//unmute video
+			video.muted = false;
+			//update button text to mute
+			muteButton.innerHTML = "Mute";
+		}
+	});
+
+	//full-screen button
+	fullScreenButton.addEventListener("click", function() {
+		//options based on browser
+		if(video.requestFullScreen) {
+			video.requestFullScreen;
+		} else if(video.mozRequestFullScreen) {
+			video.mozRequestFullScreen();
+		} else if(video.webkitRequestFullScreen) {
+			video.webkitRequestFullScreen();
+		}
+	});
+}
+</script>
+</html>
+
