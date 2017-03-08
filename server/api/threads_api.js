@@ -21,7 +21,11 @@ router.get("/:id1/:id2", function(req, res) {
       throw { status: 404 };
     }
     user2 = user;
-    return [];
+    var options = {};
+    if (req.query.before) {
+      options.before = new Date(req.query.before);
+    }
+    return models.Message.findByUserIds(user1.id, user2.id, options);
   })
   );
 });

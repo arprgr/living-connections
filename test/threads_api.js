@@ -53,10 +53,44 @@ requestlc.describe("Threads API", function(client) {
     .catch(done);
   })
 
-  it("returns empty array", function(done) {
+  it("returns empty array if there are no messages", function(done) {
     getThread(theUser1.id, theUser2.id).asUser(theUser1.id).getJson()
     .then(function(thread) {
       expect(thread.length).to.equal(0);
+      done();
+    })
+    .catch(done);
+  })
+
+  it("returns message sent from user 1 to user 2", function(done) {
+    client.makeRequest("POST", "/api/messages").asUser(theUser1.id).withData({
+      assetId: 5,
+      toUserId: theUser2.id,
+      type: 1
+    }).getJson()
+    .then(function(message) {
+      return getThread(theUser1.id, theUser2.id).asUser(theUser1.id).getJson();
+    })
+    .then(function(thread) {
+      expect(thread.length).to.equal(1);
+      expect(thread[0].assetId).to.equal(5);
+      done();
+    })
+    .catch(done);
+  })
+
+  it("returns message sent from user 2 to user 1", function(done) {
+    client.makeRequest("POST", "/api/messages").asUser(theUser2.id).withData({
+      assetId: 5,
+      toUserId: theUser1.id,
+      type: 1
+    }).getJson()
+    .then(function(message) {
+      return getThread(theUser1.id, theUser2.id).asUser(theUser1.id).getJson();
+    })
+    .then(function(thread) {
+      expect(thread.length).to.equal(1);
+      expect(thread[0].assetId).to.equal(5);
       done();
     })
     .catch(done);
