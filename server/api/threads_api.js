@@ -25,6 +25,9 @@ router.get("/:id1/:id2", function(req, res) {
     if (req.query.before) {
       options.before = new Date(req.query.before);
     }
+    if (req.query.limit != null) {
+      options.limit = parseInt(req.query.limit);
+    }
     return models.Message.findByUserIds(user1.id, user2.id, options);
   })
   );

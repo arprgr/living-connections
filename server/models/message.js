@@ -113,7 +113,7 @@ module.exports = function(sequelize, DataTypes) {
       query.where.endDate = { "$gt": date };
     }
     if (options && options.before) {
-      query.where.updatedAt = { "$lt": date };
+      query.where.updatedAt = { "$lt": options.before };
     }
     if (options && options.limit) {
       query.limit = options.limit;
