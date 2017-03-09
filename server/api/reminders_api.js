@@ -1,6 +1,6 @@
 /* messages_api.js */
 
-const Reminders = require("../models/index").Reminders;
+const Reminders = require("../models/index").reminders;
 const Connection = require("../models/index").Connection;
 const ApiValidator = require("./api_validator");
 const Promise = require("promise");
