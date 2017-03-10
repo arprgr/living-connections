@@ -10,10 +10,6 @@ function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui)
     "We're not able to connect to Living Connections' server at this time.  " +
     "We'll keep trying. In the meantime, please check your internet connection."
 
-  function selectUnder() {
-    return $("#startup .under");
-  }
-
   var sessionManager = Services.sessionManager;
 
   // The main app header.
@@ -54,7 +50,7 @@ function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui)
     });
   });
 
-  var Main = ui.Component.defineClass(function(c) {
+  var MainView = ui.Component.defineClass(function(c) {
 
     function Main_open(self, createNewBody) {
       if (!self.inTransition) {
@@ -132,44 +128,48 @@ function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui)
 
   return function() {
 
-    var STARTUP = "startup";
-    var LOGIN = "login";
-    var APP = "app";
+    var STARTUP_VIEW = "startup";
+    var LOGIN_VIEW = "login";
+    var MAIN_VIEW = "main";
 
     var carton = new ui.Carton($("#content"), {
       noAppend: true,
       goalType: ui.FadeGoal,
-      initialState: STARTUP
+      initialState: STARTUP_VIEW
     })
-    carton.addCompartment(STARTUP, new ui.Component($("#startup")));
-    carton.addCompartment(LOGIN, new Login($("#login")));
-    carton.addCompartment(APP, new Main($("#app")));
 
-    var waitAnim = new WaitAnim(selectUnder());
+    carton.addCompartment(STARTUP_VIEW, new ui.Component($("#startup")));
+    carton.addCompartment(LOGIN_VIEW, new Login($("#login")));
+    carton.addCompartment(MAIN_VIEW, new MainView($("#app")));
+
+    var under = $("#startup .under");
+    var waitAnim = new WaitAnim($("<div>"), { ndots: 10 });
+    under.after(waitAnim.ele);
 
     function show(state, msg) {
       carton.show(state);
-      selectUnder().text(msg || "");
-      waitAnim.stop();
+      under.text(msg || "");
     }
 
     function handleSessionStateChange(sessionManager) {
       if (sessionManager.isUnresponsive()) {
-        show(STARTUP, CANT_CONNECT);
+        show(STARTUP_VIEW, CANT_CONNECT);
       }
       else if (sessionManager.isLoginRequired()) {
-        show(LOGIN);
+        show(LOGIN_VIEW);
       }
       else if (sessionManager.isActive()) {
-        show(APP);
+        show(MAIN_VIEW);
       }
-      else if (sessionManager.waiting) {
+      if (sessionManager.waiting) {
         waitAnim.start();
+      }
+      else {
+        waitAnim.stop();
       }
     }
 
     function startSession() {
-      var sessionManager = Services.sessionManager;
       sessionManager.addStateChangeListener(handleSessionStateChange);
       sessionManager.init();
     }
@@ -180,7 +180,7 @@ function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui)
         startSession();
       }
       else {
-        show(STARTUP, NO_VID);
+        show(STARTUP_VIEW, NO_VID);
       }
     }
   }
