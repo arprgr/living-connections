@@ -1,7 +1,7 @@
 // MessageViewer.js - Mesage Viewer component
 
-define([ "jquery", "Activity", "ui/index", "actionitem", "services" ],
-function($,        Activity,     ui,         ActionItem,   Services) {
+define([ "jquery", "Activity", "ui/index", "ActionItem", "services" ],
+function($,        Activity,     ui,       ActionItem,   Services) {
 
   var Button = ui.Button;
   var VideoPlayer = ui.Video;
@@ -43,9 +43,8 @@ function($,        Activity,     ui,         ActionItem,   Services) {
         var actionItem = self.options.actionItem;
         var message = actionItem.message || actionItem.user;
         self.videoPlayer.load(message.asset.url, { autoplay: true });
-        var fromUser = message.fromUser;
-        if (fromUser) {
-          addButtons(self, fromUser);
+        if (actionItem.user) {
+          addButtons(self, actionItem.user);
         }
         return Activity.prototype.open.call(self);
       }

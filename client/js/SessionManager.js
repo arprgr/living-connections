@@ -1,6 +1,6 @@
 // session.js
 
-define([ "jquery", "cookie", "http", "ui/observable", "actionitem" ],
+define([ "jquery", "cookie", "http", "ui/observable", "ActionItem" ],
   function($, Cookie, HttpMethod, Observable, ActionItem) {
 
   var DEFAULT_OPTIONS = {
