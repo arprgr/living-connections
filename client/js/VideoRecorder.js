@@ -251,7 +251,7 @@ function($,        Services,   ui,         WaitAnim) {
 
     c.defineDefaultOptions({
       what: "videogram",
-      maxSeconds: 10,
+      maxSeconds: 20,
       countdownStartsAt: 5
     });
 
