@@ -23,8 +23,8 @@ const DEFAULTS = {
     }
   },
   auth: {
-    grantAdminToLocalRequest: true,
-    enableExtHeaderAccess: true
+        grantAdminToLocalRequest: true,
+        enableExtHeaderAccess: true
   },
   clientServiceConfigurations: {
     apiService: {
@@ -111,6 +111,7 @@ const OVERRIDES = {
       }
     },
     auth: {
+      grantAdminToLocalRequest: true,    
       enableExtHeaderAccess: true
     },
     email: {
