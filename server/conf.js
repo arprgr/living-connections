@@ -12,7 +12,7 @@ const DEFAULTS = {
     "livconn": {
       title: "Living Connections",
       stylesheet: "css/livconn.css",
-      mainModule: "appui"
+      mainModule: "App"
     }
   },
   defaultPage: "livconn",
