@@ -43,7 +43,6 @@ requestlc.describe("Threads API", function(client) {
           var spec = specs[index++];
           client.makeRequest("POST", "/api/messages").asUser(spec.fromUser.id)
           .withData({
-            type: 1,
             assetId: spec.assetId,
             toUserId: spec.toUser.id
           }).getJson()

@@ -44,14 +44,29 @@ function getAnnouncements(miner) {
   });
 }
 
+function makeThreadGetter(userId, other) {
+  return function() {
+    return models.Message.findByUserIds(userId, other.user.id, {
+      limit: 5
+    })
+    .then(function(thread) {
+      other.thread = thread;
+    });
+  };
+}
+
 function getConnections(miner) {
   return models.Connection.findByUserId(miner.user.id)
   .then(function(connections) {
     if (connections) {
+      var threadGetters = [];
       for (var i = 0; i < connections.length; ++i) {
-        var conn = connections[i];
-        openOther(miner, conn.peer).isConnection = true;
+        var connection = connections[i];
+        var other = openOther(miner, connection.peer);
+        other.isConnection = true;
+        threadGetters.push(makeThreadGetter(miner.user.id, other));
       }
+      return exec.executeGroup(miner, threadGetters);
     }
     return null;
   });
@@ -77,6 +92,8 @@ function getIncomingInvitations(miner) {
   })
 }
 
+/***
+  TEMPORARY DISABLE.  This means no greeting messages from other than connections for now.
 function getIncomingMessages(miner) {
   return models.Message.findByReceiver(miner.user.id, { deep: 1 })
   .then(function(messages) {
@@ -92,6 +109,7 @@ function getIncomingMessages(miner) {
     return null;   // avoid dangling promise warnings
   });
 }
+***/
 
 Miner.prototype.run = function() {
   var miner = this;
@@ -100,8 +118,7 @@ Miner.prototype.run = function() {
     getAnnouncements,
     getConnections,
     getOutgoingInvitations,
-    getIncomingInvitations,
-    getIncomingMessages
+    getIncomingInvitations
   ])
 }
 

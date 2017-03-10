@@ -156,6 +156,7 @@ module.exports = function(sequelize, DataTypes) {
 
   function findByUserIds(u1, u2, options) {
     return findAllWhere({
+      "type": GREETING_TYPE,
       "$or": [{
         "fromUserId": u1,
         "toUserId": u2
