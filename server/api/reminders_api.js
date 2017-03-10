@@ -1,6 +1,6 @@
 /* messages_api.js */
 
-const Reminders = require("../models/index").reminders;
+const Reminders = require("../models/index").Reminders;
 const Connection = require("../models/index").Connection;
 const ApiValidator = require("./api_validator");
 const Promise = require("promise");
@@ -13,15 +13,15 @@ const VALIDATOR = new ApiValidator({
         required: true,
         type: "string"  
         },    
-        fromuserid: {
+        fromUserId: {
         required: true,
         type: "integer"  
         },
-        touserid: {
+        toUserId: {
         required: true,
         type: "integer"
         },                                     
-        vid: {
+        assetId: {
         required: true,
         type: "integer"
         },
@@ -86,9 +86,9 @@ router.post("/", function(req, res) {
     if (fields.timeZone == "IST") {deliverAt = india.format()} ;
       
     Reminders.create({
-                assetId: fields.vid,
-                fromUserId: fields.fromuserid,
-                toUserId : fields.touserid,
+                assetId: fields.assetId,
+                fromUserId: fields.fromUserId,
+                toUserId : fields.toUserId,
                 status: 1,
                 timeZone: fields.timeZone, 
                 Repeat : fields.repeat,
