@@ -56,7 +56,7 @@ function makeThreadGetter(userId, other) {
 }
 
 function getConnections(miner) {
-  return models.Connection.findByUserId(miner.user.id)
+  return models.Connection.findByUserId(miner.user.id, { deep: 1 })
   .then(function(connections) {
     if (connections) {
       var threadGetters = [];
