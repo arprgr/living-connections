@@ -9,14 +9,14 @@ requestlc.describe("Reminders API", function(client) {
 
     var seedProperties = {
       dateStr: '2017-03-01T09:50:00.000Z',    
-      vid: 524,
-      touserid: 1,
-      fromuserid: 1,    
+      assetId: 524,
+      toUserId: 1,
+      fromUserId: 1,    
       repeat: 'Yes',
       timeZone: 'Pacific'    
     };
 
-    var goodMessageId;
+    var goodReminderId;
 
     beforeEach(function(done) {
       client.makeRequest("POST", "/api/reminders").asUser(fromUserId).withData(seedProperties) 
@@ -30,7 +30,7 @@ requestlc.describe("Reminders API", function(client) {
     });
 
     function get(id) {
-      return client.makeRequest("GET", "/api/messages/" + id);
+      return client.makeRequest("GET", "/api/reminders/" + id);
     }
 
     it("is inaccessible without authorization", function(done) {
@@ -42,9 +42,9 @@ requestlc.describe("Reminders API", function(client) {
       .catch(done);
     });
 
-    it("allows root to retrieve message", function(done) {
+    it("allows root to retrieve Reminder", function(done) {
       get(goodReminderId).asRoot().getJson()
-      .then(function(reminder) {
+      .then(function(reminder) {  
         expect(reminder.assetId).to.equal(seedProperties.assetId);
         expect(reminder.toUserId).to.equal(seedProperties.toUserId);
         done();
@@ -60,8 +60,17 @@ requestlc.describe("Reminders API", function(client) {
       })
       .catch(done);
     })
+    
+     it("deletes the given  reminder id", function(done) {
+      delete(goodReminderId).asRoot().go()
+      .then(function(reminder) { 
+        expect(reminder.assetId).to.equal(goodReminderId);
+        done();
+      })
+      .catch(done);
+    })
 
-    it("does not permit just anyone to retrieve message", function(done) {
+    it("does not permit just anyone to retrieve Reminder", function(done) {
       get(goodReminderId).asUser(fromUserId * 2).go()
       .then(function(expector) {
         expector.expectStatusCode(401);
@@ -72,9 +81,9 @@ requestlc.describe("Reminders API", function(client) {
 
     it("allows sender to retrieve message", function(done) {
       get(goodReminderId).asUser(fromUserId).getJson()
-      .then(function(message) {
-        expect(message.assetId).to.equal(seedProperties.assetId);
-        expect(message.toUserId).to.equal(seedProperties.toUserId);
+      .then(function(reminder) { 
+        expect(reminder.assetId).to.equal(seedProperties.assetId);
+        expect(reminder.toUserId).to.equal(seedProperties.toUserId);
         done();
       })
       .catch(done);
