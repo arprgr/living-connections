@@ -52,54 +52,63 @@ function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui)
 
   var MainView = ui.Component.defineClass(function(c) {
 
-    function Main_open(self, createNewBody) {
-      if (!self.inTransition) {
-        self.inTransition = true;
-        var newBody = createNewBody();
-        self.container.find("> .body").append(newBody.container);
-        var oldBody = self.currentBody;
-        self.currentBody = newBody;
-        if (oldBody) {
-          oldBody.close();
-          self.fadeGoal.addGoal(newBody, 1);
-          self.fadeGoal.addGoal(oldBody, 0)
-          .then(function() {
-            oldBody.container.remove();
-            self.inTransition = false;
-          });
-        }
-        else {
-          self.inTransition = false;
-        }
+    function Main_appendComponent(self, component) {
+      self.ele.find("> .body").append(component.ele);
+    }
+
+    function Main_closeCurrentActivity(self) {
+      var currentActivity = self.activity;
+      self.activity = null;
+      if (currentActivity) {
+        currentActivity.close();
+        self.fadeGoal.addGoal(currentActivity, 0).then(function() {
+          currentActivity.ele.remove();
+        });
       }
+    }
+
+    function Main_showListing(self) {
+      Main_closeCurrentActivity(self);
+      var listing = self.listing;
+      if (!listing) {
+        self.listing = listing = new Listing().addPlugin({
+          openActionItem: function(actionItem) {
+            Main_openActionItem(self, actionItem);
+          }
+        });
+        Main_appendComponent(self, listing);
+      }
+      self.fadeGoal.addGoal(listing, 1).then(function() {
+        listing.open();
+      });
       return self;
     }
 
-    function Main_newListing(self) {
-      return function() {
-        return new Listing()
-          .addPlugin({
-            openActionItem: function(actionItem) {
-              Main_open(self, Main_newActivity(self, actionItem));
-            }
-          })
-          .open();
-      }
+    function Main_newActivity(self, actionItem) {
+      var ActivityClass = Activities.ClassForActionItem(actionItem);
+      return new ActivityClass($("<div>"), { actionItem: actionItem })
+        .addPlugin({
+          openOther: function(actionItem) {
+            Main_openActionItem(self, actionItem);
+          },
+          exit: function() {
+            Main_showListing(self);
+          }
+        });
     }
 
-    function Main_newActivity(self, actionItem) {
-      return function() {
-        return new (Activities.ClassForActionItem(actionItem))($("<div>"), { actionItem: actionItem })
-          .addPlugin({
-            openOther: function(actionItem) {
-              Main_open(self, Main_newActivity(self, actionItem));
-            },
-            exit: function() {
-              Main_open(self, Main_newListing(self));
-            }
-          })
-          .open();
+    function Main_openActionItem(self, actionItem) {
+      var activity = Main_newActivity(self, actionItem);
+      Main_appendComponent(self, activity);
+      if (self.listing) {
+        self.fadeGoal.addGoal(self.listing, 0);
       }
+      Main_closeCurrentActivity(self);
+      self.fadeGoal.addGoal(activity, 1).then(function() {
+        self.activity = activity;
+        activity.open();
+      });
+      return self;
     }
 
     c.defineInitializer(function() {
@@ -115,7 +124,7 @@ function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui)
     c.extendPrototype({
       open: function() {
         var self = this;
-        return Main_open(self, Main_newListing(self));
+        return Main_showListing(self);
       },
 
       close: function() {
