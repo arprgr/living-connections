@@ -8,7 +8,6 @@ define([ "ui/component" ], function(Component) {
 
     c.defineInitializer(function() {
       var self = this;
-      self._enabled = true;
       self.ele.click(function() {
         self.click();
       });
@@ -32,14 +31,12 @@ define([ "ui/component" ], function(Component) {
 
     c.defineProperty("enabled", {
       get: function() {
-        return this._enabled;
+        return !this.ele.attr("disabled");
       },
       set: function(enabled) {
-        var self = this;
         enabled = !!enabled;
-        if (self._enabled != enabled) {
-          self._enabled = enabled;
-          self.container.attr("disabled", !enabled);
+        if (this.enabled != enabled) {
+          this.ele.attr("disabled", !enabled);
         }
       }
     });
