@@ -223,24 +223,24 @@ div {
   top: 3px;
   right: 0px;
 }
-#app .activity .vidrec {
+.vidrec {
   position: relative;
 }
-.vid {
+div.video {
   margin: auto;
-}
-#app .activity .vidrec .buttons {
-  position: absolute;
-  top: 10px;
-  left: 25px;
-}
-#app .activity .vidrec .counter {
-  color: red;
   position: relative;
+}
+div.video .counter {
+  position: absolute;
   top: 5px;
-  font-size: 30px;
+  left: 8px;
+  color: red;
+  font-size: 24px;
   font-weight: bold;
-  padding-left: 5px;
+}
+video {
+  object-fit: contain;
+  object-position: 50% 50%;
 }
 #app .activity .panel {
   border-top: dashed 1px #96a090;
@@ -248,10 +248,6 @@ div {
 }
 #app .activity .panel > div {
   margin-top: 5px;
-}
-video {
-  object-fit: contain;
-  object-position: 50% 50%;
 }
 #app button {
   background-color: white;

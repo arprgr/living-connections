@@ -1,16 +1,23 @@
 // usereditor.js - User Editor component
 
-define([ "jquery", "services", "activityui", "ui/index", "waitanim" ],
+define([ "jquery", "services", "Activity", "ui/index", "waitanim" ],
 function($,        Services,   Activity,     ui,         WaitAnim) {
 
   var sessionManager = Services.sessionManager;
 
   function getUser() {
-    return sessionManager.user || {};
+    if (!sessionManager.user) {
+      sessionManager.user = {};
+    }
+    return sessionManager.user;
   }
 
   function getUserName() {
     return getUser().name || "";
+  }
+
+  function setUserName(userName) {
+    getUser().name = userName;
   }
 
   function getUserId() {
@@ -19,75 +26,79 @@ function($,        Services,   Activity,     ui,         WaitAnim) {
 
   return Activity.defineClass(function(c) {
 
-    function block(self) {
-      self.nameInput.enabled = false;
-      self.updateButton.enabled = false;
-      self.waitAnim.open();
-    }
+    function initController(self) {
 
-    function unblock(self) {
-      self.nameInput.enabled = true;
-      self.updateButton.enabled = self.nameInput.valid && self.nameInput.value != self.nameValue;
-      self.waitAnim.close();
-    }
-
-    function submit(self) {
-      if (self.updateButton.enabled) {
-        block(self);
-        Services.apiService.updateUser(getUserId(), self.nameValue)
-        .then(function() {
-          unblock(self);
-          sessionManager.refreshNow();
-        })
-        .catch(function(err) {
-          unblock(self);
-          console.log(err);
-        });
+      function block() {
+        self.nameInput.enabled = false;
+        self.updateButton.enabled = false;
+        self.waitAnim.open();
       }
-    }
 
-    function createNameInput(self) {
-      var nameInput = new ui.TextInput().addPlugin({
-        submit: function(name) {
-          self.nameValue = name;
-          submit(self);
+      function unblock() {
+        self.nameInput.enabled = true;
+        self.updateButton.enabled = self.nameInput.valid && self.nameInput.value != getUserName(); self.waitAnim.close();
+      }
+
+      function submit() {
+        if (self.updateButton.enabled) {
+          block();
+          Services.apiService.updateUser(getUserId(), getUserName())
+          .then(function() {
+            unblock();
+            sessionManager.refreshNow();
+          })
+          .catch(function(err) {
+            unblock();
+            console.log(err);
+          });
         }
-      });
-      nameInput.addChangeListener(function() {
-        unblock(self);
-      });
-      nameInput.placeholder = "(not set)";
-      return nameInput;
-    }
+      }
 
-    function createUpdateButton(self) {
-      var updateButton = ui.Button.create("Update", function() {
-        nameInput.submit();
-      });
-      updateButton.ele.addClass("default");
-      return updateButton;
+      function createNameInput() {
+        return new ui.TextInput().addPlugin({
+          onChange: function() {
+            unblock();
+          },
+          submit: function(name) {
+            setUserName(name);
+            submit();
+          }
+        })
+        .setPlaceholder("(not set)");
+      }
+
+      function createUpdateButton() {
+        return new ui.Button("<button>", { cssClass: "default" }).addPlugin({
+          onClick: function() {
+            self.nameInput.submit();
+          }
+        }).setLabel("Update");
+      }
+
+      self.nameInput = createNameInput();
+      self.updateButton = createUpdateButton();
+      self.waitAnim = new WaitAnim($("<span>"), { ndots: 3 });
+
+      self._open = function() {
+        self.nameInput.value = getUserName();
+        unblock();
+        setTimeout(function() {
+          self.nameInput.select().focus();
+        }, 100);
+      }
     }
 
     c.defineInitializer(function() {
       var self = this;
-
-      var nameInput = createNameInput(self);
-      self.nameInput = nameInput;
-      
-      var updateButton = createUpdateButton(self);
-      self.updateButton = updateButton;
-
-      var waitAnim = new WaitAnim($("<span>"), { ndots: 3 });
-      self.waitAnim = waitAnim;
-
+      initController(self);
       self.ele
         .append($("<div>")
           .addClass("panel")
           .append($("<div>")
             .append($("<span>").text("Your user name is: ")
-            .append(nameInput.ele)
-            .append(updateButton.ele))
-            .append(waitAnim.ele))
+            .append(self.nameInput.ele)
+            .append(self.updateButton.ele))
+            .append(self.waitAnim.ele))
           .append($("<div>")
             .text("This is the name that is shown to other Living Connections users " +
                   "and appears in the invitations that you send."))
@@ -96,13 +107,8 @@ function($,        Services,   Activity,     ui,         WaitAnim) {
 
     c.extendPrototype({
       open: function() {
-        var self = this;
-        self.nameValue = getUserName();
-        self.nameInput.value = getUserName();
-        setTimeout(function() {
-          self.nameInput.select().focus();
-        }, 100);
-        return Activity.prototype.open.call(self);
+        this._open();
+        return this;
       },
       exit: function() {
         this.invokePlugin("exit");

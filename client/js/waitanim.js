@@ -56,8 +56,8 @@ define([ "jquery", "ui/component" ], function($, Component) {
 
     c.defineDefaultOptions({
       delay: 0,
-      period: 2500,
-      duration: 1000,
+      period: 2000,
+      duration: 500,
       tick: 20,
       color0: "white",
       color1: "green",

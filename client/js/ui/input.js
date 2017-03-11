@@ -34,8 +34,11 @@ define([ "jquery", "ui/component", ], function($, Component) {
           return true;
         })
         .on("keyup", function(event) {
-          if (self.enabled && event.originalEvent.keyCode >= 32) {
-            onChange(self);
+          if (self.enabled) {
+            var keyCode = event.originalEvent.keyCode;
+            if (keyCode >= 32 || keyCode == 8) {
+              onChange(self);
+            }
           }
           return true;
         })

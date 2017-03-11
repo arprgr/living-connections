@@ -1,6 +1,6 @@
 // GreetingEditor.js - Editor for general messages.
 
-define([ "activityui", "VideoRecorder" ],
+define([ "Activity", "VideoRecorder" ],
 function(Activity,     VideoRecorder) {
 
   return Activity.defineClass(function(c) {

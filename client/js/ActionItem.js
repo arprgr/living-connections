@@ -2,15 +2,6 @@
 
 define([ "jquery" ], function($) {
 
-  function getUser(actionItem) {
-    return actionItem.user || (actionItem.message && actionItem.message.fromUser);
-  }
-
-  function userName(actionItem) {
-    var user = getUser(actionItem);
-    return (user && user.name) || "another user";
-  }
-
   function matchProtocol(url) {
     if (window.location.protocol == "https:") {
       url = url.replace(/^http:/, "https:");
@@ -32,6 +23,14 @@ define([ "jquery" ], function($) {
     return "/img/" + actionItem.type + ".png";
   }
 
+  function inviteNameAndEmail(invite) {
+    var str = invite.recipientName;
+    if (invite.ticket && invite.ticket.email) {
+      str += " <" + invite.ticket.email + ">";
+    }
+    return str;
+  }
+
   var actionProperty = {
     get: function() {
       return this.idParts[1];
@@ -40,7 +39,7 @@ define([ "jquery" ], function($) {
 
   var iconUriProperty = {
     get: function() {
-      return assetIcon(this.message) || assetIcon(getUser(this)) || defaultIcon(this);
+      return assetIcon(this.message) || assetIcon(this.user) || defaultIcon(this);
     }
   }
 
@@ -48,23 +47,23 @@ define([ "jquery" ], function($) {
     get: function() {
       switch (this.type) {
       case "ann-rec":
-        return "Announcement from " + userName(this);
+        return "Announcement from " + this.userName;
       case "ann-cre":
         return "Make an announcement";
       case "ann-upd":
         return "Update announcement";
       case "gre-rec":
-        return "Message from " + userName(this);
+        return "Message from " + this.userName;
       case "gre-cre":
-        return (this.isReply ? "Reply to " : "Send a videogram to ") + userName(this);
+        return (this.isReply ? "Reply to " : "Send a videogram to ") + this.userName;
       case "inv-rec":
-        return "Invitation from " + userName(this);
+        return "Invitation from " + this.userName;
       case "inv-cre":
         return "Invite someone to connect with you";
       case "inv-upd":
-        return "Update invitation for " + this.invite.email;
+        return "Update invitation for " + inviteNameAndEmail(this.invite);
       case "pro-rec":
-        return "About " + userName(this) + "...";
+        return "About " + this.userName + "...";
       case "pro-cre":
         return "Tell other users about you!";
       case "pro-upd":
@@ -90,6 +89,13 @@ define([ "jquery" ], function($) {
     }
   }
 
+  var userNameProperty = {
+    get: function () {
+      var user = this.user;
+      return (user && user.name) || "another user";
+    }
+  }
+
   return function(data) {
     $.extend(this, data);
     this.idParts = data.id.split("-");
@@ -98,5 +104,9 @@ define([ "jquery" ], function($) {
     Object.defineProperty(this, "title", titleProperty);
     Object.defineProperty(this, "type", typeProperty);
     Object.defineProperty(this, "what", whatProperty);
+    Object.defineProperty(this, "userName", userNameProperty);
+    if (!this.user) {
+      this.user = (this.message && this.message.fromUser) || (this.invite && this.invite.fromUser);
+    }
   }
 });

@@ -31,7 +31,6 @@ function($,        Services,   ui,         WaitAnim) {
 
     c.defineInitializer(function() {
       var self = this;
-      var controller = self.options.controller;
       var what = self.options.what;
 
       self.defaultButtons = {};
@@ -58,6 +57,11 @@ function($,        Services,   ui,         WaitAnim) {
       });
       declareDefaultButtonForState(STATE_REVIEW, acceptButton);
       var rejectButton = ui.Button.create("Re-record it", function() {
+        self.invokePlugin("rejectRecording");
+      });
+
+      // Here is your previously recorded... [Re-record it]
+      var redoButton = ui.Button.create("Re-record it", function() {
         self.invokePlugin("rejectRecording");
       });
 
@@ -90,7 +94,7 @@ function($,        Services,   ui,         WaitAnim) {
       ));
       self.addCompartment(STATE_PREVIEW, new ui.Component($("<div>")
         .append($("<span>").text("Here is your previously recorded " + what + "... "))
-        .append(rejectButton.ele)
+        .append(redoButton.ele)
       ));
       self.addCompartment(STATE_ERROR, new ui.Component($("<div>")
         .append($("<span>").text("Oh no, something went wrong! "))
@@ -123,7 +127,8 @@ function($,        Services,   ui,         WaitAnim) {
       .then(function() {
         showState(self.targetState);
       })
-      .catch(function() {
+      .catch(function(err) {
+        console.log(err);
         showState(STATE_ERROR);
       });
     }
@@ -142,31 +147,32 @@ function($,        Services,   ui,         WaitAnim) {
       });
     }
 
-    function showCountdown(text, opacity) {
+    function startCountdown() {
+      self.counter.text = "Recording";
       self.counter.visible = true;
-      self.counter.text = secondsRemaining;
-      self.counter.container.css("opacity", (millisRemaining % 1000) / 1000);
-    }
-
-    function hideCountdown() {
-      self.counter.visible = false;
-    }
-
-    function scheduleCountdown() {
-      self.countdownTimeout = setTimeout(function() {
-        var millisRemaining = self.autoStopTime - now();
-        if (millisRemaining <= 0) {
-          controller.stopRecording();
-        }
-        else {
-          var secondsRemaining = Math.floor(millisRemaining/1000 + 1);
-          var opacity = (millisRemaining % 1000) / 1000;
-          if (secondsRemaining <= self.options.countdownStartsAt) {
-            showCountdown(secondsRemaining, opacity);
+      (function scheduleCountdown() {
+        self.countdownTimeout = setTimeout(function() {
+          var millisRemaining = self.autoStopTime - now();
+          if (millisRemaining <= 0) {
+            controller.stopRecording();
           }
-          scheduleCountdown();
-        }
-      }, 20);
+          else {
+            var secondsRemaining = Math.floor(millisRemaining/1000 + 1);
+            var t = 1000 - (millisRemaining % 1000);
+            var opacity = Math.max(0, Math.cos(t * Math.PI/2 / 700));
+            if (secondsRemaining <= self.options.countdownStartsAt) {
+              self.counter.text = secondsRemaining;
+            }
+            self.counter.container.css("opacity", opacity);
+            scheduleCountdown();
+          }
+        }, 50);
+      })();
+    }
+
+    function cancelCountdown() {
+      clearTimeout(self.countdownTimeout);
+      self.counter.visible = false;
     }
 
     function showUrl() {
@@ -177,7 +183,7 @@ function($,        Services,   ui,         WaitAnim) {
       var promise = $.Deferred();
       self.videoComponent.pause();
       clearTimeout(self.countdownTimeout);
-      hideCountdown();
+      self.counter.visible = false;
       videoService.stopRecording(function(blob, url) {
         self.videoBlob = blob;
         self.url = url;
@@ -216,10 +222,11 @@ function($,        Services,   ui,         WaitAnim) {
         videoService.startRecording();
         showState(STATE_RECORDING);
         self.autoStopTime = now() + (self.options.maxSeconds * 1000);
-        scheduleCountdown();
+        startCountdown();
       },
 
       stopRecording: function() {
+        cancelCountdown();
         toNextState(showRecording, STATE_REVIEW);
       },
 
@@ -240,7 +247,7 @@ function($,        Services,   ui,         WaitAnim) {
     return controller;
   }
 
-  return ui.Component.defineClass(function(c) {
+  var VideoRecorder = ui.Component.defineClass(function(c) {
 
     c.defineDefaultOptions({
       what: "videogram",
@@ -256,7 +263,7 @@ function($,        Services,   ui,         WaitAnim) {
       }))
         .addPlugin(controller)
         .addPlugin(self);
-      var videoComponent = new ui.Video($("<div>").addClass("vid"));
+      var videoComponent = new ui.Video();
       var counter = new ui.Component($("<span>").addClass("counter"));
 
       self.ele
@@ -266,6 +273,8 @@ function($,        Services,   ui,         WaitAnim) {
           .addClass("panel")
           .append(videoComponent.ele)
         )
+
+      videoComponent.ele.append(counter.ele);
 
       self.controlPanel = controlPanel;
       self.videoComponent = videoComponent;
@@ -285,9 +294,25 @@ function($,        Services,   ui,         WaitAnim) {
         return this;
       },
 
+      addControl: function(state, control) {
+        this.controlPanel.compartments[state].ele.append(control.ele);
+        return this;
+      },
+
       exit: function() {
         return this.invokePlugin("exit");
       }
     });
   });
+
+  $.extend(VideoRecorder, { 
+    STATE_READY: STATE_READY,
+    STATE_RECORDING: STATE_RECORDING,
+    STATE_REVIEW: STATE_REVIEW,
+    STATE_PREVIEW: STATE_PREVIEW,
+    STATE_ERROR: STATE_ERROR,
+    STATE_DONE: STATE_DONE
+  });
+
+  return VideoRecorder;
 });

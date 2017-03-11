@@ -1,12 +1,15 @@
 const expect = require("chai").expect;
 const requestlc = require("./common/requestlc");
 
-requestlc.describe("Invitations", function(client) {
+requestlc.describe("Invitation flow:", function(client) {
 
-  const TEST_USER_NAME = "Jack";
-  const TEST_ASSET_ID = 6;
+  const TEST_SENDER_NAME = "Jack";
+  var TEST_RECEIVER_NAME = "Jodie";
+  var TEST_EMAIL = "test@example.com";
 
-  var sender;
+  var theSender;
+  var theAsset;
+  var theInvite;
 
   // Methods...
 
@@ -15,17 +18,27 @@ requestlc.describe("Invitations", function(client) {
     .withData({ name: name }).asRoot().getJson();
   }
 
-  function sendInvitation(fromUserId, email) {
+  function createAsset(creatorId) {
+    return client.makeRequest("POST", "/assets").asUser(creatorId).withData({
+      mime: "audio/shmaudio",
+      key: "abc",
+      url: "http://example.com/notfound.wmf"
+    }).getJson();
+  }
+
+  function sendInvitation(fromUserId, name, email, assetId) {
     return client.makeRequest("POST", "/api/invites")
     .asUser(fromUserId)
     .withData({
-      assetId: TEST_ASSET_ID,
+      assetId: assetId,
+      name: name,
       email: email
-    });
+    })
+    .getJson();
   }
-
-  function sendInvitationOk(fromUserId, email) {
-    return sendInvitation(fromUserId, email).getJson();
+  
+  function getTicket(ticketId) {
+    return client.makeRequest("GET", "/api/tickets/" + ticketId).asRoot().getJson();
   }
 
   function claimTicket(ticket) {
@@ -58,9 +71,9 @@ requestlc.describe("Invitations", function(client) {
     });
   }
 
-  function findMessageAction(actionResponse, fromUserId) {
+  function findInviteAction(actionResponse, fromUserId) {
     return findAction(actionResponse, function(item) {
-      return item.message && item.message.fromUser && item.message.fromUser.id == fromUserId;
+      return item.invite && item.invite.fromUser && item.invite.fromUser.id == fromUserId;
     });
   }
 
@@ -71,214 +84,204 @@ requestlc.describe("Invitations", function(client) {
   }
 
   function cancelInvitation(id, userId) {
-    return client.makeRequest("DELETE", "/api/invites/" + id).asUser(userId);
+    return client.makeRequest("DELETE", "/api/invites/" + id).asUser(userId).getJson();
   }
 
-  function cancelInvitationOk(id, userId) {
-    return cancelInvitation(id, userId).getJson();
+  function acceptInvitation(inviteId, userId) {
+    return client.makeRequest("POST", "/api/invites/" + inviteId + "/accept").asUser(userId).go();
   }
 
-  function cancelInvitationError(id, userId, expectedStatusCode) {
-    return cancelInvitation(id, userId).go()
-    .then(function(expector) {
-      expector.expectStatusCode(expectedStatusCode);
-    });
+  function rejectInvitation(inviteId, userId) {
+    return client.makeRequest("POST", "/api/invites/" + inviteId + "/reject").asUser(userId).go();
   }
 
-  function actOnInvite(action, messageId, userId) {
-    return client.makeRequest("GET", "/api/messages/" + messageId + "?act=" + action).asUser(userId);
-  }
-
-  function actOnInviteOk(action, messageId, userId) {
-    return actOnInvite(action, messageId, userId).getJson();
-  }
-
-  // Create sender.
+  // Create an invitation and its prerequisites.
   beforeEach(function(done) {
-    createUser(TEST_USER_NAME)
+    createUser(TEST_SENDER_NAME)
     .then(function(user) {
-      expect(user.name).to.equal(TEST_USER_NAME);
-      sender = user;
+      expect(user.name).to.equal(TEST_SENDER_NAME);
+      theSender = user;
+      return createAsset(theSender.id);
+    })
+    .then(function(asset) {
+      theAsset = asset;
+      return sendInvitation(theSender.id, TEST_RECEIVER_NAME, TEST_EMAIL, theAsset.id)
+    })
+    .then(function(invite) {
+      theInvite = invite;
+      expect(theInvite.fromUserId).to.equal(theSender.id);
+      expect(theInvite.assetId).to.equal(theAsset.id);
+      expect(theInvite.recipientName).to.equal(TEST_RECEIVER_NAME);
       done();
     })
     .catch(done);
   });
 
-  it("rejects invalid email", function(done) {
-
-    return sendInvitation(sender, "blah").go()
-    .then(function(expector) {
-      expector.expectStatusCode(500);
+  it("Sent invitations appear in sender's action list", function(done) {
+    requestActionList(theSender.id, true)
+    .then(function(actionResponse) {
+      expect(actionResponse.user).to.exist;
+      expect(parseInt(actionResponse.user.id)).to.equal(theSender.id);
+      var actionList = actionResponse.actionItems;
+      expect(actionList).to.exist;
+      var updInvAction = findUpdateInviteAction(actionResponse);
+      expect(updInvAction).to.exist;
       done();
     })
     .catch(done);
   });
 
-  describe("...", function() {
+  describe("Acting on an invite", function() {
 
-    var TEST_EMAIL = "test@example.com";
-    var invite;
+    var receiverActionResponse;
+    var inviteAction;
 
-    // Create invitation.
     beforeEach(function(done) {
-      sendInvitationOk(sender.id, TEST_EMAIL)
-      .then(function(_invite) {
-        invite = _invite;
-        expect(invite.fromUserId).to.equal(sender.id);
-        expect(invite.assetId).to.equal(TEST_ASSET_ID);
-        expect(invite.email).to.equal(TEST_EMAIL);
-        done();
+      // Holder of the email account claims ticket.
+      getTicket(theInvite.ticketId)
+      .then(function(ticket) {
+        return claimTicket(ticket);
       })
-      .catch(done);
-    });
-
-    it("appear in sender's action list", function(done) {
-      requestActionList(sender.id, true)
+      .then(function(sessionCookie) {
+        expect(sessionCookie).to.exist;
+        return requestActionList(sessionCookie);
+      })
       .then(function(actionResponse) {
-        expect(actionResponse.user).to.exist;
-        expect(parseInt(actionResponse.user.id)).to.equal(sender.id);
-        var actionList = actionResponse.actionItems;
-        expect(actionList).to.exist;
-        var updInvAction = findUpdateInviteAction(actionResponse);
-        expect(updInvAction).to.exist;
+        receiverActionResponse = actionResponse;
+        inviteAction = findInviteAction(receiverActionResponse, theSender.id);
+        expect(inviteAction).to.exist;
         done();
       })
       .catch(done);
     });
 
-    describe("once claimed", function() {
+    it("logs in a new user", function(done) {
+      // Action list is expected to contain a message from the sender.
+      expect(receiverActionResponse.user).to.exist;
+      expect(receiverActionResponse.user.id).to.exist;
+      expect(receiverActionResponse.user.id).to.not.equal(theSender.id);
+      done();
+    });
 
-      var receiverActionResponse;
-      var messageAction;
+    it("results in an item in the receiver's action list", function(done) {
+      // Action list is expected to contain a message from the sender.
+      expect(typeof inviteAction.id).to.equal("string");
+      expect(inviteAction.id.substring(0, 7)).to.equal("inv-rec");
+      done();
+    });
+
+    describe("and accepting it", function() {
 
       beforeEach(function(done) {
-        // Holder of the email account claims ticket.
-        claimTicket(invite)
-        .then(function(sessionCookie) {
-          expect(sessionCookie).to.exist;
-          return requestActionList(sessionCookie);
-        })
-        .then(function(actionResponse) {
-          receiverActionResponse = actionResponse;
-          messageAction = findMessageAction(receiverActionResponse, sender.id);
+        acceptInvitation(inviteAction.invite.id, receiverActionResponse.user.id)
+        .then(function() {
           done();
         })
         .catch(done);
       });
 
-      it("logs in the new user", function(done) {
-        // Action list is expected to contain a message from the sender.
-        expect(receiverActionResponse.user).to.exist;
-        expect(receiverActionResponse.user.id).to.exist;
-        done();
+      it("adds receiver to sender's connection list", function(done) {
+        requestActionList(theSender.id, true)
+        .then(function(actionResponse) {
+          expect(actionResponse.user).to.exist;
+          expect(parseInt(actionResponse.user.id)).to.equal(theSender.id);
+          var actionList = actionResponse.actionItems;
+          expect(actionList).to.exist;
+          var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
+          expect(greetingAction).to.exist;
+          done();
+        })
+        .catch(done);
       });
 
-      it("deliver messages", function(done) {
-        // Action list is expected to contain a message from the sender.
-        expect(messageAction).to.exist;
-        expect(typeof messageAction.id).to.equal("string");
-        expect(messageAction.id.substring(0, 7)).to.equal("inv-rec");
-        done();
-      });
-
-      describe("and accepted", function() {
-
-        beforeEach(function(done) {
-          actOnInviteOk("accept", messageAction.message.id, receiverActionResponse.user.id)
-          .then(function() {
-            done();
-          })
-          .catch(done);
-        });
-
-        it("add receiver to sender's connection list", function(done) {
-          requestActionList(sender.id, true)
-          .then(function(actionResponse) {
-            expect(actionResponse.user).to.exist;
-            expect(parseInt(actionResponse.user.id)).to.equal(sender.id);
-            var actionList = actionResponse.actionItems;
-            expect(actionList).to.exist;
-            var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
-            expect(greetingAction).to.exist;
-            done();
-          })
-          .catch(done);
-        });
-      });
-
-      describe("and rejected", function() {
-
-        beforeEach(function(done) {
-          actOnInviteOk("reject", messageAction.message.id, receiverActionResponse.user.id)
-          .then(function() {
-            done();
-          })
-          .catch(done);
-        });
-
-        it("the message is removed", function(done) {
-          requestActionList(receiverActionResponse.user.id, true)
-          .then(function(newActionResponse) {
-            messageAction = findMessageAction(newActionResponse, sender.id);
-            expect(messageAction).to.not.exist;
-            done();
-          })
-          .catch(done);
-        });
-
-        it("does not add receiver to sender's connection list", function(done) {
-          requestActionList(sender.id, true)
-          .then(function(actionResponse) {
-            expect(actionResponse.user).to.exist;
-            expect(parseInt(actionResponse.user.id)).to.equal(sender.id);
-            var actionList = actionResponse.actionItems;
-            expect(actionList).to.exist;
-            var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
-            expect(greetingAction).to.not.exist;
-            done();
-          })
-          .catch(done);
-        });
+      it("closes the invitation", function(done) {
+        requestActionList(receiverActionResponse.user.id, true)
+        .then(function(newActionResponse) {
+          inviteAction = findInviteAction(newActionResponse, theSender.id);
+          expect(inviteAction).to.not.exist;
+          done();
+        })
+        .catch(done);
       });
     });
 
-    describe("cancelled...", function(done) {
+    describe("and rejecting it", function() {
 
       beforeEach(function(done) {
-        // The sender cancels the invitation before it is received.
-        cancelInvitationOk(invite.id, sender.id)
+        rejectInvitation(inviteAction.invite.id, receiverActionResponse.user.id)
         .then(function() {
-          return claimTicket(invite);
-        })
-        .then(function(_sessionCookie) {
-          // Ticket is not voided.
-          sessionCookie = _sessionCookie;
-          expect(sessionCookie).to.exist;
           done();
         })
         .catch(done);
       });
 
-      it("suppress delivery of the message", function(done) {
-        requestActionList(sessionCookie)
-        .then(function(actionResponse) {
-          // Action list is expected not to contain a message from the sender.
-          var messageAction = findMessageAction(actionResponse, sender.id);
-          expect(messageAction).to.not.exist;
+      it("closes the invitation", function(done) {
+        requestActionList(receiverActionResponse.user.id, true)
+        .then(function(newActionResponse) {
+          inviteAction = findInviteAction(newActionResponse, theSender.id);
+          expect(inviteAction).to.not.exist;
           done();
         })
         .catch(done);
       });
 
-      it("no longer appear in sender's action list", function(done) {
-        requestActionList(sender.id, true)
+      it("does not add receiver to sender's connection list", function(done) {
+        requestActionList(theSender.id, true)
         .then(function(actionResponse) {
-          var updInvAction = findUpdateInviteAction(actionResponse);
-          expect(updInvAction).to.not.exist;
+          expect(actionResponse.user).to.exist;
+          expect(parseInt(actionResponse.user.id)).to.equal(theSender.id);
+          var actionList = actionResponse.actionItems;
+          expect(actionList).to.exist;
+          var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
+          expect(greetingAction).to.not.exist;
           done();
         })
         .catch(done);
       });
+    });
+  });
+
+  describe("cancelled...", function(done) {
+
+    var theSessionCookie;
+
+    beforeEach(function(done) {
+      // The sender cancels the invitation before it is received.
+      cancelInvitation(theInvite.id, theSender.id)
+      .then(function() {
+        return getTicket(theInvite.ticketId);
+      })
+      .then(function(ticket) {
+        return claimTicket(ticket);
+      })
+      .then(function(sessionCookie) {
+        // Ticket is not voided.
+        expect(sessionCookie).to.exist;
+        theSessionCookie = sessionCookie;
+        done();
+      })
+      .catch(done);
+    });
+
+    it("suppress delivery of the message", function(done) {
+      requestActionList(theSessionCookie)
+      .then(function(actionResponse) {
+        // Action list is expected not to contain a message from the sender.
+        var inviteAction = findInviteAction(actionResponse, theSender.id);
+        expect(inviteAction).to.not.exist;
+        done();
+      })
+      .catch(done);
+    });
+
+    it("no longer appear in sender's action list", function(done) {
+      requestActionList(theSender.id, true)
+      .then(function(actionResponse) {
+        var updInvAction = findUpdateInviteAction(actionResponse);
+        expect(updInvAction).to.not.exist;
+        done();
+      })
+      .catch(done);
     });
   });
 });

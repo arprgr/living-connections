@@ -1,7 +1,7 @@
-// msgviewer.js - Mesage Viewer component
+// MessageViewer.js - Mesage Viewer component
 
-define([ "jquery", "activityui", "ui/index", "actionitem", "services" ],
-function($,        Activity,     ui,         ActionItem,   Services) {
+define([ "jquery", "Activity", "ui/index", "ActionItem", "services" ],
+function($,        Activity,     ui,       ActionItem,   Services) {
 
   var Button = ui.Button;
   var VideoPlayer = ui.Video;
@@ -43,19 +43,8 @@ function($,        Activity,     ui,         ActionItem,   Services) {
         var actionItem = self.options.actionItem;
         var message = actionItem.message || actionItem.user;
         self.videoPlayer.load(message.asset.url, { autoplay: true });
-        var fromUser = message.fromUser;
-        if (fromUser) {
-          if (actionItem.type.match(/inv-/)) {
-            addButton(self, "Accept " + fromUser.name + "'s invitation to connect", function() {
-              Services.apiService.acceptInvite(message.id);
-              self.exit();
-            });
-            addButton(self, "No, thanks", function() {
-              Services.apiService.rejectInvite(message.id);
-              self.exit();
-            });
-          }
-          addButtons(self, fromUser);
+        if (actionItem.user) {
+          addButtons(self, actionItem.user);
         }
         return Activity.prototype.open.call(self);
       }

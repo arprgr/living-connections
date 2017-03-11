@@ -36,14 +36,6 @@ module.exports = function(sequelize, DataTypes) {
         values.expiresAt = expiresAt;
         return this;
       },
-      fromUser: function(fromUser) {
-        values.fromUserId = fromUser.id;
-        return this;
-      },
-      messageId: function(messageId) {
-        values.messageId = messageId;
-        return this;
-      },
       build: function() {
         return EmailSessionSeed.create(values);
       }
@@ -66,19 +58,6 @@ module.exports = function(sequelize, DataTypes) {
     var query = {
       where: where
     };
-    if (options && options.deep) {
-      query.include = [{
-        model: models.Message,
-        as: "message",
-        include: [{
-          model: models.Asset,
-          as: "asset"
-        }]
-      }, {
-        model: models.User,
-        as: "fromUser"
-      }]
-    }
     if (options && options.current) {
       query.where.expiresAt = { "$gt": new Date() };
     }
@@ -93,27 +72,6 @@ module.exports = function(sequelize, DataTypes) {
     return findOne({ externalId: externalId }, options);
   }
 
-  function findByFromUserId(fromUserId, options) {
-    options = options || {};
-    var query = {
-      where: { fromUserId: fromUserId }
-    };
-    if (options.deep) {
-      query.include = [{
-        model: models.Message,
-        as: "message",
-        include: [{
-          model: models.Asset,
-          as: "asset"
-        }]
-      }]
-    }
-    if (options && options.current) {
-      query.where.expiresAt = { "$gt": date };
-    }
-    return EmailSessionSeed.findAll(query);
-  }
-
   EmailSessionSeed = sequelize.define("EmailSessionSeed", schema(), {
     classMethods: {
       associate: associate,
@@ -121,8 +79,7 @@ module.exports = function(sequelize, DataTypes) {
       destroyAll: destroyAll,
       destroyById: destroyById,
       findById: findById,
-      findByExternalId: findByExternalId,
-      findByFromUserId: findByFromUserId
+      findByExternalId: findByExternalId
     }
   })
 

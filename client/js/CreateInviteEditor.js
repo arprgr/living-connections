@@ -1,6 +1,6 @@
 // CreateInviteEditor.js - New invitation editor
 
-define([ "jquery", "activityui", "VideoRecorder", "ui/index" ],
+define([ "jquery", "Activity", "VideoRecorder", "ui/index" ],
 function($,        Activity,     VideoRecorder,   ui) {
 
   var NameAndEmailEditor = ui.Carton.defineClass(function(c) {
@@ -24,20 +24,22 @@ function($,        Activity,     VideoRecorder,   ui) {
     c.defineInitializer(function() {
       var self = this;
 
+      function inputsAreValid() {
+        return self.emailInput.valid && self.nameInput.valid;
+      }
+
       function makeInput(cons, placeholder) {
         var input = new cons("<span>", { required: true })
           .setPlaceholder(placeholder)
           .addPlugin({
             onChange: function() {
-              self.okButton.enabled = self.emailInput.valid && self.nameInput.valid;
+              self.okButton.enabled = inputsAreValid();
             },
             onFocus: function() {
-              self.okButton.enabled = true;
+              self.okButton.enabled = inputsAreValid();
             },
             onBlur: function() {
-              if (!input.validate()) {
-                input.focus();
-              }
+              input.validate();
             },
             onSubmit: function() {
               if (self.emailInput.valid && self.nameInput.value) {
@@ -74,7 +76,7 @@ function($,        Activity,     VideoRecorder,   ui) {
 
       self.okButton = ui.Button.create("Record a message", function() {
         self.invokePlugin("openVideoRecorder");
-      })
+      }).setEnabled(false);
 
       self.ele
         .append($("<div>").addClass("panel")
@@ -119,7 +121,7 @@ function($,        Activity,     VideoRecorder,   ui) {
       nameAndEmailEditor.close();
 
       self.videoRecorder = new VideoRecorder("<div>", {
-        what: "invitation to " + self.nameAndEmailEditor.name
+        what: "invitation to " + self.nameAndEmailEditor.name + " <" + self.nameAndEmailEditor.email + ">"
       }).addPlugin(self).open();
       self.ele.append(self.videoRecorder.ele)
     }

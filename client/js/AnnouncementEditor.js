@@ -1,6 +1,6 @@
 // AnnouncementEditor.js - Announcement Editor component
 
-define([ "jquery", "activityui", "VideoRecorder", "ui/index" ],
+define([ "jquery", "Activity", "VideoRecorder", "ui/index" ],
 function($,        Activity,     VideoRecorder,   ui) {
 
   return Activity.defineClass(function(c) {

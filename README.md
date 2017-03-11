@@ -10,7 +10,11 @@ Run npm install.
 
 Install postgres database locally, run on default port (5432).
 
-Source the devsetup script.
+Create a "postgres" user.
+
+Create PSQL databases "livconn" and "livconn_test".
+
+Source the `devsetup` script.   (Do this whenever starting work on LC in a new console window.)
 
 Run `sequelize db:migrate`
 
@@ -24,38 +28,30 @@ To run tests: `npm test`
 
 ## TODO for current version.
 
-Make the invitation/ticketing process super-solid.
+Message threading.
 
-Make the facebook profile linkup super-solid.
+Improved video controls.
 
-Clean up the profile editor.
-  - More instructions throughout.
+## TODO sooner
 
-Clean up the invitation editor.
-  - Add a friend's name field (not saved in db)
-  - More instructions at all points.
-  - Don't allow backing up in process (unless updating).
-  - Submit from video.
-  - Allow resend of email message.
-
-## TODO for later
+Scheduled reminders.
 
 Show dates in client.
 
-Port to React Native.
+True Facebook integration.
 
-Message threading.
+## TODO later
+
+Face-to-face conversations
+
+Message drafts.
+
+Message eager, incremental saving.
+
+Port to React JS
 
 Track asset views and message views.
 
 Full differencing of action lists, animation, urgency.
 
 Represent profile messages as types of message (for tracking).
-
-Reminders
-
-Face-to-face conversations
-
-Drafts, eager save, save in chunks.
-
-Address Facebook security issues.
