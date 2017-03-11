@@ -23,5 +23,6 @@ router.use("/profile", require("./profile_api"));
 router.use("/users", require("./users_api"));
 router.use("/tickets", require("./tickets_api"));
 router.use("/reminders", require("./reminders_api"));
+router.use("/threads", require("./threads_api"));
 
 module.exports = router;

@@ -247,11 +247,11 @@ function($,        Services,   ui,         WaitAnim) {
     return controller;
   }
 
-  return ui.Component.defineClass(function(c) {
+  var VideoRecorder = ui.Component.defineClass(function(c) {
 
     c.defineDefaultOptions({
       what: "videogram",
-      maxSeconds: 10,
+      maxSeconds: 20,
       countdownStartsAt: 5
     });
 
@@ -294,9 +294,25 @@ function($,        Services,   ui,         WaitAnim) {
         return this;
       },
 
+      addControl: function(state, control) {
+        this.controlPanel.compartments[state].ele.append(control.ele);
+        return this;
+      },
+
       exit: function() {
         return this.invokePlugin("exit");
       }
     });
   });
+
+  $.extend(VideoRecorder, { 
+    STATE_READY: STATE_READY,
+    STATE_RECORDING: STATE_RECORDING,
+    STATE_REVIEW: STATE_REVIEW,
+    STATE_PREVIEW: STATE_PREVIEW,
+    STATE_ERROR: STATE_ERROR,
+    STATE_DONE: STATE_DONE
+  });
+
+  return VideoRecorder;
 });

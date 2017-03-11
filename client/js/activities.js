@@ -1,7 +1,7 @@
 // activities.js - ActivityComponent
 
 define([ "MessageViewer", "AnnouncementEditor", "GreetingEditor", "CreateInviteEditor",
-  "inveditor",        "ProfileEditor", "usereditor", "InviteViewer" ],
+  "UpdateInviteEditor", "ProfileEditor", "usereditor", "InviteViewer" ],
 function( MessageViewer,  AnnouncementEditor,   GreetingEditor,   CreateInviteEditor,
   UpdateInviteEditor, ProfileEditor,   UserEditor,   InviteViewer) {
 

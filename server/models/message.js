@@ -114,6 +114,9 @@ module.exports = function(sequelize, DataTypes) {
       query.where.startDate = { "$lte": date };
       query.where.endDate = { "$gt": date };
     }
+    if (options && options.before) {
+      query.where.updatedAt = { "$lt": options.before };
+    }
     if (options && options.limit) {
       query.limit = options.limit;
     }
@@ -129,7 +132,8 @@ module.exports = function(sequelize, DataTypes) {
         "type": ANNOUNCEMENT_TO_NEW_TYPE
       }],
     }, {
-      deep: 1
+      deep: 1,
+      current: 1
     });
   }
 
@@ -198,6 +202,7 @@ module.exports = function(sequelize, DataTypes) {
 
   function findByUserIds(u1, u2, options) {
     return findAllWhere({
+      "type": GREETING_TYPE,
       "$or": [{
         "fromUserId": u1,
         "toUserId": u2

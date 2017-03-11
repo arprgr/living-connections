@@ -6,6 +6,7 @@
     "Button",
     "Carton",
     "Component",
+    "ConfirmButton",
     "DateTimeInput",
     "EmailInput",
     "FadeGoal",

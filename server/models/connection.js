@@ -64,14 +64,25 @@ module.exports = function(sequelize, DataTypes) {
     })
   }
 
-  function findByUserId(userId) {
+  function includes(options) {
+    var includes = [{
+      model: models.User,
+      as: "peer",
+      required: true
+    }];
+    if (options && options.deep) {
+      includes[0].include = {
+        model: models.Asset,
+        as: "asset"
+      };
+    }
+    return includes;
+  }
+
+  function findByUserId(userId, options) {
     return Connection.findAll({
       where: { userId: userId },
-      include: [{
-        model: models.User,
-        as: "peer",
-        required: true
-      }],
+      include: includes(options),
       order: [ [ "grade", "DESC" ] ]
     })
   }

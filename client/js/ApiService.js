@@ -206,6 +206,10 @@ define([ "http" ], function(HttpMethod) {
       return new ActOnInviteMethod().setId(id).setAct("reject").execute();
     },
 
+    resendInvite: function(id) {
+      return new ActOnInviteMethod().setId(id).setAct("resend").execute();
+    },
+
     updateUser: function(id, name) {
       return new UpdateUserMethod().setId(id).setName(name).execute();
     }

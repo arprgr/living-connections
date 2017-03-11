@@ -88,24 +88,18 @@ function addConnectionItems(compiler) {
   var others = compiler.others;
   for (var userId in others) {
     var other = others[userId];
-    var incomingMessage = other.incomingMessage;
-    if (incomingMessage) {
-      addActionItem(compiler,
-        incomingMessage.type == Message.INVITE_TYPE && !other.isConnection ? SUBJ_INVITATION : SUBJ_GREETING,
-        ACTION_RECEIVE, {
-          // Apparently sequelize model objects are immutable.  Didn't know that!
-          message: {
-            id: incomingMessage.id,
-            assetId: incomingMessage.assetId,
-            asset: incomingMessage.asset,
-            fromUser: other.user
-          }
-        });
-    }
-    else {
-      addActionItem(compiler, SUBJ_GREETING, ACTION_CREATE, {
-        user: other.user
-      });
+    var thread = other.thread;
+    if (thread) {
+      var action = ACTION_CREATE;
+      var data = {
+        user: other.user,
+        thread: thread
+      };
+      if (thread.length && thread[0].fromUserId == userId) {
+        action = ACTION_RECEIVE;
+        data.message = thread.shift();
+      }
+      addActionItem(compiler, SUBJ_GREETING, action, data);
     }
   }
 }
@@ -123,12 +117,7 @@ function addInvitationItems(compiler) {
   for (var i = 0; i < outgoingInvitations.length; ++i) {
     var inv = outgoingInvitations[i];
     addActionItem(compiler, SUBJ_INVITATION, ACTION_UPDATE, {
-      invite: {
-        id: inv.id,
-        name: inv.recipientName,
-        assetId: inv.message && inv.message.assetId,
-        asset: inv.message && inv.message.asset
-      }
+      invite: inv
     });
   }
 }

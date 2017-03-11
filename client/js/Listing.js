@@ -14,7 +14,9 @@ define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
           .addClass("title")
           .text(actionItem.title))
         .click(function() {
-          self.invokePlugin("openActionItem", actionItem);
+          if (self.isOpen) {
+            self.invokePlugin("openActionItem", actionItem);
+          }
         })
     }
 
@@ -45,20 +47,23 @@ define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
         self.container.append(chime.container);
         self.chime = chime;
       });
+      render(self, Services.sessionManager.actionItems.value);
     });
 
     c.extendPrototype({
       open: function() {
         var self = this;
-        render(self, Services.sessionManager.actionItems.value);
-        self.closeHandle = Services.sessionManager.addActionListener(function(actionItems) {
-          render(self, actionItems);
-        });
+        if (!self.isOpen) {
+          self.isOpen = true;
+          self.closeHandle = Services.sessionManager.addActionListener(function(actionItems) {
+            render(self, actionItems);
+          });
+        }
         return this;
       },
-
       close: function() {
         var self = this;
+        self.isOpen = false;
         if (self.closeHandle) {
           self.closeHandle.undo();
           self.closeHandle = null;
