@@ -23,8 +23,8 @@ const DEFAULTS = {
     }
   },
   auth: {
-        grantAdminToLocalRequest: true,
-        enableExtHeaderAccess: true
+        grantAdminToLocalRequest: false,
+        enableExtHeaderAccess: false
   },
   clientServiceConfigurations: {
     apiService: {
@@ -74,6 +74,10 @@ const OVERRIDES = {
         mainModule: "testui"
       }
     },
+    auth: {
+        grantAdminToLocalRequest: true,
+        enableExtHeaderAccess: true
+  },  
     clientServiceConfigurations: {
       sessionManager: {
         config: {
