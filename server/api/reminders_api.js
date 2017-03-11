@@ -1,15 +1,15 @@
-/* messages_api.js */
+/* reminders_api.js */
 
 const Reminders = require("../models/index").Reminders;
-const Connection = require("../models/index").Connection;
+
 const ApiValidator = require("./api_validator");
 const Promise = require("promise");
 var Moment = require('moment-timezone');
 
-const DEFAULT_ANNOUNCEMENT_DURATION = 14*24*60*60*1000;   // 14 days
+
 
 const VALIDATOR = new ApiValidator({
-        dateStr: {
+        deliverAt: {
         required: true,
         type: "string"  
         },    
@@ -26,8 +26,8 @@ const VALIDATOR = new ApiValidator({
         type: "integer"
         },
         repeat: {
-        type: "string",
-        defaultValue: 'Yes'                               
+        type: "integer",
+        defaultValue: '1'                               
         },
         timeZone: {
         type: "string",
@@ -35,22 +35,27 @@ const VALIDATOR = new ApiValidator({
         }
 });
 
-const UPDATE_VALIDATOR = new ApiValidator({                                        
-        assetId: {
-        required: true,
-        type: "integer"
-        },
-        deliverAt: {
-        type: "date",                              
-        },
-        timeZone: {
-        type: "string",
-        defaultValue: 'Eastern'                               
-        }
-});
 var router = require("express").Router();
 
+function resloveDeliverDate (m_deliverAt, m_timeZone) {
+    
+    
+    var newYorkTime = Moment.tz(m_deliverAt, "America/New_York");
+    
+      
+    var losAngeles = newYorkTime.clone().tz("America/Los_Angeles");
+    var centralAmerica = newYorkTime.clone().tz("America/Chicago");
+    var india = newYorkTime.clone().tz("Asia/Kolkata");
 
+    var _deliverAt = newYorkTime.format() ; // defaulting to eastern timezone
+
+    if (m_timeZone == "Eastern") {_deliverAt = newYorkTime.format()} ;
+    if (m_timeZone == "Central") {_deliverAt = centralAmerica.format()} ;
+    if (m_timeZone == "Pacific") {_deliverAt = losAngeles.format()} ;
+    if (m_timeZone == "IST") {_deliverAt = india.format()} ;
+ 
+    return _deliverAt;
+}
 
 // Create a reminder.
 router.post("/", function(req, res) {
@@ -59,33 +64,13 @@ router.post("/", function(req, res) {
     if (!req.user) {
       throw { status: 401 };
     }
-
       
     var fields = VALIDATOR.validateNew(req.body);
 
-
-    console.log('in the lc scheduler function' + fields.dateStr);
-    var vid = fields.vid ;
-    
-    var inputStr = fields.dateStr;
-    var date = new Date(inputStr);
-    var rightNow = new Date(Date.now() + 5000);
-    var newYorkTime = Moment.tz(date, "America/New_York");
-    var losAngeles = newYorkTime.clone().tz("America/Los_Angeles");
-    var centralAmerica = newYorkTime.clone().tz("America/Chicago");
-    var india = newYorkTime.clone().tz("Asia/Kolkata");
-
-    console.log('this is the date and time now::' + rightNow + "  and this was selected::" + date + "this is the timeZone:" + fields.timeZone );
-    console.log('New York :' + newYorkTime.format() + " Los Angeles :" + losAngeles.format() + " Central timeZone" + centralAmerica.format());
-
-    var deliverAt = newYorkTime.format() ; // defaulting to eastern timezone
-
-    if (fields.timeZone == "Eastern") {deliverAt = newYorkTime.format()} ;
-    if (fields.timeZone == "Central") {deliverAt = centralAmerica.format()} ;
-    if (fields.timeZone == "Pacific") {deliverAt = losAngeles.format()} ;
-    if (fields.timeZone == "IST") {deliverAt = india.format()} ;
+    var deliverAt = resloveDeliverDate(fields.deliverAt, fields.timeZone);   
       
-    Reminders.create({
+          
+    resolve(Reminders.create({
                 assetId: fields.assetId,
                 fromUserId: fields.fromUserId,
                 toUserId : fields.toUserId,
@@ -95,15 +80,7 @@ router.post("/", function(req, res) {
                 Expired : 'No', 
                 deliverAt: deliverAt,
                 lastDeliveredAt: 'Never'
-            }).then(function (Reminders) {
-                if(Reminders) {
-                console.log('new reminder created! ');
-                 res.status(200).send(Reminders);
-                }       
-            }).catch(function (err){
-                console.log('could not create new Reminder!');
-                res.status(500).send('Could not add the reminder, please contact admin ErroCode:' + err.parent.code);   
-            });
+            }));
   }))
 });
 
@@ -115,7 +92,7 @@ router.get("/:id", function(req, res) {
     if (!reminder) {
       throw { status: 404 };
     }
-    // A message may be viewed only by the sender, the receiver, or an admin.
+    // A reminder may be viewed only by the sender, the receiver, or an admin.
     if (!req.isAdmin && req.user.id != reminder.fromUserId && req.user.id != reminder.toUserId) {
       throw { status: 401 };
     }
@@ -123,14 +100,16 @@ router.get("/:id", function(req, res) {
   }));
 });
 
+
 // Delete Reminder by ID
 router.delete("/:id", function(req, res) {
+  console.log("in Delete Reminder for:" + req.params.id);    
   res.jsonResultOf(Reminders.findById(req.params.id)
   .then(function(reminder) {
     if (!reminder) {
       throw { status: 404 };
     }
-    // A message may be deleted only by the sender.
+    // A reminder may be deleted only by the sender.
     if (!req.isAdmin && req.user.id != reminder.fromUserId) {
       throw { status: 401 };
     }
@@ -138,29 +117,28 @@ router.delete("/:id", function(req, res) {
   }));
 });
 
-// Update message by ID.
+// Update reminder by ID.
 router.put("/:id", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
-    var fields = UPDATE_VALIDATOR.prevalidateUpdate(req.body);
+    var fields = VALIDATOR.prevalidateUpdate(req.body);
     resolve(Reminders.findById(req.params.id)
       .then(function(reminder) {
         if (!reminder) {
           throw { status: 404 };
         }
 
-        fields = UPDATE_VALIDATOR.postvalidateUpdate(reminder, fields);
-        console.log(reminder);
+        fields = VALIDATOR.postvalidateUpdate(reminder, fields);
         if (!fields) {
           return reminder;
         }
+    
+    var deliverAt = resloveDeliverDate(fields.deliverAt, fields.timeZone);
         
-        var date = new Date(fields.deliverAt);
-        
-        Reminders.updateAttributes({
-                assetId: fields.assetId
-                }).then(function(reminder) {
-                res.status(200).send('success');
-                });
+    return reminder.updateAttributes({
+        assetId: fields.assetId,
+        deliverAt: deliverAt ,
+        timeZone : fields.timeZone
+        });
       })
     );
   }))
