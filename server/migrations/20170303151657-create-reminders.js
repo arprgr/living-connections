@@ -17,7 +17,7 @@ module.exports = {
       },
       Repeat: {
         allowNull: false,
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
       Expired: {
         allowNull: false,
