@@ -8,11 +8,11 @@ requestlc.describe("Reminders API", function(client) {
     var fromUserId = 1;
 
     var seedProperties = {
-      dateStr: '2017-03-01T09:50:00.000Z',    
+      deliverAt: '2017-03-11T02:00:00-08:00',    
       assetId: 524,
       toUserId: 1,
       fromUserId: 1,    
-      repeat: 'Yes',
+      repeat: 1,
       timeZone: 'Pacific'    
     };
 
@@ -22,8 +22,7 @@ requestlc.describe("Reminders API", function(client) {
       client.makeRequest("POST", "/api/reminders").asUser(fromUserId).withData(seedProperties) 
       .getJson()
       .then(function(reminder) {
-        goodReminderId = reminder.id;
-        console.log('heres the good? reminder id:' + goodReminderId);  
+        goodReminderId = reminder.id;  
         done();
       })
       .catch(done);
@@ -61,10 +60,11 @@ requestlc.describe("Reminders API", function(client) {
       .catch(done);
     })
     
-     it("deletes the given  reminder id", function(done) {
-      delete(goodReminderId).asRoot().go()
-      .then(function(reminder) { 
-        expect(reminder.assetId).to.equal(goodReminderId);
+    it("deletes the given  reminder id", function(done) {     
+      client.makeRequest("DELETE", "/api/reminders/" + goodReminderId).asUser(fromUserId) 
+      .getJson()
+      .then(function(expector) {  
+         expect(expector).to.equal(1);
         done();
       })
       .catch(done);
@@ -103,6 +103,22 @@ requestlc.describe("Reminders API", function(client) {
       })
       .catch(done);
     });
+      
+    it("Creates a reminder for the given user Id", function(done) {
+      post({
+      deliverAt: '2017-03-11T02:00:00-08:00',    
+      assetId: 524,
+      toUserId: 1,
+      fromUserId: 1 ,    
+      repeat: 1,
+      timeZone: 'Pacific'
+      }).asUser(1).getJson()
+      .then(function(reminder) {  
+        expect(reminder.assetId).to.equal(524);
+        done();
+      })
+      .catch(done);
+    })  
 
   });
 });
