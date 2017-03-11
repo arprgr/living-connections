@@ -29,7 +29,8 @@ module.exports = function(sequelize, DataTypes) {
         type : DataTypes.STRING,
       },
       Repeat: { 
-        type : DataTypes.STRING,
+        type : DataTypes.INTEGER,
+        allowNull: false   
       }, 
       Expired: { 
         type : DataTypes.STRING,
@@ -57,28 +58,20 @@ module.exports = function(sequelize, DataTypes) {
     return Reminders.destroy({ where: {} });
   }
 
-  function destroyByUserAndPeerIds(fromUserId, toUserId) {
-    return Reminders.destroy({
-      where: {
-        fromUserId: fromUserId,
-        toUserId: toUserId
-      },
-    })
-  }
 
   function findByFromUserId(userId) {
     return Reminders.findAll({
       where: { fromUserId: userId },
       include: [{
-        model: models.User,
-        as: "fromUser",
-        required: true
-      }],
-      include: [{
         model: models.Users,
         as: "toUser",
         required: true
       },
+      {
+        model: models.Users,
+        as: "fromUser",
+        required: true
+      },            
       {
         model: models.Assets,
         as: "asset"  
@@ -95,6 +88,11 @@ module.exports = function(sequelize, DataTypes) {
         as: "toUser",
         required: true
       },
+      {
+        model: models.Users,
+        as: "fromUser",
+        required: true
+      },               
       {
         model: models.Assets,
         as: "asset"  
@@ -134,7 +132,6 @@ function destroyById(id) {
     classMethods: {
       associate: associate,
       destroyAll: destroyAll,
-      destroyByUserAndPeerIds: destroyByUserAndPeerIds,
       findByFromUserId: findByFromUserId,
       findByToUserId: findByToUserId,  
       findByFromUserAndToUserIds: findByFromUserAndToUserIds,
