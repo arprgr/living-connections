@@ -12,7 +12,7 @@ define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
           .attr("src", actionItem.iconUri))
         .append($("<div>")
           .addClass("title")
-          .text(actionItem.title))
+          .append(actionItem.title))
         .click(function() {
           if (self.isOpen) {
             self.invokePlugin("openActionItem", actionItem);

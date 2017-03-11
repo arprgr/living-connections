@@ -20,7 +20,7 @@ function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui)
 
       var titleLabel = new ui.Component("<span>", { cssClass: "title" }).setText("Living Connections");
       var userNameLabel = new ui.Component("<span>", { cssClass: "userName" });
-      var emailLabel = new ui.Component("<span>", { cssClass: "email" });
+      var emailLabel = new ui.Component("<span>", { cssClass: "hilite" });
       var logoutLink = new ui.Link("<a>", { cssClass: "logout" }).setText("Log out").addPlugin({
         click: function() {
           sessionManager.logOut();
