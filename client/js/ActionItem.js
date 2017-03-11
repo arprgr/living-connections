@@ -23,12 +23,22 @@ define([ "jquery" ], function($) {
     return "/img/" + actionItem.type + ".png";
   }
 
+  function span(text) {
+    var ele = $("<span>");
+    text && ele.text(text);
+    return ele;
+  }
+
+  function hilite(str) {
+    return span(str).addClass("hilite");
+  }
+
   function inviteNameAndEmail(invite) {
-    var str = invite.recipientName;
+    var ele = hilite(invite.recipientName);
     if (invite.ticket && invite.ticket.email) {
-      str += " <" + invite.ticket.email + ">";
+      ele = span().append(ele).append(span("<" + invite.ticket.email + ">"));
     }
-    return str;
+    return ele;
   }
 
   var actionProperty = {
@@ -47,33 +57,33 @@ define([ "jquery" ], function($) {
     get: function() {
       switch (this.type) {
       case "ann-rec":
-        return "Announcement from " + this.userName;
+        return span("Announcement from ").append(hilite(this.userName));
       case "ann-cre":
-        return "Make an announcement";
+        return span("Make an announcement");
       case "ann-upd":
-        return "Update announcement";
+        return span("Update announcement");
       case "gre-rec":
-        return "Message from " + this.userName;
+        return span("Message from ").append(hilite(this.userName));
       case "gre-cre":
-        return (this.isReply ? "Reply to " : "Send a videogram to ") + this.userName;
+        return span(this.isReply ? "Reply to " : "Send a videogram to ").append(hilite(this.userName));
       case "inv-rec":
-        return "Invitation from " + this.userName;
+        return span("Invitation from ").append(hilite(this.userName));
       case "inv-cre":
-        return "Invite someone to connect with you";
+        return span("Invite someone to connect with you");
       case "inv-upd":
-        return "Update invitation for " + inviteNameAndEmail(this.invite);
+        return span("Update invitation for ").append(inviteNameAndEmail(this.invite));
       case "pro-rec":
-        return "About " + this.userName + "...";
+        return span("About ").append(hilite(this.userName)).append(span("..."));
       case "pro-cre":
-        return "Tell other users about you!";
+        return span("Tell other users about you!");
       case "pro-upd":
-        return 'Update your "about you" message';
+        return span('Update your "about you" message');
       case "usr-cre":
-        return "Start by picking your user name";
+        return span("Start by picking your user name");
       case "usr-upd":
-        return "Change your user name";
+        return span("Change your user name");
       }
-      return "";
+      return span();
     }
   }
 
