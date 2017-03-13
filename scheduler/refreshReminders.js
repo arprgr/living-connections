@@ -1,8 +1,11 @@
 var models = require('../server/models/index');
 var Moment = require('moment-timezone');
+var async = require('async');
     
+ 
+function processReminders() {
     var currentDateTime = Date.now();
-    console.log('Refreshing reminders!! for ' + 'bridget.pillai@gmail.com' + 'at ' + currentDateTime);
+    var noOfMessagesCreated;
     
     models.Reminders.findAll({ attributes: ['id', 'status', 'deliverAt', 'timeZone', 'Repeat', 'Expired' , 'lastDeliveredAt'],
     where: {
@@ -14,7 +17,9 @@ var Moment = require('moment-timezone');
         else {   
          console.log('Found Reminders, refreshing!');
          console.log('** from refresh reminder: currentDateTime = ' + new Date(currentDateTime));      
-         Reminders.forEach(function (reminder) {
+        var arr = [1,2,3,4];
+        async.forEach(Reminders, 
+            function (reminder, callback) {
         var deliverAt = reminder.deliverAt;
         var timeZone = reminder.timeZone;
         var repeat = reminder.Repeat;
@@ -78,7 +83,7 @@ console.log("** from refresh reminder: currentDateTime = " + rightNow + "reminde
 
 console.log('*_*_* getting in to updates repeat=' + repeat + 'lastDeliveredAt=' + lastDeliveredAt);      
 
-if (repeat == 'Yes') {
+if (repeat == 1) {
     if (lastDeliveredAt != 'Never') {  
         
    console.log('This is a repeat reminder thats been sent before' + 'deliverhours:' + deliverAtHours + 'deliverAtMinute:' + deliverAtMinute + 'nowHours:' + nowHours + 'nowMinutes:' + nowMinutes + 'nowDate:' + nowDate + 'lastDeliveredAtDay:' + lastDeliveredAtDay);
@@ -86,17 +91,16 @@ if (repeat == 'Yes') {
     if (deliverAtHours == nowHours && deliverAtMinute <= nowMinutes+15 && nowDate > lastDeliveredAtDay) { 
       models.Reminders.update (
                 { 
-                        Repeat : 'Yes',
+                        Repeat : 1,
                         lastDeliveredAt : actualDeliveryDate,
                         
                 },
                     { where: {id: id}}         
                 ).then(function(affectedRows){
                     console.log('Updated repeat reminder' + affectedRows + ' rows');
-                }).catch(function (err){
-                console.log('could not update!');
-                res.status(500).send('Could not add the reminder, please contact admin ErroCode:' + err.parent.code);   
-               });
+                    noOfMessagesCreated += affectedRows;
+                    callback();
+                });
                }     
              }
     else {
@@ -104,12 +108,15 @@ console.log('This is a repeat reminder thats never been sent before' + 'deliverh
         if (deliverAtHours == nowHours && deliverAtMinute <= nowMinutes+15) { 
             models.Reminders.update (
                         { 
-                            Repeat : 'Yes',
+                            Repeat : 1,
                             lastDeliveredAt : actualDeliveryDate 
                          },
                         { where: {id: id}}         
                     ).then(function(affectedRows){
                         console.log('Updated repeat reminder' + affectedRows + ' rows');
+                        noOfMessagesCreated += affectedRows;
+                        callback();
+                
                     });
                 }    
 
@@ -130,6 +137,8 @@ if (deliverAtHours == nowHours && deliverAtMinute == nowMinutes && deliverAtDate
                                     { where: {id: id}}         
                                     ).then(function(affectedRows){
                             console.log('Updated one time reminder' + affectedRows + ' rows');
+                             noOfMessagesCreated += affectedRows; 
+                            callback();      
                          });
 
                      } 
@@ -137,10 +146,27 @@ if (deliverAtHours == nowHours && deliverAtMinute == nowMinutes && deliverAtDate
                   }      
 
 
-            });
+              }, function(err, results) {
+                    console.log('this is finally done');
+                   
+                    return('Success');
+    
+                }); // for each ends  here
   
        }
     });  
+ 
+}
+
+function RefreshReminders() {
+  
+}
+
+RefreshReminders.prototype = {
+  processReminders: function() {
+   processReminders(); 
+  },
+};
 
 
-    
+module.exports = RefreshReminders;
