@@ -152,11 +152,10 @@ div {
   float: right;
   padding-right: 4px;
 }
-#app a {
-  color: #670;
-}
-#app a.logout {
+#app .logout {
   color: #ccb098;
+  text-decoration: underline;
+  cursor: pointer;
 }
 #app a.logout:hover {
   color: #670;

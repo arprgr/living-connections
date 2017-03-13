@@ -22,7 +22,7 @@ function($,        ui,         Services) {
         .append($("<div>")
           .addClass("header")
           .append($("<div>").addClass("icon").append($("<img>").attr("src", actionItem.iconUri)))
-          .append($("<div>").addClass("title").append($("<span>").text(actionItem.title || "")))
+          .append($("<div>").addClass("title").append(actionItem.title))
           .append($("<div>").addClass("cancel")
             .append(exitButton.ele)
           )
