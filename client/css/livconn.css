@@ -225,8 +225,11 @@ div {
 .vidrec {
   position: relative;
 }
-div.video {
+div.videoPlayer {
   margin: auto;
+  position: relative;
+}
+div.video {
   position: relative;
 }
 div.video .counter {
@@ -236,6 +239,46 @@ div.video .counter {
   color: red;
   font-size: 24px;
   font-weight: bold;
+}
+div.video .overlay {
+  background-image: url(/img/playbutton.png);
+  background-repeat: no-repeat;
+  width: 25%;
+  height: 25%;
+  position: absolute;
+  left: 0%;
+  right: 0%;
+  top: 0%;
+  bottom: 0%;
+  margin: auto;
+  background-size: contain;
+  background-position: center;
+  opacity: .5;
+	-webkit-transition: opacity .3s;
+	-moz-transition: opacity .3s;
+	-o-transition: opacity .3s;
+	-ms-transition: opacity .3s;
+	transition: opacity .3s;
+}
+div.video .controls {
+  padding: 0 40px;
+  position: relative;
+}
+div.video button {
+  width: 30px;
+  height: 30px;
+}
+div.video button.restart {
+  position: absolute;
+  left: 0px;
+}
+div.video button.fullScreen {
+  position: absolute;
+  right: 0px;
+}
+div.video progress {
+  height: 30px;
+  width: 100%;
 }
 video {
   object-fit: contain;

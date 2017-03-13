@@ -14,17 +14,8 @@ define([ "jquery", "ui/button", "ui/component" ], function($, Button, Component)
 
       function playOrPause() {
         var video = self.videoElement;
-        if (video.paused) {
-          video.play();
-          self.playPauseButton.text = "Pause";
-        }
-        else {
-          video.pause();
-          self.playPauseButton.text = "Play";
-        }
+        video.paused ? video.play() : video.pause();
       }
-
-      self.playPauseButton = Button.create("Play", playOrPause);
 
       function fullScreen() {
         var video = self.videoElement;
@@ -38,7 +29,54 @@ define([ "jquery", "ui/button", "ui/component" ], function($, Button, Component)
         }
       }
 
-      self.fullScreenButton = Button.create("Full Screen", fullScreen);
+      function showPlaying() {
+        self.playOverlay.visible = false;
+      }
+
+      function showPaused() {
+        self.playOverlay.visible = true;
+      }
+
+      function showProgress() {
+        var video = self.videoElement;
+        var currentTime = video.currentTime || 0;
+        var duration = video.duration || 5;
+        var percentage = Math.floor((100 / duration) * currentTime);
+        self.progressBar.ele.val(percentage);
+        self.restartButton.enabled = currentTime > 0;
+      }
+
+      function restart() {
+        self.videoElement.currentTime = 0;
+        self.playOverlay.visible = true;
+        showProgress();
+      }
+
+      self.playOverlay = new Component("<div class='overlay'>").addPlugin({
+        onClick: playOrPause
+      });
+      self.restartButton = new Button("<button>", { cssClass: "restart" }).addPlugin({
+        onClick: restart
+      });
+      self.progressBar = new Component("<progress min='0' max='100' value='0'>");
+      self.fullScreenButton = new Button("<button>", { cssClass: "fullScreen" }).addPlugin({
+        onClick: fullScreen
+      });
+
+      // jQuery is unable to handle creation of video elements.
+      self.ele.html("<video></video>");
+      var video = self.videoElement;
+      video.addEventListener("click", playOrPause);
+      video.addEventListener("playing", showPlaying);
+      video.addEventListener("pause", showPaused);
+      video.addEventListener("ended", restart);
+      video.addEventListener("timeupdate", showProgress);
+
+      self.controls = new Component("<div class='controls'>");
+      self.controls.ele
+        .append(self.restartButton.ele)
+        .append(self.progressBar.ele)
+        .append(self.fullScreenButton.ele)
     }
 
     // The outer element is usually a div.  The div contains two elements: the video and a container
@@ -46,12 +84,9 @@ define([ "jquery", "ui/button", "ui/component" ], function($, Button, Component)
     c.defineInitializer(function() {
       var self = this;
       initControls(self);
-      // jQuery is unable to handle creation of video elements.
-      self.ele.html("<video></video>");
-      self.ele.append($("<div>")
-        .addClass("controls")
-        .append(self.playPauseButton.ele)
-        .append(self.fullScreenButton.ele) );
+      self.ele
+        .append(self.playOverlay.ele)
+        .append(self.controls.ele);
     });
 
     c.extendPrototype({
@@ -67,9 +102,8 @@ define([ "jquery", "ui/button", "ui/component" ], function($, Button, Component)
           self.ele.css("width", theVideo.videoWidth);
           promise.resolve(theVideo);
         }
-        theVideo.onerror = function() {
-          // Event object contains no useful information.
-          promise.reject();
+        theVideo.onerror = function(err) {
+          promise.reject(err);
         }
 
         var srcIsUrl = typeof src == "string";
@@ -77,8 +111,7 @@ define([ "jquery", "ui/button", "ui/component" ], function($, Button, Component)
         theVideo.srcObject = srcIsUrl ? null : src;
         theVideo.autoplay = options.autoplay || (!!src && !srcIsUrl);
         theVideo.muted = !srcIsUrl;
-        self.playPauseButton.visible = srcIsUrl;
-        self.fullScreenButton.visible = srcIsUrl;
+        self.controls.visible = srcIsUrl;
         if (src == null) {
           promise.resolve(theVideo);
         }
