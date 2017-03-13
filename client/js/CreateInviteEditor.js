@@ -142,7 +142,9 @@ function($,        Activity,     VideoRecorder,   ui) {
         }));
       },
       close: function() {
-        this.videoRecorder.close();
+        if (this.videoRecorder) {
+          this.videoRecorder.close();
+        }
         return this;
       }
     });

@@ -8,9 +8,6 @@ define([ "ui/component" ], function(Component) {
 
     c.defineInitializer(function() {
       var self = this;
-      self.ele.click(function() {
-        self.click();
-      });
       self.ele.on("keydown", function(event) {
         if (self.enabled && event.originalEvent.keyCode == 13) {
           self.click();
@@ -26,31 +23,6 @@ define([ "ui/component" ], function(Component) {
       },
       set: function(label) {
         this.text = label;
-      }
-    });
-
-    c.defineProperty("enabled", {
-      get: function() {
-        return !this.ele.attr("disabled");
-      },
-      set: function(enabled) {
-        enabled = !!enabled;
-        if (this.enabled != enabled) {
-          this.ele.attr("disabled", !enabled);
-        }
-      }
-    });
-
-    c.extendPrototype({
-      focus: function() {
-        this.ele.focus();
-        return this;
-      },
-      click: function() {
-        var self = this;
-        self.invokePlugin("click");   // deprecated
-        self.invokePlugin("onClick");
-        return self;
       }
     });
   });
