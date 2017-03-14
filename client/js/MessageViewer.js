@@ -26,11 +26,11 @@ function($,        Activity,     ui,       ActionItem,   Services) {
       button.container.appendTo(self.container.find(".buttons"));
     }
 
-    function addButtons(self, fromUser) {
+    function addSenderButtons(self, fromUser) {
       addButton(self, "Reply to " + fromUser.name, function() {
         self.openOther(new ActionItem({ id: "gre-cre", user: fromUser, isReply: 1 }));
       });
-      if (fromUser.asset) {
+      if (self.options.actionItem.topic != "pro" && fromUser.asset) {
         addButton(self, "See " + fromUser.name + "'s Profile", function() {
           self.openOther(new ActionItem({ id: "pro-rec", user: fromUser }));
         });
@@ -40,13 +40,17 @@ function($,        Activity,     ui,       ActionItem,   Services) {
     c.extendPrototype({
       open: function(actionItem) {
         var self = this;
-        var actionItem = self.options.actionItem;
-        var message = actionItem.message || actionItem.user;
-        self.videoPlayer.load(message.asset.url, { autoplay: true });
-        if (actionItem.user) {
-          addButtons(self, actionItem.user);
+        var actionItem = self.actionItem;
+
+        var asset = actionItem.message ? actionItem.message.asset : actionItem.user.asset;
+        self.videoPlayer.load(asset.url, { autoplay: true });
+
+        var sender = actionItem.user || actionItem.message.fromUser;
+        if (sender) {
+          addSenderButtons(self, sender);
         }
-        return Activity.prototype.open.call(self);
+
+        return self;
       }
     });
   });

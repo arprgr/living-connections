@@ -6,8 +6,8 @@ function( MessageViewer,  AnnouncementEditor,   GreetingEditor,   CreateInviteEd
   UpdateInviteEditor, ProfileEditor,   UserNameEditor,   InviteViewer) {
 
   function classForActionItem(actionItem) {
-    if (actionItem.what == "inv") {
-      switch (actionItem.action) {
+    if (actionItem.topic == "inv") {
+      switch (actionItem.aspect) {
       case "cre":
         return CreateInviteEditor;
       case "upd":
@@ -16,10 +16,10 @@ function( MessageViewer,  AnnouncementEditor,   GreetingEditor,   CreateInviteEd
         return InviteViewer;
       }
     }
-    if (actionItem.action == "rec") {
+    if (actionItem.aspect == "rec") {
       return MessageViewer;
     }
-    switch (actionItem.what) {
+    switch (actionItem.topic) {
     case "ann":
       return AnnouncementEditor;
     case "gre":

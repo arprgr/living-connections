@@ -21,7 +21,7 @@ function($,        ui,         Services) {
         .addClass("activity")
         .append($("<div>")
           .addClass("header")
-          .append($("<div>").addClass("icon").append($("<img>").attr("src", actionItem.iconUri)))
+          .append($("<div>").addClass("icon").append($("<img>").attr("src", actionItem.iconUrl)))
           .append($("<div>").addClass("title").append(actionItem.title))
           .append($("<div>").addClass("cancel")
             .append(exitButton.ele)
@@ -37,7 +37,7 @@ function($,        ui,         Services) {
 
     c.defineProperty("actionItem", {
       get: function() {
-        return this.options.actionItem;
+        return this.options.actionItem.raw;
       }
     });
 
@@ -47,8 +47,8 @@ function($,        ui,         Services) {
       },
 
       saveForm: function(data) {
-        var actionItem = this.actionItem;
-        return Services.apiService.saveForm(actionItem.what, actionItem.action, data)
+        var actionItem = this.options.actionItem;
+        return Services.apiService.saveForm(actionItem.topic, actionItem.aspect, data)
         .then(function() {
           Services.sessionManager.refreshNow();
         });

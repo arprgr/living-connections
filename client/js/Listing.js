@@ -9,7 +9,7 @@ define([ "jquery", "ui/index", "services" ], function($, ui, Services) {
         .addClass("item")
         .append($("<img>")
           .addClass("bigIcon")
-          .attr("src", actionItem.iconUri))
+          .attr("src", actionItem.iconUrl))
         .append($("<div>")
           .addClass("title")
           .append(actionItem.title))
