@@ -1,7 +1,7 @@
 // appui.js
 
-define([ "jquery", "services", "Login", "Listing", "activities", "waitanim", "ui/index" ],
-function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui) {
+define([ "jquery", "services", "Login", "Listing", "ActivityStarter", "waitanim", "ui/index" ],
+function($,        Services,   Login,   Listing,   ActivityStarter,   WaitAnim,   ui) {
 
   var NO_VID =
     "Sorry, this browser is not capable of sending and receiving Living Connections videograms.";
@@ -85,16 +85,14 @@ function($,        Services,   Login,   Listing,   Activities,   WaitAnim,   ui)
     }
 
     function Main_newActivity(self, actionItem) {
-      var ActivityClass = Activities.ClassForActionItem(actionItem);
-      return new ActivityClass($("<div>"), { actionItem: actionItem })
-        .addPlugin({
-          openOther: function(actionItem) {
-            Main_openActionItem(self, actionItem);
-          },
-          exit: function() {
-            Main_showListing(self);
-          }
-        });
+      return ActivityStarter.startActivityFor(actionItem).addPlugin({
+        openOther: function(actionItem) {
+          Main_openActionItem(self, actionItem);
+        },
+        exit: function() {
+          Main_showListing(self);
+        }
+      });
     }
 
     function Main_openActionItem(self, actionItem) {
