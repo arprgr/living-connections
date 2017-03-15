@@ -13,7 +13,8 @@ function($,        ui,         Services) {
 
     c.defineInitializer(function() {
       var self = this;
-      var actionItem = self.options.actionItem;
+      self.titleLabel = new ui.Component("<div>", { cssClass: "title" });
+      self.actionItem = self.options.actionItem;
       var exitButton = ui.Button.create(self.options.exitLinkText, function() {
         self.exit();
       });
@@ -21,8 +22,8 @@ function($,        ui,         Services) {
         .addClass("activity")
         .append($("<div>")
           .addClass("header")
-          .append($("<div>").addClass("icon").append($("<img>").attr("src", actionItem.iconUrl)))
-          .append($("<div>").addClass("title").append(actionItem.title))
+          .append($("<div>").addClass("icon").append($("<img>").attr("src", self.options.actionItem.iconUrl)))
+          .append(self.titleLabel.ele)
           .append($("<div>").addClass("cancel")
             .append(exitButton.ele)
           )
@@ -37,13 +38,27 @@ function($,        ui,         Services) {
 
     c.defineProperty("actionItem", {
       get: function() {
-        return this.options.actionItem.raw;
+        return this._actionItem.raw;
+      },
+      set: function(value) {
+        this._actionItem = value;
+        this.refreshTitle();
+      }
+    });
+
+    c.defineProperty("title", {
+      set: function(value) {
+        this.titleLabel.ele.html(value);
       }
     });
 
     c.extendPrototype({
       openOther: function(actionItem) {
         this.invokePlugin("openOther", actionItem);
+      },
+
+      refreshTitle: function() {
+        this.title = this._actionItem.title;
       },
 
       saveForm: function(data) {
