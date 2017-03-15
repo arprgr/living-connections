@@ -90,7 +90,7 @@ define([ "jquery", "Asset" ], function($, Asset) {
 
     Object.defineProperty(this, "iconUrl", {
       get: function() {
-        return (asset && asset.thumbnailUrl) || defaultIcon(idParts);
+        return (asset && asset.iconUrl) || defaultIcon(idParts);
       }
     });
 
