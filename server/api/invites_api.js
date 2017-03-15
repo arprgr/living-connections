@@ -158,6 +158,14 @@ router.post("/:id/accept", function(req, res) {
         return models.Connection.regrade(invite.fromUserId, invite.toUserId, 1);
       })
       .then(function() {
+        return models.Message.create({
+          assetId: invite.assetId,
+          toUserId: invite.toUserId,
+          fromUserId: invite.fromUserId,
+          type: models.Message.INVITE_TYPE
+        });
+      })
+      .then(function() {
         return invite;
       });
     }))

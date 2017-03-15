@@ -189,6 +189,9 @@ requestlc.describe("Invitation flow:", function(client) {
           expect(actionList).to.exist;
           var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
           expect(greetingAction).to.exist;
+          expect(greetingAction.thread).to.exist;
+          expect(greetingAction.thread.length).to.equal(1);
+          expect(greetingAction.thread[0].type).to.equal(1);
           done();
         })
         .catch(done);
