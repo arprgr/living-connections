@@ -2,6 +2,18 @@
 
 define([ "jquery", "Asset" ], function($, Asset) {
 
+  function wrap(data) {
+    for (var key in data) {
+      if (data.hasOwnProperty(key)) {
+        var val = data[key];
+        if (val && typeof val == "object") {
+          data[key] = key === "asset" ? new Asset(val) : wrap(val);
+        }
+      }
+    }
+    return data;
+  }
+
   function defaultIcon(idParts) {
     return "/img/" + idParts[0] + "-" + idParts[1] + ".png";
   }
@@ -66,9 +78,9 @@ define([ "jquery", "Asset" ], function($, Asset) {
   // Constructed by wrapping a JSON object.
   return function(data) {
     var idParts = data.id.split("-");
+    wrap(data);
 
     var asset = (data.message && data.message.asset) || (data.user && data.user.asset);
-    if (asset) asset = new Asset(asset);
 
     Object.defineProperty(this, "id", {
       get: function() {
