@@ -4,4 +4,13 @@ var async = require('async');
 
 const processReminderHandle = new refreshReminders() ;
 
-processReminderHandle.processReminders();
+ processReminderHandle.processReminders().then(function(result) {
+  
+     console.log(result);
+    
+})
+    
+
+    
+    
+    
