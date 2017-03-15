@@ -58,9 +58,6 @@ module.exports = (function() {
           return models.FacebookProfile.destroyAll();
         })
         .then(function() {
-          return models.Message.destroyAll();
-        })
-        .then(function() {
           return models.Asset.destroyAll();
         })
       );
@@ -69,3 +66,7 @@ module.exports = (function() {
 
   return router;
 })();
+
+/* .then(function() {
+          return models.Message.destroyAll();
+        })  */
