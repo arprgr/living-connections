@@ -45,7 +45,6 @@ function processReminders() {
         var rightNow = new Date(currentDateTime);
 
         if (process.env.NODE_ENV == "test") {  //set rightNow to the mock test date and time
-        var tk = require('timekeeper');
         rightNow = new Date('2030-01-01T02:00:00-05:00'); // January 1, 2030 02:00:00 GMT-0500
         }    
 
