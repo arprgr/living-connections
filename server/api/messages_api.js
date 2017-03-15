@@ -47,6 +47,22 @@ router.get("/:id", function(req, res) {
   }));
 });
 
+// Retrieve message by ID
+router.get("/CurrentReminders/:toUserId", function(req, res) {
+  res.jsonResultOf(Message.findCurrentRemindersforUser(req.params.toUserId, { deep: true })
+  .then(function(message) {
+    if (!message) {
+      throw { status: 404 };
+    }
+    // A message may be viewed only by the sender, the receiver, or an admin.
+    if (!req.isAdmin && req.user.id != message.fromUserId && req.user.id != message.toUserId) {
+      throw { status: 401 };
+    }
+    return message;
+  }));
+});
+
+
 // Delete message by ID
 router.delete("/:id", function(req, res) {
   res.jsonResultOf(Message.findById(req.params.id)
