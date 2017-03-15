@@ -1,6 +1,6 @@
 // ConnectionViewer.js - Component for recording and viewing messages to/from a connection.
 
-define([ "jquery", "Activity", "ui/index", "ActionItem", "services" ],
+define([ "jquery", "Activity", "ui/index", "ActionItem", "Services" ],
 function($,        Activity,     ui,       ActionItem,   Services) {
 
   return Activity.defineClass(function(c) {
@@ -9,16 +9,22 @@ function($,        Activity,     ui,       ActionItem,   Services) {
       var self = this;
       self.videoPlayer = new ui.Video(); 
 
-      self.container
+      self.ele
         .append($("<div>").addClass("body")
           .addClass("panel")
-          .append(self.videoPlayer.ele)
-          .append($("<div>").addClass("formsect").addClass("buttons")))
+          .append($("<div>")
+            .append($("<div>").addClass("buttons").css({ float: "left", width: 100 }))
+            .append(self.videoPlayer.ele))
+          )
+      self.videoPlayer.ele.css({ "margin": "auto" });
     });
 
-    function addThumb(self, message) {
-      var img = new ui.Image().setSrc(message.asset.thumbnailUrl);
-      img.ele.appendTo(self.ele.find(".buttons"));
+    function addThumb(self, url, onClick) {
+      var img = new ui.Image().setSrc(url);
+      img.ele.addClass("thumb").appendTo(self.ele.find(".buttons"));
+      img.addPlugin({
+        onClick: onClick
+      });
     }
 
     function addButton(self, label, onClick) {
@@ -27,8 +33,7 @@ function($,        Activity,     ui,       ActionItem,   Services) {
     }
 
     function addReplyButton(self, fromUser) {
-      addButton(self, "Reply to " + fromUser.name, function() {
-        self.openOther(new ActionItem({ id: "gre-cre", user: fromUser, isReply: 1 }));
+      addButton(self, "Reply", function() {
       });
     }
 
@@ -42,12 +47,15 @@ function($,        Activity,     ui,       ActionItem,   Services) {
           self.videoPlayer.load(latestMessage.asset.url, { autoplay: true });
         }
 
-        for (var i = 0; i < actionItem.thread.length; ++i) {
-          addThumb(self, actionItem.thread[i]);
-        }
+        addThumb(self, "/img/plus.png", function() {
+          console.log('clicked');
+        });
 
-        if (actionItem.user) {
-          addReplyButton(self, actionItem.user);
+        for (var i = 0; i < actionItem.thread.length; ++i) {
+          var message = actionItem.thread[i];
+          addThumb(self, actionItem.thread[i].asset.thumbnailUrl, function() {
+            console.log('clicked');
+          });
         }
 
         return self;
