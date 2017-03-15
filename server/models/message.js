@@ -200,9 +200,9 @@ module.exports = function(sequelize, DataTypes) {
     }, options);
   }
 
-  function findByUserIds(u1, u2, options) {
+  function findThread(u1, u2, options) {
     return findAllWhere({
-      "type": GREETING_TYPE,
+      "type": { "$in": [ GREETING_TYPE, INVITE_TYPE ] },
       "$or": [{
         "fromUserId": u1,
         "toUserId": u2
@@ -237,7 +237,7 @@ module.exports = function(sequelize, DataTypes) {
       findCurrentRemindersforSender: findCurrentRemindersforSender,      
       findById: findById,
       findByReceiver: findByReceiver,
-      findByUserIds: findByUserIds
+      findThread: findThread
     }
   });
 

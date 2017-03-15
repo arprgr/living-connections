@@ -46,7 +46,7 @@ function getAnnouncements(miner) {
 
 function makeThreadGetter(userId, other) {
   return function() {
-    return models.Message.findByUserIds(userId, other.user.id, {
+    return models.Message.findThread(userId, other.user.id, {
       limit: 5
     })
     .then(function(thread) {
