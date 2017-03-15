@@ -53,6 +53,12 @@ define([ "jquery", "Asset" ], function($, Asset) {
       return span("Make an announcement");
     case "ann-upd":
       return span("Update announcement");
+    case "con-new":
+      return span("Start a conversation with ").append(userName(data, [ "user" ]));
+    case "con-in":
+      return span("See videogram from ").append(userName(data, [ "user" ]));
+    case "con-out":
+      return span("Stay in touch with ").append(userName(data, [ "user" ]));
     case "gre-rec":
       return span("Message from ").append(userName(data, [ "user" ]));
     case "gre-cre":
@@ -80,7 +86,7 @@ define([ "jquery", "Asset" ], function($, Asset) {
     var idParts = data.id.split("-");
     wrap(data);
 
-    var asset = (data.message && data.message.asset) || (data.user && data.user.asset);
+    var asset = data.user ? data.user.asset : (data.message && data.message.asset);
 
     Object.defineProperty(this, "id", {
       get: function() {
