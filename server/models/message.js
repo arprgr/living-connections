@@ -12,7 +12,7 @@ module.exports = function(sequelize, DataTypes) {
   const ANNOUNCEMENT_TO_NEW_TYPE = 4;
   const REMINDER_TYPE = 5;
     
-  const MAX_TYPE = 4;
+  const MAX_TYPE = 5;
 
   function schema() {
     return {
@@ -167,6 +167,7 @@ module.exports = function(sequelize, DataTypes) {
     })
      
  }    
+    
 
  function findCurrentRemindersforSender (fromUserId) {
      return Message.findAll({
@@ -212,7 +213,7 @@ module.exports = function(sequelize, DataTypes) {
     return Message.destroy({ where: where });
   }
 
-  function destroyAll(id) {
+  function destroyAll() {
     return destroyWhere({});
   }
 
