@@ -95,6 +95,10 @@ requestlc.describe("Invitation flow:", function(client) {
     return client.makeRequest("POST", "/api/invites/" + inviteId + "/reject").asUser(userId).go();
   }
 
+  function setUserName(userId, name) {
+    return client.makeRequest("PUT", "/api/users/" + userId).asUser(userId).withData({ name: name }).getJson();
+  }
+
   // Create an invitation and its prerequisites.
   beforeEach(function(done) {
     createUser(TEST_SENDER_NAME)
@@ -133,8 +137,9 @@ requestlc.describe("Invitation flow:", function(client) {
 
   describe("Acting on an invite", function() {
 
-    var receiverActionResponse;
     var inviteAction;
+    var theSessionCookie;
+    var theActionResponse;
 
     beforeEach(function(done) {
       // Holder of the email account claims ticket.
@@ -144,27 +149,30 @@ requestlc.describe("Invitation flow:", function(client) {
       })
       .then(function(sessionCookie) {
         expect(sessionCookie).to.exist;
+        theSessionCookie = sessionCookie;
         return requestActionList(sessionCookie);
       })
       .then(function(actionResponse) {
-        receiverActionResponse = actionResponse;
-        inviteAction = findInviteAction(receiverActionResponse, theSender.id);
-        expect(inviteAction).to.exist;
+        expect(actionResponse.user).to.exist;
+        expect(actionResponse.user.id).to.exist;
+        expect(actionResponse.user.id).to.not.equal(theSender.id);
+        // User must set name to receive invite from the sender.
+        return setUserName(actionResponse.user.id, "Fred");
+      })
+      .then(function(user) {
+        expect(user.name).to.equal("Fred");
+        return requestActionList(theSessionCookie);
+      })
+      .then(function(actionResponse) {
+        theActionResponse = actionResponse;
+        inviteAction = findInviteAction(actionResponse, theSender.id);
         done();
       })
       .catch(done);
     });
 
-    it("logs in a new user", function(done) {
-      // Action list is expected to contain a message from the sender.
-      expect(receiverActionResponse.user).to.exist;
-      expect(receiverActionResponse.user.id).to.exist;
-      expect(receiverActionResponse.user.id).to.not.equal(theSender.id);
-      done();
-    });
-
     it("results in an item in the receiver's action list", function(done) {
-      // Action list is expected to contain a message from the sender.
+      expect(inviteAction).to.exist;
       expect(typeof inviteAction.id).to.equal("string");
       expect(inviteAction.id.substring(0, 7)).to.equal("inv-rec");
       done();
@@ -173,7 +181,7 @@ requestlc.describe("Invitation flow:", function(client) {
     describe("and accepting it", function() {
 
       beforeEach(function(done) {
-        acceptInvitation(inviteAction.invite.id, receiverActionResponse.user.id)
+        acceptInvitation(inviteAction.invite.id, theActionResponse.user.id)
         .then(function() {
           done();
         })
@@ -187,7 +195,7 @@ requestlc.describe("Invitation flow:", function(client) {
           expect(parseInt(actionResponse.user.id)).to.equal(theSender.id);
           var actionList = actionResponse.actionItems;
           expect(actionList).to.exist;
-          var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
+          var greetingAction = findGreetingAction(actionResponse, theActionResponse.user.id);
           expect(greetingAction).to.exist;
           expect(greetingAction.thread).to.exist;
           expect(greetingAction.thread.length).to.equal(1);
@@ -198,7 +206,7 @@ requestlc.describe("Invitation flow:", function(client) {
       });
 
       it("closes the invitation", function(done) {
-        requestActionList(receiverActionResponse.user.id, true)
+        requestActionList(theActionResponse.user.id, true)
         .then(function(newActionResponse) {
           inviteAction = findInviteAction(newActionResponse, theSender.id);
           expect(inviteAction).to.not.exist;
@@ -211,7 +219,7 @@ requestlc.describe("Invitation flow:", function(client) {
     describe("and rejecting it", function() {
 
       beforeEach(function(done) {
-        rejectInvitation(inviteAction.invite.id, receiverActionResponse.user.id)
+        rejectInvitation(inviteAction.invite.id, theActionResponse.user.id)
         .then(function() {
           done();
         })
@@ -219,7 +227,7 @@ requestlc.describe("Invitation flow:", function(client) {
       });
 
       it("closes the invitation", function(done) {
-        requestActionList(receiverActionResponse.user.id, true)
+        requestActionList(theActionResponse.user.id, true)
         .then(function(newActionResponse) {
           inviteAction = findInviteAction(newActionResponse, theSender.id);
           expect(inviteAction).to.not.exist;
@@ -235,7 +243,7 @@ requestlc.describe("Invitation flow:", function(client) {
           expect(parseInt(actionResponse.user.id)).to.equal(theSender.id);
           var actionList = actionResponse.actionItems;
           expect(actionList).to.exist;
-          var greetingAction = findGreetingAction(actionResponse, receiverActionResponse.user.id);
+          var greetingAction = findGreetingAction(actionResponse, theActionResponse.user.id);
           expect(greetingAction).to.not.exist;
           done();
         })

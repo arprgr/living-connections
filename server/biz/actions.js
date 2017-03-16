@@ -153,10 +153,12 @@ function addAnnouncementItems(compiler) {
 }
 
 function createActionItems(compiler) {
-  addConnectionItems(compiler);
-  addInvitationItems(compiler);
-  addAnnouncementItems(compiler);
   addProfileItems(compiler);
+  if (compiler.user.name) {
+    addConnectionItems(compiler);
+    addInvitationItems(compiler);
+    addAnnouncementItems(compiler);
+  }
 }
 
 function finalizeActionItems(compiler) {
