@@ -1,8 +1,8 @@
 // ActivityStarter.js - logic for selecting, creating, and initializing an activity.
 
-define([ "ConnectionViewer", "MessageViewer", "AnnouncementEditor", "GreetingEditor", "CreateInviteEditor",
+define([ "ConnectionViewer", "MessageViewer", "AnnouncementEditor", "CreateInviteEditor",
   "UpdateInviteEditor", "ProfileEditor", "UserNameEditor", "InviteViewer" ],
-function( ConnectionViewer,  MessageViewer,  AnnouncementEditor,   GreetingEditor,   CreateInviteEditor,
+function( ConnectionViewer,  MessageViewer,  AnnouncementEditor,   CreateInviteEditor,
   UpdateInviteEditor, ProfileEditor,   UserNameEditor,   InviteViewer) {
 
   function classForActionItem(actionItem) {
@@ -25,8 +25,6 @@ function( ConnectionViewer,  MessageViewer,  AnnouncementEditor,   GreetingEdito
     switch (actionItem.topic) {
     case "ann":
       return AnnouncementEditor;
-    case "gre":
-      return GreetingEditor;
     case "pro":
       return ProfileEditor;
     case "usr":

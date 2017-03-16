@@ -92,25 +92,6 @@ function getIncomingInvitations(miner) {
   })
 }
 
-/***
-  TEMPORARY DISABLE.  This means no greeting messages from other than connections for now.
-function getIncomingMessages(miner) {
-  return models.Message.findByReceiver(miner.user.id, { deep: 1 })
-  .then(function(messages) {
-    if (messages) {
-      for (var i = 0; i < messages.length; ++i) {
-        var msg = messages[i];
-        var other = openOther(miner, msg.fromUser);
-        if (!other.incomingMessage) {
-          other.incomingMessage = msg;
-        }
-      }
-    }
-    return null;   // avoid dangling promise warnings
-  });
-}
-***/
-
 Miner.prototype.run = function() {
   var miner = this;
   return exec.executeGroup(miner, [

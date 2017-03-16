@@ -7,7 +7,6 @@ const Message = require("../models/index").Message;
 
 const TOPIC_INVITATION = "inv";    // Ask another user to connect.
 const TOPIC_CONNECTION = "con";    // Stay in touch with another user.
-const TOPIC_GREETING = "gre";      // Say hi.  One time, immediate.
 const TOPIC_REMINDER = "rem";      // A message sent at a specific time, possibly repeating.
 const TOPIC_USER = "usr";          // Name and other details.
 const TOPIC_PROFILE = "pro";       // About me...
@@ -19,17 +18,14 @@ const ACTION_RECEIVE = "rec";      // Interact with an incoming message.
 
 const PROPERTIES = {
   "con": {
-    "in": { priority: 94 }
+    "in": { priority: 94 },
+    "out": { priority: 35 },
+    "new": { priority: 70 }
   },
   "rem": { 
     "rec": { priority: 95, },
     "cre": { priority: 66 },
     "upd": { priority: 1 }
-  },
-  "gre": {
-    "rec": { priority: 94, },
-    "cre": { priority: 70 },
-    "upd": { priority: 35 }
   },
   "inv": { 
     "rec": { priority: 93, },
@@ -95,22 +91,23 @@ function addActionItem(compiler, topic, action, data) {
 
 function addConnectionItems(compiler) {
   var others = compiler.others;
-  for (var userId in others) {
-    var other = others[userId];
+  for (var otherUserId in others) {
+    var other = others[otherUserId];
     var thread = other.thread;
-    if (thread) {
-      var topic = TOPIC_GREETING;
-      var action = ACTION_CREATE;
-      var data = {
-        user: other.user,
-        thread: thread
-      };
-      if (thread.length && thread[0].fromUserId == userId && thread[0].type == Message.GREETING_TYPE) {
-        action = "in";
-        topic = TOPIC_CONNECTION;
+    var aspect = "new";
+    var data = {
+      user: other.user,
+      thread: thread || []
+    };
+    if (thread && thread.length) {
+      if (thread[0].fromUserId == otherUserId) {
+        aspect = thread[0].type == Message.GREETING_TYPE ? "in" : "new";
       }
-      addActionItem(compiler, topic, action, data);
+      else {
+        aspect = "out";
+      }
     }
+    addActionItem(compiler, TOPIC_CONNECTION, aspect, data);
   }
 }
 

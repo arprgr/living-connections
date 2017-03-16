@@ -59,10 +59,6 @@ define([ "jquery", "Asset" ], function($, Asset) {
       return span("See videogram from ").append(userName(data, [ "user" ]));
     case "con-out":
       return span("Stay in touch with ").append(userName(data, [ "user" ]));
-    case "gre-rec":
-      return span("Message from ").append(userName(data, [ "user" ]));
-    case "gre-cre":
-      return span("Send a videogram to ").append(userName(data, [ "user" ]));
     case "inv-rec":
       return span("Invitation from ").append(userName(data, [ "invite", "fromUser" ]));
     case "inv-cre":

@@ -98,7 +98,6 @@ requestlc.describe("Actions related to connections", function(client) {
           return item.user && item.user.id == theUser2.id;
         });
         expect(greetingAction).to.exist;
-        expect(greetingAction.message).to.not.exist;
         expect(greetingAction.thread).to.exist;
         expect(greetingAction.thread.length).to.equal(3);
         done();
@@ -113,9 +112,8 @@ requestlc.describe("Actions related to connections", function(client) {
           return item.user && item.user.id == theUser1.id;
         });
         expect(greetingAction).to.exist;
-        expect(greetingAction.message).to.exist;
         expect(greetingAction.thread).to.exist;
-        expect(greetingAction.thread.length).to.equal(2);
+        expect(greetingAction.thread.length).to.equal(3);
         done();
       })
       .catch(done);

@@ -13,9 +13,12 @@ function($,        Activity,     ui,       ActionItem,   Services,   VideoRecord
         }).ele.appendTo(self.buttonPanel.ele);
       }
 
-      function toPlayState(index) {
-        var message = self.actionItem.thread[index];
-        self.videoPlayer.load(message.asset.url, { autoplay: true });
+      function toPlayState(index, autoplay) {
+        if (self.actionItem.thread && self.actionItem.thread.length > index) {
+          var message = self.actionItem.thread[index];
+          autoplay = autoplay || message.fromUserId == self.actionItem.user.id;
+          self.videoPlayer.load(message.asset.url, { autoplay: autoplay });
+        }
         self.videoRecorder.close();
         self.playerView.visible = true;
         self.videoRecorder.visible = false;
@@ -35,7 +38,7 @@ function($,        Activity,     ui,       ActionItem,   Services,   VideoRecord
         (function(i) {
           var message = self.actionItem.thread[i];
           addThumb(self, message.asset.thumbnailUrl, function() {
-            toPlayState(i);
+            toPlayState(i, true);
           });
         })(i);
       }
@@ -65,11 +68,8 @@ function($,        Activity,     ui,       ActionItem,   Services,   VideoRecord
 
     c.extendPrototype({
       open: function() {
-        var self = this;
-        if (self.actionItem.thread && self.actionItem.thread.length) {
-          self.toPlayState(0);
-        }
-        return self;
+        this.toPlayState(0);
+        return this;
       },
       saveMessage: function(assetId) {
         return this.saveForm({ toUserId: this.actionItem.user.id, assetId: assetId });
