@@ -40,7 +40,7 @@ define([ "jquery", "Asset" ], function($, Asset) {
   function inviteNameAndEmail(invite) {
     var ele = hilite(invite.recipientName);
     if (invite.ticket && invite.ticket.email) {
-      ele = span().append(ele).append(span("<" + invite.ticket.email + ">"));
+      ele = span().append(ele).append(span(" <" + invite.ticket.email + ">"));
     }
     return ele;
   }
