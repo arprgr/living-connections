@@ -1,168 +1,156 @@
-var models = require('../server/models/index');
-var Moment = require('moment-timezone');
-const Message = require("../server/models/index").Message;
+const models = require('../server/models/index');
+const Moment = require('moment-timezone');
+const exec = require('../server/util/exec');
 
-function insertMessage(reminder) {
-    var messageFields = {
-        type: 5,
-        status: 1,
-        fromUserId: 0,
-        toUserId: 0,
-        assetId: 0
+const A_FEW_MINUTES = 10;
+const ONE_DAY = 24*60 - A_FEW_MINUTES;
+
+function applyTimeZone(moment, timeZone) {
+
+  var tz;
+  switch (timeZone) {
+  case "Eastern":
+    tz = "America/New_York";
+    break;
+  case "Central":
+    tz = "America/Chicago";
+    break;
+  case "Mountain":
+    tz = "America/Denver";
+    break;
+  case "Pacific":
+    tz = "America/Los_Angeles";
+    break;
+  case "IST":
+    tz = "Asia/Kolkata";
+  }
+
+  if (tz) {
+    moment.tz(tz);
+  }
+  return moment;
+}
+
+function yetDue(targetTime, now) {
+  return now.diff(targetTime, "minutes") <= A_FEW_MINUTES;
+}
+
+function sameTimeToday(date, now) {
+  date = date.clone();
+  date.setYear(now.getYear());
+  date.setMonth(now.getMonth());
+  return date;
+}
+
+function sendRightNow(reminder, rightNow) {
+  var deliverAt = Moment(reminder.deliverAt);
+  if (!deliverAt.isValid()) {
+    console.error("bad delivery date", reminder.deliverAt);
+    return false;
+  }
+
+  var timeZone = reminder.timeZone;
+  var lastDeliveredAt = reminder.lastDeliveredAt;
+
+  // Ignore reminder that triggered within the last day.
+  if (lastDeliveredAt) {
+    lastDeliveredAt = Date.parse(lastDeliveredAt);
+    if (rightNow.diff(lastDeliveredAt, "minutes") < ONE_DAY) {
+      return false;
     }
-    
-    messageFields.fromUserId = reminder.fromUserId;
-    messageFields.toUserId = reminder.toUserId;
-    messageFields.assetId = reminder.assetId;
-    
-    Message.create(messageFields).then(function(message){
-    
+  }
+
+  // Is this reminder active yet?
+  // TODO: don't deliver reminders more than an hour late; instead, log and apologize.
+  deliverAt = applyTimeZone(Moment(deliverAt), timeZone);
+  if (!deliverAt || !yetDue(deliverAt, rightNow)) { 
+    return false;
+  }
+
+  if (reminder.repeat) {
+    // Put the time into the local time zone.
+    rightNow = applyTimeZone(rightNow, timeZone);
+    deliverAt = sameTimeToday(deliverAt, rightNow);
+    if (!yetDue(deliverAt, rightNow)) {
+      return false;
+    }
+  }
+  else {
+    // If the reminder does not repeat, send it only once.
+    if (lastDeliveredAt) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function remindersToSend(reminders, rightNow) {
+  var result = [];
+  reminders.forEach(function(reminder) {
+    if (sendRightNow(reminder, rightNow)) {
+      result.push(reminder);
+    }
+  });
+  return result;
+}
+
+function makeReminderSender(reminder, messagesSent) {
+  return function() {
+    return models.Message.create({
+      type: models.Message.REMINDER_TYPE,
+      fromUserId: reminder.fromUserId,
+      toUserId: reminder.toUserId,
+      assetId: reminder.assetId
+    })
+    .then(function(message) {
+      messagesSent.push(message);
+      return reminder.update({
+        expired: reminder.repeat ? 0 : 1,
+        lastDeliveredAt: new Date()
+      });
     });
-    
+  }
+}
+
+function mapToReminderSenders(remindersToSend, messagesSent) {
+  var result = [];
+  remindersToSend.forEach(function(reminder) {
+    result.push(makeReminderSender(reminder, messagesSent));
+  });
+  return result;
 }
 
 function processReminders() {
-    var currentDateTime = Date.now();
-    var noOfMessagesCreated = 0;
-    
+  var rightNow = Moment(this.date);
+
   return new Promise(function(resolve) {
-  resolve(models.Reminders.findAll({ attributes: ['id', 'status', 'deliverAt', 'timeZone', 'Repeat', 'Expired' , 'lastDeliveredAt', 'fromUserId', 'toUserId', 'assetId'],
-        where: {
-        $not: [ { Expired : 'Yes' } ]}
-            }).then(function(Reminders) {
-            if (!Reminders) {
-            throw { status: 401 };
-            }
-        else {   
-        Reminders.forEach(function (reminder) {
-        var deliverAt = reminder.deliverAt;
-        var timeZone = reminder.timeZone;
-        var repeat = reminder.Repeat;
-        var id = reminder.id;
-        var lastDeliveredAt = reminder.lastDeliveredAt ;
-        var expired = reminder.Expired;
-        var date = new Date(deliverAt);
-        var rightNow = new Date(currentDateTime);
+    var activeReminders = [];
+    var messagesSent = [];
 
-        if (process.env.NODE_ENV == "test") {  //set rightNow to the mock test date and time
-        rightNow = new Date('2030-01-01T02:00:00-05:00'); // January 1, 2030 02:00:00 GMT-0500
-        }    
-
-        var lastDeliveredAtDate; var actualDeliveryDate;
-
-        if (lastDeliveredAt != 'Never') { lastDeliveredAtDate = new Date(lastDeliveredAt) };
-
-        var newYorkTime = Moment.tz(date, "America/New_York");
-        var losAngeles = newYorkTime.clone().tz("America/Los_Angeles");
-        var centralAmerica = newYorkTime.clone().tz("America/Chicago");
-        var india = newYorkTime.clone().tz("Asia/Kolkata");    
-        var actualDeliveryDateNY = Moment.tz(rightNow, "America/New_York");
-
-
-        if (timeZone == "Eastern") {
-        deliverAt = newYorkTime.format();
-        actualDeliveryDate = actualDeliveryDateNY.format();
-        } ;
-
-        if (timeZone == "Central") {
-        deliverAt = centralAmerica.format();
-        actualDeliveryDate = actualDeliveryDateNY.clone().tz("America/Chicago").format();
-        } ;
-        if (timeZone == "Pacific") {
-        deliverAt = losAngeles.format();
-        actualDeliveryDate = actualDeliveryDateNY.clone().tz("America/Los_Angeles").format(); 
-        } ;
-        if (timeZone == "IST") {
-        deliverAt = india.format();
-        actualDeliveryDate = actualDeliveryDateNY.clone().tz("Asia/Kolkata").format();
-        } ;
-
-
-        var deliverAtHours = parseInt(date.getHours());
-        var deliverAtMinute = parseInt(date.getMinutes());
-        var deliverAtDate = parseInt(date.getDate());
-        var deliverAtMonth = parseInt(date.getMonth());
-        var deliverAtYear = parseInt(date.getFullYear());    
-
-        var nowHours = parseInt(rightNow.getHours());
-        var nowMinutes = parseInt(rightNow.getMinutes()) +15; // cover the next fifteen minutes
-        var nowDate = parseInt(rightNow.getDate());
-        var nowMonth = parseInt(rightNow.getMonth());
-        var nowYear = parseInt(rightNow.getFullYear());        
-
-        var lastDeliveredAtHours , lastDeliveredAtMinute, lastDeliveredAtDay, lastDeliveredAtMonth;
-
-        if (lastDeliveredAt != 'Never') {
-        lastDeliveredAtHours = parseInt(lastDeliveredAtDate.getHours());
-        lastDeliveredAtMinute = parseInt(lastDeliveredAtDate.getMinutes());
-        lastDeliveredAtDay = parseInt(lastDeliveredAtDate.getDate());
-        lastDeliveredAtMonth = parseInt(lastDeliveredAtDate.getMonth());
-        }
-
-
-
-if (repeat == 1) {
-    if (lastDeliveredAt != 'Never') {  
-        
-
-    if (deliverAtHours == nowHours && deliverAtMinute <= nowMinutes && rightNow > lastDeliveredAtDate && deliverAtYear <= nowYear  ) { 
-    models.Reminders.update (
-    { 
-        Repeat : 1,
-        lastDeliveredAt : actualDeliveryDate,
-
-    },
-    { where: {id: id}}         
-    ).then(function(affectedRows){
-
-    });
-    }     
-    }
-    else {
-    if (deliverAtHours == nowHours && deliverAtMinute <= nowMinutes && deliverAtYear <= nowYear ) { 
-    models.Reminders.update (
-    { 
-    Repeat : 1,
-    lastDeliveredAt : actualDeliveryDate 
-    },
-    { where: {id: id}}         
-    ).then(function(affectedRows){
-    });
-    }    
-
-    } 
-    } else {
-
-    if (deliverAtHours == nowHours && deliverAtMinute == nowMinutes && deliverAtDate == nowDate && deliverAtMonth == nowMonth && expired != 'Yes') { 
-    models.Reminders.update (
-    { 
-    Expired: 'Yes',
-    lastDeliveredAt : actualDeliveryDate
-    },
-    { where: {id: id}}         
-    ).then(function(affectedRows){
-    });
-
-    } 
-
-    }      
+    resolve(models.Reminder.findAll({
+      where: { expired: 0 }
     })
-    return('Batch Run Successfully');
-    }
-    }));
-    });
- 
+    .then(function(reminders) {
+      activeReminders = reminders;
+      reminderSenders = mapToReminderSenders(remindersToSend(reminders, rightNow), messagesSent);
+      return exec.executeGroup(this, reminderSenders);
+    })
+    .then(function() {
+      return {
+        activeReminders: activeReminders,
+        messagesSent: messagesSent
+      };
+    }))
+  });
 }
 
-function RefreshReminders() {
-  
+function RefreshReminders(date) {
+  this.date = date;
 }
 
 RefreshReminders.prototype = {
-  processReminders: function() {
-    return(processReminders()); 
-  },
+  processReminders: processReminders
 };
-
 
 module.exports = RefreshReminders;

@@ -11,7 +11,6 @@ module.exports = function(sequelize, DataTypes) {
   const ANNOUNCEMENT_TO_ALL_TYPE = 3;
   const ANNOUNCEMENT_TO_NEW_TYPE = 4;
   const REMINDER_TYPE = 5;
-    
   const MAX_TYPE = 5;
 
   function schema() {
@@ -165,17 +164,15 @@ module.exports = function(sequelize, DataTypes) {
       },
       {
         model: models.Asset,
-        as: "asset"  
-      }],     
+        as: "asset"
+      }],
       order: [ [ "createdAt", "ASC" ] ]
     })
-     
- }    
-    
+ }
 
  function findCurrentRemindersforSender (fromUserId) {
      return Message.findAll({
-          where: { fromUserId: fromUserId , type: REMINDER_TYPE },
+      where: { fromUserId: fromUserId , type: REMINDER_TYPE },
       include: [{
         model: models.User,
         as: "fromUser",
@@ -188,13 +185,12 @@ module.exports = function(sequelize, DataTypes) {
       },
       {
         model: models.Asset,
-        as: "asset"  
-      }],     
+        as: "asset"
+      }],
       order: [ [ "createdAt", "ASC" ] ]
     })
-     
- }     
-    
+ }
+
   function findByReceiver(toUserId, options) {
     return findAllWhere({
       "toUserId": toUserId
@@ -235,7 +231,7 @@ module.exports = function(sequelize, DataTypes) {
       findAnnouncements: findAnnouncements,
       findCurrentAnnouncementsForUser: findCurrentAnnouncementsForUser,
       findCurrentRemindersforUser: findCurrentRemindersforUser,
-      findCurrentRemindersforSender: findCurrentRemindersforSender,      
+      findCurrentRemindersforSender: findCurrentRemindersforSender,
       findById: findById,
       findByReceiver: findByReceiver,
       findThread: findThread

@@ -23,5 +23,4 @@ router.use("/tickets", require("./tickets_api"));
 router.use("/reminders", require("./reminders_api"));
 router.use("/threads", require("./threads_api"));
 
-
 module.exports = router;

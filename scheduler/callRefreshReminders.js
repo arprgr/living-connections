@@ -1,16 +1,11 @@
-var refreshReminders = require("./refreshReminders");
-var async = require('async');
+var RefreshReminders = require("./refreshReminders");
 
+const processReminderHandle = new RefreshReminders();
 
-const processReminderHandle = new refreshReminders() ;
-
- processReminderHandle.processReminders().then(function(result) {
-  
-     console.log(result);
-    
+processReminderHandle.processReminders()
+.then(function(result) {
+  console.log(result);
 })
-    
-
-    
-    
-    
+.catch(function(error) {
+  console.error(error);
+})
