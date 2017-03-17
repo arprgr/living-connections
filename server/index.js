@@ -105,6 +105,7 @@ if (CONFIG.env == "development") {
 server.use("/", require("./routers/alpha"));
 server.use("/api", require("./api"));
 server.use("/assets", require("./routers/assets"));
+server.use("/refreshReminders", require("./routers/refreshReminders"));
 
 function setAdminKey() {
   const random = require("./util/random");
