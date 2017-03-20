@@ -1,0 +1,76 @@
+<html>
+<head>
+	<link href="style.css" rel="stylesheet">
+	<script src="js/lib/jquery-3.1.1.slim.min.js"></script>
+</head>
+
+<!-- video -->
+
+<div id="video-container">
+	<video id ="video" width="640" height="365">
+		<source src="http://res.cloudinary.com/living-connections/video/upload/v1487886891/nbneeuh1wn34xqhcsjab.webm"> 
+	</video>
+	
+	<!--video controls -->
+	<div id="video-controls">
+		<button type="button" id="play-pause">Play</button>
+		<button type="button" id="full-screen">Full-Screen</button>
+		<progress id="progress-bar" min='0' max='100' value='0'>0% played</progress>
+	</div>
+</div>
+
+<script>
+
+window.onload = function() {
+	//initialize video from HTML markup
+	var video = document.getElementById("video");
+	var video = document.getElementsByTagName('video')[0];
+	video.removeAttribute('controls');
+	
+	//initialize buttons from HTML markup
+	var playButton = document.getElementById("play-pause");
+	var fullScreenButton = document.getElementById("full-screen");
+	var progressBar = document.getElementById('progress-bar');
+
+	//progress-bar
+	video.addEventListener('timeupdate', function() {
+		var percentage = Math.floor((100 / video.duration) * video.currentTime);
+		progressBar.value = percentage;
+		progressBar.innerHTML = percentage + '% played';
+	});
+
+	//play-pause button
+	video.addEventListener("click", function() {
+		if(video.paused==true) {
+			//play video
+			video.play();
+			//update button text to pause
+			playButton.innerHTML = "Pause";
+		} else {
+			//pause video
+			video.pause();
+			//update button text to play
+			playButton.innerHTML = "Play";
+		}
+	});
+
+	video.addEventListener('ended', function(){
+			playButton.innerHTML = "Play";
+			video.currentTime = '0';
+	});
+	
+	//full-screen button
+	fullScreenButton.addEventListener("click", function() {
+		//options based on browser
+		if(video.requestFullScreen) {
+			video.requestFullScreen;
+		} else if(video.mozRequestFullScreen) {
+			video.mozRequestFullScreen();
+		} else if(video.webkitRequestFullScreen) {
+			video.webkitRequestFullScreen();
+		}
+	});
+
+}
+</script>
+</html>

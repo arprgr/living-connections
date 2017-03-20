@@ -12,7 +12,7 @@ const DEFAULTS = {
     "livconn": {
       title: "Living Connections",
       stylesheet: "css/livconn.css",
-      mainModule: "appui"
+      mainModule: "App"
     }
   },
   defaultPage: "livconn",
@@ -23,8 +23,8 @@ const DEFAULTS = {
     }
   },
   auth: {
-        grantAdminToLocalRequest: false,
-        enableExtHeaderAccess: false
+    grantAdminToLocalRequest: false,
+    enableExtHeaderAccess: false
   },
   clientServiceConfigurations: {
     apiService: {
@@ -75,9 +75,9 @@ const OVERRIDES = {
       }
     },
     auth: {
-        grantAdminToLocalRequest: true,
-        enableExtHeaderAccess: true
-  },  
+      grantAdminToLocalRequest: true,
+      enableExtHeaderAccess: true
+    },  
     clientServiceConfigurations: {
       sessionManager: {
         config: {

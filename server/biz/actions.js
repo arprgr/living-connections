@@ -5,27 +5,27 @@ const when = require("../util/when");
 const Miner = require("./miner");
 const Message = require("../models/index").Message;
 
-const SUBJ_INVITATION = "inv";    // Ask another user to connect.
-const SUBJ_GREETING = "gre";      // Say hi.  One time, immediate.
-const SUBJ_REMINDER = "rem";      // A message sent at a specific time, possibly repeating.
-const SUBJ_USER = "usr";          // Name and other details.
-const SUBJ_PROFILE = "pro";       // About me...
-const SUBJ_ANNOUNCEMENT = "ann";  // A broadcast message, usually by the administrator.
+const TOPIC_INVITATION = "inv";    // Ask another user to connect.
+const TOPIC_CONNECTION = "con";    // Stay in touch with another user.
+const TOPIC_REMINDER = "rem";      // A message sent at a specific time, possibly repeating.
+const TOPIC_USER = "usr";          // Name and other details.
+const TOPIC_PROFILE = "pro";       // About me...
+const TOPIC_ANNOUNCEMENT = "ann";  // A broadcast message, usually by the administrator.
 
 const ACTION_CREATE = "cre";       // Create a message and a wrapper for it.
 const ACTION_UPDATE = "upd";       // Replace the message in a wrapper with a new one.
 const ACTION_RECEIVE = "rec";      // Interact with an incoming message.
 
 const PROPERTIES = {
+  "con": {
+    "in": { priority: 94 },
+    "out": { priority: 35 },
+    "new": { priority: 70 }
+  },
   "rem": { 
     "rec": { priority: 95, },
     "cre": { priority: 66 },
     "upd": { priority: 1 }
-  },
-  "gre": {
-    "rec": { priority: 94, },
-    "cre": { priority: 70 },
-    "upd": { priority: 35 }
   },
   "inv": { 
     "rec": { priority: 93, },
@@ -53,8 +53,13 @@ function byPriorityDesc(a, b) {
   return b.priority - a.priority;
 }
 
-function priorityOfSubjectAction(msg, action) {
-  return PROPERTIES[msg][action].priority;
+function priorityOfSubjectAction(topic, action) {
+  try {
+    return PROPERTIES[topic][action].priority;
+  }
+  catch (e) {
+    return 50;
+  }
 }
 
 function ActionCompiler(user) {
@@ -72,95 +77,93 @@ function findObjectId(data) {
   }
 }
 
-function addActionItem(compiler, msg, action, data) {
-  var id = msg + "-" + action;
+function addActionItem(compiler, topic, action, data) {
+  var id = topic + "-" + action;
   var objectId = findObjectId(data);
   if (objectId) {
     id += "-" + objectId;
   }
   compiler.actionItems.push(extend({
     id: id,
-    priority: priorityOfSubjectAction(msg, action)
+    priority: priorityOfSubjectAction(topic, action)
   }, data));
 }
 
 function addConnectionItems(compiler) {
   var others = compiler.others;
-  for (var userId in others) {
-    var other = others[userId];
-    var incomingMessage = other.incomingMessage;
-    if (incomingMessage) {
-      addActionItem(compiler,
-        incomingMessage.type == Message.INVITE_TYPE && !other.isConnection ? SUBJ_INVITATION : SUBJ_GREETING,
-        ACTION_RECEIVE, {
-          // Apparently sequelize model objects are immutable.  Didn't know that!
-          message: {
-            id: incomingMessage.id,
-            assetId: incomingMessage.assetId,
-            asset: incomingMessage.asset,
-            fromUser: other.user
-          }
-        });
+  for (var otherUserId in others) {
+    var other = others[otherUserId];
+    var thread = other.thread;
+    var aspect = "new";
+    var data = {
+      user: other.user,
+      thread: thread || []
+    };
+    if (thread && thread.length) {
+      if (thread[0].fromUserId == otherUserId) {
+        aspect = thread[0].type == Message.GREETING_TYPE ? "in" : "new";
+      }
+      else {
+        aspect = "out";
+      }
     }
-    else {
-      addActionItem(compiler, SUBJ_GREETING, ACTION_CREATE, {
-        user: other.user
-      });
-    }
+    addActionItem(compiler, TOPIC_CONNECTION, aspect, data);
   }
 }
 
 function addInvitationItems(compiler) {
   if (compiler.user.level <= 1 && compiler.user.name) {
-    addActionItem(compiler, SUBJ_INVITATION, ACTION_CREATE);
+    addActionItem(compiler, TOPIC_INVITATION, ACTION_CREATE);
   }
   var incomingInvitations = compiler.incomingInvitations;
   for (var i = 0; i < incomingInvitations.length; ++i) {
     var inv = incomingInvitations[i];
-    addActionItem(compiler, SUBJ_INVITATION, ACTION_RECEIVE, { invite: inv });
+    addActionItem(compiler, TOPIC_INVITATION, ACTION_RECEIVE, { invite: inv });
   }
   var outgoingInvitations = compiler.outgoingInvitations;
   for (var i = 0; i < outgoingInvitations.length; ++i) {
     var inv = outgoingInvitations[i];
-    addActionItem(compiler, SUBJ_INVITATION, ACTION_UPDATE, {
-      invite: {
-        id: inv.id,
-        name: inv.recipientName,
-        assetId: inv.message && inv.message.assetId,
-        asset: inv.message && inv.message.asset
-      }
+    addActionItem(compiler, TOPIC_INVITATION, ACTION_UPDATE, {
+      invite: inv
     });
   }
 }
 
 function addProfileItems(compiler) {
-  addActionItem(compiler, SUBJ_PROFILE, compiler.user.asset ? ACTION_UPDATE : ACTION_CREATE, {
+  addActionItem(compiler, TOPIC_PROFILE, compiler.user.asset ? ACTION_UPDATE : ACTION_CREATE, {
     user: compiler.user
   });
-  addActionItem(compiler, SUBJ_USER, compiler.user.name ? ACTION_UPDATE : ACTION_CREATE);
+  addActionItem(compiler, TOPIC_USER, compiler.user.name ? ACTION_UPDATE : ACTION_CREATE);
 }
 
 function addAnnouncementItems(compiler) {
   var isAdmin = compiler.user.level <= 0;
   if (isAdmin) {
-    addActionItem(compiler, SUBJ_ANNOUNCEMENT, ACTION_CREATE);
+    addActionItem(compiler, TOPIC_ANNOUNCEMENT, ACTION_CREATE);
   }
   var announcements = compiler.announcements;
   for (var i = 0; i < announcements.length; ++i) {
     var ann = announcements[i];
     if (ann.creatorId != compiler.user.id || !isAdmin) {
-      addActionItem(compiler, SUBJ_ANNOUNCEMENT, isAdmin ? ACTION_UPDATE : ACTION_RECEIVE, {
+      addActionItem(compiler, TOPIC_ANNOUNCEMENT, isAdmin ? ACTION_UPDATE : ACTION_RECEIVE, {
         message: ann
       });
     }
   }
 }
 
+function addReminderItems(compiler) {
+  addActionItem(compiler, TOPIC_REMINDER, ACTION_CREATE);
+}
+
 function createActionItems(compiler) {
-  addConnectionItems(compiler);
-  addInvitationItems(compiler);
-  addAnnouncementItems(compiler);
   addProfileItems(compiler);
+  if (compiler.user.name) {
+    addConnectionItems(compiler);
+    addInvitationItems(compiler);
+    addAnnouncementItems(compiler);
+    addReminderItems(compiler);
+  }
 }
 
 function finalizeActionItems(compiler) {

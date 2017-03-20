@@ -11,7 +11,6 @@ module.exports = function(sequelize, DataTypes) {
   const ANNOUNCEMENT_TO_ALL_TYPE = 3;
   const ANNOUNCEMENT_TO_NEW_TYPE = 4;
   const REMINDER_TYPE = 5;
-    
   const MAX_TYPE = 5;
 
   function schema() {
@@ -114,6 +113,9 @@ module.exports = function(sequelize, DataTypes) {
       query.where.startDate = { "$lte": date };
       query.where.endDate = { "$gt": date };
     }
+    if (options && options.before) {
+      query.where.updatedAt = { "$lt": options.before };
+    }
     if (options && options.limit) {
       query.limit = options.limit;
     }
@@ -129,7 +131,8 @@ module.exports = function(sequelize, DataTypes) {
         "type": ANNOUNCEMENT_TO_NEW_TYPE
       }],
     }, {
-      deep: 1
+      deep: 1,
+      current: 1
     });
   }
 
@@ -161,17 +164,15 @@ module.exports = function(sequelize, DataTypes) {
       },
       {
         model: models.Asset,
-        as: "asset"  
-      }],     
+        as: "asset"
+      }],
       order: [ [ "createdAt", "ASC" ] ]
     })
-     
- }    
-    
+ }
 
  function findCurrentRemindersforSender (fromUserId) {
      return Message.findAll({
-          where: { fromUserId: fromUserId , type: REMINDER_TYPE },
+      where: { fromUserId: fromUserId , type: REMINDER_TYPE },
       include: [{
         model: models.User,
         as: "fromUser",
@@ -184,21 +185,21 @@ module.exports = function(sequelize, DataTypes) {
       },
       {
         model: models.Asset,
-        as: "asset"  
-      }],     
+        as: "asset"
+      }],
       order: [ [ "createdAt", "ASC" ] ]
     })
-     
- }     
-    
+ }
+
   function findByReceiver(toUserId, options) {
     return findAllWhere({
       "toUserId": toUserId
     }, options);
   }
 
-  function findByUserIds(u1, u2, options) {
+  function findThread(u1, u2, options) {
     return findAllWhere({
+      "type": { "$in": [ GREETING_TYPE, INVITE_TYPE ] },
       "$or": [{
         "fromUserId": u1,
         "toUserId": u2
@@ -230,10 +231,10 @@ module.exports = function(sequelize, DataTypes) {
       findAnnouncements: findAnnouncements,
       findCurrentAnnouncementsForUser: findCurrentAnnouncementsForUser,
       findCurrentRemindersforUser: findCurrentRemindersforUser,
-      findCurrentRemindersforSender: findCurrentRemindersforSender,      
+      findCurrentRemindersforSender: findCurrentRemindersforSender,
       findById: findById,
       findByReceiver: findByReceiver,
-      findByUserIds: findByUserIds
+      findThread: findThread
     }
   });
 

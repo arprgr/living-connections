@@ -1,0 +1,177 @@
+.video {
+	width: 100%;
+	border: 1px solid black;
+}
+
+#video-container {
+	width: 640px;
+	height: 365px;
+	position: relative;
+}
+
+#video-controls {
+	width: 640px;
+	height: 15px;
+	position: relative;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	padding: 10px;
+	opacity: .9;
+	-webkit-transition: opacity .3s;
+	-moz-transition: opacity .3s;
+	-o-transition: opacity .3s;
+	-ms-transition: opacity .3s;
+	transition: opacity .3s;
+	background-image: linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);
+	background-image: -o-linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);
+	background-image: -moz-linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);	
+	background-image: -webkit-linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);
+	background-image: -ms-linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);	
+	background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.13, rgb(3,113,168)), color-stop(1, rgb(0,136,204)));
+}
+
+#progress-bar {
+	width: 550px;
+}
+
+/* need this for onscreen play button */
+#playpause{
+	background-image:url(http://www.clipartbest.com/cliparts/niX/ng4/niXng476T.png);
+    background-repeat:no-repeat;
+    width:30%;
+    height:30%;
+    position:absolute;
+    left:0%;
+    right:0%;
+    top:0%;
+    bottom:0%;
+    margin:auto;
+    background-size:contain;
+    background-position: center;
+    opacity: .5;
+	-webkit-transition: opacity .3s;
+	-moz-transition: opacity .3s;
+	-o-transition: opacity .3s;
+	-ms-transition: opacity .3s;
+	transition: opacity .3s;
+}
+
+/* need this for onscreen play button */
+#video-container:hover #playpause {
+	opacity: .9;
+}
+
+/* need this for replay button */
+#replay{
+	background-image:url(https://img.clipartfest.com/7ace9aeaa6afa981c7743fa4856db1fc_-replayjpg-replay-clipart_900-900.png);
+    background-repeat:no-repeat;
+    width:30%;
+    height:30%;
+    position:absolute;
+    left:0%;
+    right:0%;
+    top:0%;
+    bottom:0%;
+    margin:auto;
+    background-size:contain;
+    background-position: center;
+    opacity: .5;
+	-webkit-transition: opacity .3s;
+	-moz-transition: opacity .3s;
+	-o-transition: opacity .3s;
+	-ms-transition: opacity .3s;
+	transition: opacity .3s;
+}
+
+/* need this for replay button */
+#video-container:hover #replay {
+	opacity: .9;
+}
+
+/* need this for fullscreen button */
+#full-screen{
+	background-image:url(fullscreenicon.png);
+    background-repeat:no-repeat;
+    width:5%;
+    height:5%;
+    position:absolute;
+    right:3%;
+    bottom:5%;
+    margin:auto;
+    background-size:contain;
+    background-position: right;
+    opacity: .9;
+	-webkit-transition: opacity .3s;
+	-moz-transition: opacity .3s;
+	-o-transition: opacity .3s;
+	-ms-transition: opacity .3s;
+	transition: opacity .3s;
+}
+
+/* need this for fullscreen button 
+#video-container:hover #full-screen {
+	opacity: .9;
+} */
+
+/* need this for on screen video controls 
+#video-controls {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	padding: 10px;
+	opacity: .9;
+	-webkit-transition: opacity .3s;
+	-moz-transition: opacity .3s;
+	-o-transition: opacity .3s;
+	-ms-transition: opacity .3s;
+	transition: opacity .3s;
+	background-image: linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);
+	background-image: -o-linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);
+	background-image: -moz-linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);	
+	background-image: -webkit-linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);
+	background-image: -ms-linear-gradient(bottom, rgb(3,113,168) 13%, rgb(0,136,204) 100%);	
+	background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.13, rgb(3,113,168)), color-stop(1, rgb(0,136,204)));
+} */
+
+/* need this for on screen video controls 
+#video-container:hover #video-controls {
+	opacity: .9;
+} */
+
+button {
+	background:rgba(255,0,0,0.3);
+	border: 0;
+	padding: 15px;	
+	color: #EEE;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	-o-border-radius: 10px;
+	border-radius: 3px;
+	vertical align: middle;
+	text-align: center;
+}
+
+button:hover {
+	cursor: pointer;
+}
+
+::-webkit-slider-thumb
+::-moz-range-track
+::-moz-range-thumb
+::-webkit-media-controls {
+	display:none !important;
+}
+
+video::-webkit-media-controls {
+	display:none !important;
+}
+
+video::-webkit-media-controls-enclosure {
+	display:none !important;
+}
+
+.custom-video-controls {
+	z-index: 2147483647;
+}

@@ -1,6 +1,6 @@
 // api.js - ApiService
 
-define([ "http" ], function(HttpMethod) {
+define([ "util/HttpMethod" ], function(HttpMethod) {
 
   function makePostAnnouncement() {
     var PostAnnouncementMethod = new HttpMethod.PostForm()
@@ -152,10 +152,7 @@ define([ "http" ], function(HttpMethod) {
         "upd": makeUpdateAnnouncement(),
         "del": makeDeleteAnnouncement()
       },
-      "gre": {
-        "cre": makePostGreeting(),
-        "upd": makeUpdateGreeting()
-      },
+      "con": makePostGreeting(),
       "inv": {
         "cre": makePostInvite(),
         "upd": makeUpdateInvite(),
@@ -195,7 +192,8 @@ define([ "http" ], function(HttpMethod) {
     },
 
     saveForm: function(what, action, form) {
-      return this.saveMethods[what][action](form);
+      var spec = this.saveMethods[what];
+      return typeof spec == "function" ? spec(form) : spec[action](form);
     },
 
     acceptInvite: function(id) {
@@ -204,6 +202,10 @@ define([ "http" ], function(HttpMethod) {
 
     rejectInvite: function(id) {
       return new ActOnInviteMethod().setId(id).setAct("reject").execute();
+    },
+
+    resendInvite: function(id) {
+      return new ActOnInviteMethod().setId(id).setAct("resend").execute();
     },
 
     updateUser: function(id, name) {

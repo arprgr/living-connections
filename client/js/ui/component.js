@@ -17,22 +17,27 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
   }
 
   function Component(ele, options) {
-    var proto = Object.getPrototypeOf(this);
+    var self = this;
+    var proto = Object.getPrototypeOf(self);
     ele = ele || proto.DEFAULT_CONTAINER;
     if (typeof ele === "string") {
       ele = $(ele);
     }
     options = $.extend({}, proto.DEFAULT_OPTIONS, options);
 
-    Observable.call(this);
-    this._ele = ele;
-    this._visible = true;
-    this._options = options;
-    this._plugins = [];
-    this._serial = serial++;
+    Observable.call(self);
+    self._ele = ele;
+    self._visible = true;
+    self._options = options;
+    self._plugins = [];
+    self._serial = serial++;
 
     addCssClasses(ele, options.cssClass);
     addCssClasses(ele, options.cssClasses);
+
+    ele.click(function() {
+      self.click();
+    });
   }
 
   Component.prototype = $.extend(Object.create(Observable.prototype), {
@@ -73,6 +78,16 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
       return this;
     },
     close: function() {
+      return this;
+    },
+
+    focus: function() {
+      this.ele.focus();
+      return this;
+    },
+
+    click: function() {
+      this.invokePlugin("onClick");
       return this;
     }
   });
@@ -126,6 +141,17 @@ define([ "jquery", "ui/observable" ], function($, Observable) {
         visible ? self.ele.show() : self.ele.hide();
       }
       return self;
+    }
+  });
+  defineComponentProperty("enabled", {
+    get: function() {
+      return !this.ele.attr("disabled");
+    },
+    set: function(enabled) {
+      enabled = !!enabled;
+      if (this.enabled != enabled) {
+        this.ele.attr("disabled", !enabled);
+      }
     }
   });
 

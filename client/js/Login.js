@@ -1,4 +1,4 @@
-// loginui.js
+// Login.js - Login component.
 
 define([ "jquery", "ui/index", "fbbutton",     "waitanim", "services" ],
 function($,        ui,         FacebookButton, WaitAnim,   Services) {

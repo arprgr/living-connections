@@ -1,15 +1,92 @@
 // video.js - Video component.
 // Sourced by either string (URL) or stream.
+// Has custom controls.
 
-define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Observable) {
+define([ "jquery", "ui/button", "ui/component" ], function($, Button, Component) {
 
   return Component.defineClass(function(c) {
 
+    c.defineDefaultOptions({
+      cssClass: "video"
+    });
+
+    function initControls(self) {
+
+      function playOrPause() {
+        var video = self.videoElement;
+        video.paused ? video.play() : video.pause();
+      }
+
+      function fullScreen() {
+        var video = self.videoElement;
+        //options based on browser
+        if(video.requestFullScreen) {
+          video.requestFullScreen;
+        } else if(video.mozRequestFullScreen) {
+          video.mozRequestFullScreen();
+        } else if(video.webkitRequestFullScreen) {
+          video.webkitRequestFullScreen();
+        }
+      }
+
+      function showPlaying() {
+        self.playOverlay.visible = false;
+      }
+
+      function showPaused() {
+        self.playOverlay.visible = true;
+      }
+
+      function showProgress() {
+        var video = self.videoElement;
+        var currentTime = video.currentTime || 0;
+        var duration = video.duration || 5;
+        var percentage = Math.floor((100 / duration) * currentTime);
+        self.progressBar.ele.val(percentage);
+        self.restartButton.enabled = currentTime > 0;
+      }
+
+      function restart() {
+        self.videoElement.currentTime = 0;
+        self.playOverlay.visible = true;
+        showProgress();
+      }
+
+      self.playOverlay = new Component("<div class='overlay'>").addPlugin({
+        onClick: playOrPause
+      });
+      self.restartButton = new Button("<button>", { cssClass: "restart" }).addPlugin({
+        onClick: restart
+      });
+      self.progressBar = new Component("<progress min='0' max='100' value='0'>");
+      self.fullScreenButton = new Button("<button>", { cssClass: "fullScreen" }).addPlugin({
+        onClick: fullScreen
+      });
+
+      // jQuery is unable to handle creation of video elements.
+      self.ele.html("<video></video>");
+      var video = self.videoElement;
+      video.addEventListener("click", playOrPause);
+      video.addEventListener("playing", showPlaying);
+      video.addEventListener("pause", showPaused);
+      video.addEventListener("ended", restart);
+      video.addEventListener("timeupdate", showProgress);
+
+      self.controls = new Component("<div class='controls'>");
+      self.controls.ele
+        .append(self.restartButton.ele)
+        .append(self.progressBar.ele)
+        .append(self.fullScreenButton.ele)
+    }
+
+    // The outer element is usually a div.  The div contains two elements: the video and a container
+    // for controls.
     c.defineInitializer(function() {
       var self = this;
-      self.state = new Observable(0);
-      // jQuery is unable to handle creation of video elements.
-      self.container.addClass("vid").html("<video></video>");
+      initControls(self);
+      self.ele
+        .append(self.playOverlay.ele)
+        .append(self.controls.ele);
     });
 
     c.extendPrototype({
@@ -19,36 +96,22 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
         var promise = $.Deferred();
         var theVideo = self.videoElement;
 
-        self.state.setValue(0);
         theVideo.onloadedmetadata = function() {
-          self.state.setValue(1);
           // Set the width of the container to match the intrinsic width of the video.
           // This enables us to center the container using margin: auto.
           self.ele.css("width", theVideo.videoWidth);
+          promise.resolve(theVideo);
         }
-        theVideo.onerror = function() {
-          // Event object contains no useful information.
-          self.state.setValue(-1);
-        }
-
-        if (src != null) {
-          var undoer = self.state.addChangeListener(function() {
-            if (self.state.value == 1) {
-              promise.resolve(theVideo);
-            }
-            else {
-              promise.reject();
-            }
-            undoer.undo();
-          });
+        theVideo.onerror = function(err) {
+          promise.reject(err);
         }
 
         var srcIsUrl = typeof src == "string";
         theVideo.src = srcIsUrl ? src : "";
         theVideo.srcObject = srcIsUrl ? null : src;
         theVideo.autoplay = options.autoplay || (!!src && !srcIsUrl);
-        theVideo.controls = srcIsUrl;
         theVideo.muted = !srcIsUrl;
+        self.controls.visible = srcIsUrl;
         if (src == null) {
           promise.resolve(theVideo);
         }
@@ -67,7 +130,7 @@ define([ "jquery", "ui/component", "ui/observable" ], function($, Component, Obs
 
     c.defineProperty("videoElement", {
       get: function() {
-        return this.container[0].children[0];
+        return this.ele[0].children[0];
       }
     });
   });

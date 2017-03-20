@@ -42,6 +42,16 @@ router.get("/:id", function(req, res) {
   }));
 });
 
+function sendInvitationEmail(req, invite, ticket, toEmail) {
+  var emailPromise = admittance.sendInvitationEmail(req, invite, ticket, toEmail);
+  if (CONFIG.env == "test") {
+    return emailPromise.then(function() {
+      return invite;
+    });
+  }
+  return invite;
+}
+
 // Create an invite.
 router.post("/", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
@@ -75,13 +85,7 @@ router.post("/", function(req, res) {
           .build();
       })
       .then(function(invite) {
-        var emailPromise = admittance.sendInvitationEmail(req, invite, theTicket, fields.email);
-        if (CONFIG.env == "test") {
-          return emailPromise.then(function() {
-            return invite;
-          });
-        }
-        return invite;
+        return sendInvitationEmail(req, invite, theTicket, fields.email);
       })
     }));
   }));
@@ -154,6 +158,14 @@ router.post("/:id/accept", function(req, res) {
         return models.Connection.regrade(invite.fromUserId, invite.toUserId, 1);
       })
       .then(function() {
+        return models.Message.create({
+          assetId: invite.assetId,
+          toUserId: invite.toUserId,
+          fromUserId: invite.fromUserId,
+          type: models.Message.INVITE_TYPE
+        });
+      })
+      .then(function() {
         return invite;
       });
     }))
@@ -174,6 +186,22 @@ router.post("/:id/reject", function(req, res) {
       return invite.updateAttributes({
         state: 3
       });
+    }));
+  }));
+});
+
+// Resend the invite.
+router.post("/:id/resend", function(req, res) {
+  res.jsonResultOf(new Promise(function(resolve) {
+    resolve(Invite.findById(req.params.id, { deep: 1 })
+    .then(function(invite) {
+      if (!invite) {
+        throw { status: 404 };
+      }
+      if (!req.isAdmin && req.user.id != invite.fromUserId) {
+        throw { status: 401 };
+      }
+      return sendInvitationEmail(req, invite, invite.ticket, invite.ticket.email);
     }));
   }));
 });

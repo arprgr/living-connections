@@ -1,6 +1,6 @@
 // ProfileEditor.js - Profile video editor
 
-define([ "jquery", "activityui", "ui/index", "VideoRecorder" ],
+define([ "jquery", "Activity", "ui/index", "VideoRecorder" ],
 function($,        Activity,     ui,         VideoRecorder) {
 
   return Activity.defineClass(function(c) {

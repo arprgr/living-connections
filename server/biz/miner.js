@@ -44,14 +44,29 @@ function getAnnouncements(miner) {
   });
 }
 
+function makeThreadGetter(userId, other) {
+  return function() {
+    return models.Message.findThread(userId, other.user.id, {
+      limit: 5
+    })
+    .then(function(thread) {
+      other.thread = thread;
+    });
+  };
+}
+
 function getConnections(miner) {
-  return models.Connection.findByUserId(miner.user.id)
+  return models.Connection.findByUserId(miner.user.id, { deep: 1 })
   .then(function(connections) {
     if (connections) {
+      var threadGetters = [];
       for (var i = 0; i < connections.length; ++i) {
-        var conn = connections[i];
-        openOther(miner, conn.peer).isConnection = true;
+        var connection = connections[i];
+        var other = openOther(miner, connection.peer);
+        other.isConnection = true;
+        threadGetters.push(makeThreadGetter(miner.user.id, other));
       }
+      return exec.executeGroup(miner, threadGetters);
     }
     return null;
   });
@@ -60,7 +75,7 @@ function getConnections(miner) {
 function getOutgoingInvitations(miner) {
   return models.Invite.findByFromUserId(miner.user.id, {
     deep: 1,
-    excludeRejected: 1
+    excludeClosed: 1
   })
   .then(function(invites) {
     return miner.outgoingInvitations = invites || [];
@@ -70,27 +85,11 @@ function getOutgoingInvitations(miner) {
 function getIncomingInvitations(miner) {
   return models.Invite.findByToUserId(miner.user.id, {
     deep: 1,
-    excludeRejected: 1
+    excludeClosed: 1
   })
   .then(function(invites) {
     return miner.incomingInvitations = invites || [];
   })
-}
-
-function getIncomingMessages(miner) {
-  return models.Message.findByReceiver(miner.user.id, { deep: 1 })
-  .then(function(messages) {
-    if (messages) {
-      for (var i = 0; i < messages.length; ++i) {
-        var msg = messages[i];
-        var other = openOther(miner, msg.fromUser);
-        if (!other.incomingMessage) {
-          other.incomingMessage = msg;
-        }
-      }
-    }
-    return null;   // avoid dangling promise warnings
-  });
 }
 
 Miner.prototype.run = function() {
@@ -100,8 +99,7 @@ Miner.prototype.run = function() {
     getAnnouncements,
     getConnections,
     getOutgoingInvitations,
-    getIncomingInvitations,
-    getIncomingMessages
+    getIncomingInvitations
   ])
 }
 

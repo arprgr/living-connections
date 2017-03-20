@@ -28,4 +28,13 @@ router.post("/", function(req, res) {
   }))
 });
 
+if (process.env.NODE_ENV == "test") {
+  // Delete all
+  router.delete("/", function(req, res) {
+    res.jsonResultOf(new Promise(function(resolve) {
+      resolve(EmailProfile.destroyAll());
+    }))
+  });
+}
+
 module.exports = router;

@@ -78,13 +78,16 @@ module.exports = function(sequelize, DataTypes) {
         model: models.Asset,
         as: "asset"
       }, {
+        model: models.EmailSessionSeed,
+        as: "ticket"
+      }, {
         model: models.User,
         as: "fromUser"
       }]
     }
-    if (options.excludeRejected) {
+    if (options.excludeClosed) {
       if (!query.where) query.where = {};
-      query.where.state = { "$ne": STATE_REJECTED };
+      query.where.state = { "$in": [ 0, 1 ] };
     }
     return query;
   }

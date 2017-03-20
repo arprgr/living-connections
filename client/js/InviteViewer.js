@@ -1,7 +1,7 @@
 // InviteViewer.js - Invitation Viewer component
 
-define([ "jquery", "activityui", "ui/index", "actionitem", "services" ],
-function($,        Activity,     ui,         ActionItem,   Services) {
+define([ "jquery", "Activity", "ui/index", "ActionItem", "services" ],
+function($,        Activity,     ui,       ActionItem,   Services) {
 
   var Button = ui.Button;
   var VideoPlayer = ui.Video;

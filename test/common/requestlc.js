@@ -107,24 +107,49 @@ function makeRequest(method, uri) {
   }
 }
 
+// Empty the entire database. 
+function wipe() {
+  return makeRequest("DELETE", "/api/connections").asRoot().go()
+  .then(function(expector) {
+    expector.expectStatusCode(200);
+    return makeRequest("DELETE", "/api/emailprofiles").asRoot().go();
+  })
+  .then(function(expector) {
+    expector.expectStatusCode(200);
+    return makeRequest("DELETE", "/api/invites").asRoot().go();
+  })
+  .then(function(expector) {
+    expector.expectStatusCode(200);
+    return makeRequest("DELETE", "/api/messages").asRoot().go();
+  })
+  .then(function(expector) {
+    expector.expectStatusCode(200);
+    return makeRequest("DELETE", "/api/users").asRoot().go();
+  })
+  .then(function(expector) {
+    expector.expectStatusCode(200);
+    return makeRequest("DELETE", "/api/tickets").asRoot().go();
+  })
+  .then(function(expector) {
+    expector.expectStatusCode(200);
+    return makeRequest("DELETE", "/api/reminders").asRoot().go();
+  })
+  .then(function(expector) {
+    expector.expectStatusCode(200);
+  });
+}
+
 module.exports = {
   describe: function(title, describer) {
 
-    function wipe() {
-      return makeRequest("GET", "/admin/wipe").asRoot().go()
-      .then(function(expector) {
-        expector.expectStatusCode(200);
-      });
-    }
-
     describe(title, function() {
       describer({
-        makeRequest: makeRequest
+        makeRequest: makeRequest,
+        wipeDb: wipe
       });
 
       afterEach(function(done) {
-        wipe()
-        .then(function() {
+        wipe().then(function() {
           return done();
         })
         .catch(done);
