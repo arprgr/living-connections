@@ -13,12 +13,19 @@ module.exports = function(sequelize, DataTypes) {
   const REMINDER_TYPE = 5;
   const MAX_TYPE = 5;
 
+  const MESSAGE_STATE_UNCHECKED = 0;
+  const MESSAGE_STATE_UNREAD = 1;
+  const MESSAGE_STATE_REMINDER_SENT = 2;
+  const MESSAGE_STATE_VIEWED = 3;
+
+
   function schema() {
     return {
       endDate: DataTypes.DATE,
       startDate: DataTypes.DATE,
       type: DataTypes.INTEGER,
-      status: DataTypes.INTEGER
+      status: DataTypes.INTEGER,
+      state: DataTypes.INTEGER
     }
   }
 
