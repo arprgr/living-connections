@@ -3,6 +3,8 @@
 const Message = require("../models/index").Message;
 const Connection = require("../models/index").Connection;
 const ApiValidator = require("./api_validator");
+const UserMessageEvents = require("../models/index").UserMessageEvents;
+
 const Promise = require("promise");
 
 const DEFAULT_ANNOUNCEMENT_DURATION = 14*24*60*60*1000;   // 14 days
@@ -26,6 +28,12 @@ const VALIDATOR = new ApiValidator({
     defaultValue: 0,
     maxValue: Message.MAX_TYPE,
     minValue: 0,
+    type: "integer"
+  },
+  state: {
+    defaultValue: 0,
+    maxValue: Message.MESSAGE_STATE_VIEWED,
+    minValue: Message.MESSAGE_STATE_UNCHECKED,
     type: "integer"
   }
 });
@@ -114,6 +122,42 @@ router.post("/", function(req, res) {
     resolve(Message.create(fields));
   }))
 });
+
+//Create Message Viewed Event
+router.put("/createMessageViewedEvent/:id", function(req, res) {
+  res.jsonResultOf(new Promise(function(resolve) {
+    var fields = VALIDATOR.prevalidateUpdate(req.body);
+    resolve(Message.findById(req.params.id)
+      .then(function(message) {
+        if (!message) {
+          throw { status: 404 };
+        }
+        fields = VALIDATOR.postvalidateUpdate(message, fields);
+        if (!fields) {
+          return message;
+        } else {
+        return UserMessageEvents.create({
+        type: 'open',
+        clientTime: Date.now(),
+        fromUserId: message.fromUserId,
+        toUserId: message.toUserId,
+        messageId : message.id
+     })
+     .then(function(userMessageEvent) {
+      if(!userMessageEvent) {
+        throw {status: 401};
+      }
+      else {
+          return message.updateAttributes(fields);
+        }
+      })
+      };
+      })
+    );
+  }))
+});
+
+
 
 // Update message by ID.
 router.put("/:id", function(req, res) {
