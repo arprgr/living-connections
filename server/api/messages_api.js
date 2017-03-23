@@ -123,42 +123,6 @@ router.post("/", function(req, res) {
   }))
 });
 
-//Create Message Viewed Event
-router.put("/createMessageViewedEvent/:id", function(req, res) {
-  res.jsonResultOf(new Promise(function(resolve) {
-    var fields = VALIDATOR.prevalidateUpdate(req.body);
-    resolve(Message.findById(req.params.id)
-      .then(function(message) {
-        if (!message) {
-          throw { status: 404 };
-        }
-        fields = VALIDATOR.postvalidateUpdate(message, fields);
-        if (!fields) {
-          return message;
-        } else {
-        return UserMessageEvents.create({
-        type: 'open',
-        clientTime: Date.now(),
-        fromUserId: message.fromUserId,
-        toUserId: message.toUserId,
-        messageId : message.id
-     })
-     .then(function(userMessageEvent) {
-      if(!userMessageEvent) {
-        throw {status: 401};
-      }
-      else {
-          return message.updateAttributes(fields);
-        }
-      })
-      };
-      })
-    );
-  }))
-});
-
-
-
 // Update message by ID.
 router.put("/:id", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
