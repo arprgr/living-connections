@@ -204,6 +204,16 @@ module.exports = function(sequelize, DataTypes) {
     }, options);
   }
 
+  function findUnreadMessages(options) {
+   return Message.findAll({
+      where: { 
+        "state": { "$in": [ MESSAGE_STATE_UNCHECKED, MESSAGE_STATE_UNREAD ] },
+        "type": REMINDER_TYPE},
+      include: includes(options), 
+      order: [ [ "createdAt", "ASC" ] ]
+    })
+  }
+
   function findThread(u1, u2, options) {
     return findAllWhere({
       "type": { "$in": [ GREETING_TYPE, INVITE_TYPE ] },
@@ -241,6 +251,7 @@ module.exports = function(sequelize, DataTypes) {
       findCurrentRemindersforSender: findCurrentRemindersforSender,
       findById: findById,
       findByReceiver: findByReceiver,
+      findUnreadMessages: findUnreadMessages,
       findThread: findThread
     }
   });

@@ -18,7 +18,7 @@ module.exports = function(sequelize, DataTypes) {
     return {
       model: models.Message,
       as: associationName,
-      attributes: [ "id" ]
+      attributes: [ "id", "fromUserId", "toUserId" ]
     }
   }
  
@@ -32,8 +32,7 @@ module.exports = function(sequelize, DataTypes) {
 
   function associate(_models) {
     models = _models;
-    UserMessageEvents.belongsTo(models.User, { as: "toUser" });
-    UserMessageEvents.belongsTo(models.User, { as: "fromUser" });
+    UserMessageEvents.belongsTo(models.User, { as: "user" });
     UserMessageEvents.belongsTo(models.Message, { as: "message" });
   }
 
@@ -42,20 +41,15 @@ module.exports = function(sequelize, DataTypes) {
     var associations = {};
     return {
       seed: function(seed) {
-        values.fromUserId = seed.fromUserId;
-        if ("toUserId" in seed) {
-          values.toUserId = seed.toUserId;
+        values.userId = seed.userId;
+        if ("userId" in seed) {
+          values.userId = seed.userId;
         }
         return this;
       },
-      fromUser: function(fromUser) {
-        values.fromUserId = fromUser.id;
-        associations.fromUser = fromUser;
-        return this;
-      },
-      toUser: function(toUser) {
-        values.toUserId = toUser.id;
-        associations.toUser = toUser;
+      user: function(user) {
+        values.userId = user.id;
+        associations.user = user;
         return this;
       },
       type: function(type) {
@@ -75,8 +69,7 @@ module.exports = function(sequelize, DataTypes) {
   function includes(options) {
     var includes = [];
     if (options && options.deep) {
-      includes.push(includeUser("toUser"));
-      includes.push(includeUser("fromUser"));
+      includes.push(includeUser("user"));
       includes.push(includeMessage("message"));
     }
     return includes;
@@ -98,51 +91,18 @@ module.exports = function(sequelize, DataTypes) {
     return UserMessageEvents.findAll(query);
   }
 
- function findReadMessageEventsForUser(toUserId) {
+ function findReadMessageEventsForUser(userId, messageId, options) {
      return UserMessageEvents.findAll({
-      where: { toUserId: toUserId, type: 'open' },
-      include: [{
-        model: models.User,
-        as: "fromUser",
-        required: true
-      }],
-      include: [{
-        model: models.User,
-        as: "toUser",
-        required: true
-      },
-      {
-        model: models.Message,
-        as: "message"
-      }],
+      where: { userId: userId, messageId: messageId },
+      include: includes(options),
       order: [ [ "createdAt", "ASC" ] ]
     })
  }
 
- function findReadMessageEventsForSender(fromUserId) {
-     return UserMessageEvents.findAll({
-      where: { fromUserId: fromUserId, type: 'open' },
-      include: [{
-        model: models.User,
-        as: "fromUser",
-        required: true
-      }],
-      include: [{
-        model: models.User,
-        as: "toUser",
-        required: true
-      },
-      {
-        model: models.Message,
-        as: "message"
-      }],
-      order: [ [ "createdAt", "ASC" ] ]
-    })
- }
 
   function findByReceiver(toUserId, options) {
     return findAllWhere({
-      "toUserId": toUserId
+      "userId": toUserId
     }, options);
   }
 
@@ -166,7 +126,6 @@ module.exports = function(sequelize, DataTypes) {
       destroyAll: destroyAll,
       destroyById: destroyById,
       findReadMessageEventsForUser: findReadMessageEventsForUser,
-      findReadMessageEventsForSender: findReadMessageEventsForSender,
       findById: findById,
       findByReceiver: findByReceiver
     }
