@@ -14,9 +14,7 @@ const VALIDATOR = new ApiValidator({
   }
 });
 
-/* GET users listing. */
-
-
+/* GET events related to a speficic user for a specific message. */
 router.get("/user/:userId/message/:messageId", function(req, res) {	
   res.jsonResultOf(UserMessageEvents.findReadMessageEventsForUser(req.params.userId, req.params.messageId, { deep: true })
   .then(function(usermesageevents) {
@@ -31,8 +29,23 @@ router.get("/user/:userId/message/:messageId", function(req, res) {
   }));
 });
 
+/* GET events related to a speficic user for a specific message. */
+router.get("/allunread", function(req, res) { 
+  res.jsonResultOf(Message.findUnreadMessages({ deep: true })
+  .then(function(messages) {
+    if (!messages) {
+      throw { status: 404 };
+    }
+    // A message may be viewed only by the sender, the receiver, or an admin.
+    if (!req.isAdmin && req.user.id != messages.fromUserId && req.user.id != messages.toUserId) {
+      throw { status: 401 };
+    }
+    return messages;
+  }));
+});
+
 //Create Message Viewed Event
-router.put("/newMessageViewedEvent/:id", function(req, res) {
+router.post("/newMessageViewedEvent/:id", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
     var fields = VALIDATOR.prevalidateUpdate(req.body);
     resolve(Message.findById(req.params.id)
@@ -44,11 +57,11 @@ router.put("/newMessageViewedEvent/:id", function(req, res) {
         if (!fields) {
           return message;
         } else {
+        var userId = (message.toUserId === null) ? req.user.id : message.toUserId ;  
         return UserMessageEvents.create({
         type: 'open',
         clientTime: Date.now(),
-        fromUserId: message.fromUserId,
-        toUserId: message.toUserId,
+        userId: userId,
         messageId : message.id
      })
      .then(function(userMessageEvent) {
