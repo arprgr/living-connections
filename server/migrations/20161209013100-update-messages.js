@@ -15,12 +15,6 @@ module.exports = {
         type: Sequelize.INTEGER
       });
     }).then(function() {
-      return queryInterface.addColumn('Messages', 'state', {
-        allowNull: false,
-        defaultValue: 0,
-        type: Sequelize.INTEGER
-      });
-    }).then(function() {
       return queryInterface.changeColumn('Messages', 'type', {
         allowNull: false,
         defaultValue: 0,
@@ -40,8 +34,6 @@ module.exports = {
       return queryInterface.removeColumn('Messages', 'toUserId');
     }).then(function() {
       return queryInterface.removeColumn('Messages', 'assetId');
-    }).then(function() {
-      return queryInterface.removeColumn('Messages', 'state');
     })
   }
 };

@@ -1,14 +1,9 @@
 'use strict';
 module.exports = {
   up: function(queryInterface, Sequelize) {
-    return queryInterface.addColumn('UserMessageEvents', 'fromUserId', {
+    return queryInterface.addColumn('UserMessageEvents', 'userId', {
       allowNull: false,
       type: Sequelize.INTEGER
-    }).then(function() {
-      return queryInterface.addColumn('UserMessageEvents', 'toUserId', {
-        allowNull: false,
-        type: Sequelize.INTEGER
-      });
     }).then(function() {
       return queryInterface.addColumn('UserMessageEvents', 'messageId', {
         allowNull: false,
@@ -17,10 +12,8 @@ module.exports = {
     })
   },
   down: function(queryInterface, Sequelize) {
-    return queryInterface.removeColumn('UserMessageEvents', 'fromUserId')
+    return queryInterface.removeColumn('UserMessageEvents', 'userId')
     .then(function() {
-      return queryInterface.removeColumn('UserMessageEvents', 'toUserId');
-    }).then(function() {
       return queryInterface.removeColumn('UserMessageEvents', 'messageId');
     })
   }
