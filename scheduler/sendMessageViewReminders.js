@@ -35,6 +35,10 @@ function applyTimeZone(moment, timeZone) {
 }
 
 function yetDue(createdAt, now) {
+         console.log('createdAt:' + createdAt);
+         console.log('now:' + now);
+         console.log('difference in minutes:' + now.diff(createdAt, "minutes"));
+
         return now.diff(createdAt, "minutes") >= VIEW_EXCEPTION;
 }
 
@@ -102,8 +106,9 @@ function mapToReminderSenders(remindersToSend, req, messagesSent) {
   return result;
 }
 
-function processMessages(req) {
-  var rightNow = Moment(Date.now());
+function processMessages(req, rightNow) {
+
+  var rightNow = Moment(rightNow);
   return new Promise(function(resolve) {
     var activeReminders = [];
     var messagesSent = [];
