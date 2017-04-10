@@ -25,7 +25,8 @@ module.exports = function(sequelize, DataTypes) {
       startDate: DataTypes.DATE,
       type: DataTypes.INTEGER,
       status: DataTypes.INTEGER,
-      state: DataTypes.INTEGER
+      state: DataTypes.INTEGER,
+      createdAt: DataTypes.DATE
     }
   }
 
@@ -207,8 +208,7 @@ module.exports = function(sequelize, DataTypes) {
   function findUnreadMessages(options) {
    return Message.findAll({
       where: { 
-        "state": { "$in": [ MESSAGE_STATE_UNCHECKED, MESSAGE_STATE_UNREAD ] },
-        "type": REMINDER_TYPE},
+        "state": { "$in": [ MESSAGE_STATE_UNCHECKED, MESSAGE_STATE_UNREAD ] }},
       include: includes(options), 
       order: [ [ "createdAt", "ASC" ] ]
     })
