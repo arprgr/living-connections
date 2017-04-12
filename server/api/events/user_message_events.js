@@ -6,11 +6,14 @@ const UserMessageEvents = require("../../models/index").UserMessageEvents;
 const Message = require("../../models/index").Message;
 
 const VALIDATOR = new ApiValidator({
-  state: {
-    defaultValue: 0,
-    maxValue: Message.MESSAGE_STATE_VIEWED,
-    minValue: Message.MESSAGE_STATE_UNCHECKED,
+  messageId : {
     type: "integer"
+  },
+  clientTime : {
+    type: "date"
+  },
+  type : {
+    type: "string"
   }
 });
 
@@ -45,10 +48,10 @@ router.get("/allunread", function(req, res) {
 });
 
 //Create Message Viewed Event
-router.post("/newMessageViewedEvent/:id", function(req, res) {
+router.post("/newMessageViewedEvent", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
     var fields = VALIDATOR.prevalidateUpdate(req.body);
-    resolve(Message.findById(req.params.id)
+    resolve(Message.findById(req.body.messageId)
       .then(function(message) {
         if (!message) {
           throw { status: 404 };
@@ -57,18 +60,14 @@ router.post("/newMessageViewedEvent/:id", function(req, res) {
         if (!fields) {
           return message;
         } else {
-        var userId = (message.toUserId === null) ? req.user.id : message.toUserId ;  
-        return UserMessageEvents.create({
-        type: 'open',
-        clientTime: Date.now(),
-        userId: userId,
-        messageId : message.id
-     })
+        fields.userId = (message.toUserId === null) ? req.user.id : message.toUserId ;  
+        return UserMessageEvents.create(fields)
      .then(function(userMessageEvent) {
       if(!userMessageEvent) {
         throw {status: 401};
       }
       else {
+           fields={state:3};
           return message.updateAttributes(fields);
         }
       })
