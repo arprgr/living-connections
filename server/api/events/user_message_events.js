@@ -24,8 +24,8 @@ router.get("/user/:userId/message/:messageId", function(req, res) {
     if (!usermesageevents) {
       throw { status: 404 };
     }
-    // A message may be viewed only by the sender, the receiver, or an admin.
-    if (!req.isAdmin && req.user.id != usermesageevents.fromUserId && req.user.id != usermesageevents.toUserId) {
+    // A message may be viewed only the admin.
+    if (!req.isAdmin) {
       throw { status: 401 };
     }
     return usermesageevents;
@@ -39,16 +39,16 @@ router.get("/allunread", function(req, res) {
     if (!messages) {
       throw { status: 404 };
     }
-    // A message may be viewed only by the sender, the receiver, or an admin.
-    if (!req.isAdmin && req.user.id != messages.fromUserId && req.user.id != messages.toUserId) {
+    // A message may be viewed only the admin.
+    if (!req.isAdmin) {
       throw { status: 401 };
     }
     return messages;
   }));
 });
 
-//Create Message Viewed Event
-router.post("/newMessageViewedEvent", function(req, res) {
+//New Event Log, will log events with details provided via json object, will require message id, client time and the even type
+router.post("/newEventLog", function(req, res) {
   res.jsonResultOf(new Promise(function(resolve) {
     var fields = VALIDATOR.prevalidateUpdate(req.body);
     resolve(Message.findById(req.body.messageId)
